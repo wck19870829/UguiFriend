@@ -137,6 +137,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1817941209251c4ea9145e5e8a08587, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dayGrid: {fileID: 0}
+  weekGrid: {fileID: 0}
+  m_Config: {fileID: 0}
+  nextMonthButton: {fileID: 0}
+  prevMonthButton: {fileID: 0}
 --- !u!114 &560003390
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -149,7 +154,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 0.1397059, g: 0.1397059, b: 0.1397059, a: 0.392}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
