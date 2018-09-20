@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using System.Collections.Generic;
 
 namespace RedScarf.UguiFriend
 {
     /// <summary>
-    /// 日历配置文件
+    /// 配置文件
     /// </summary>
     public class CalendarConfig:MonoBehaviour
     {
@@ -21,8 +22,9 @@ namespace RedScarf.UguiFriend
         public string sunday;
 
         [Header("Date Mark")]
-        public DateMarkOnce[] once;
-
+        public List<DateMarkOnce> once;
+        public List<DateMarkLoopWeek> weekLoop;
+        public List<DateMarkLoopYear> yearLoop;
 
         public virtual string GetMarks(DateTime date)
         {
@@ -32,11 +34,13 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 日期标记基类
         /// </summary>
-        public class DateMarkBase
+        public abstract class DateMarkBase
         {
-            public string mark;
+            public string mark;         //标记，可以为节日，纪念日...
+            public bool isDayOff;       //是否休息日
         }
 
+        [Serializable]
         /// <summary>
         /// 只重复一次
         /// </summary>
@@ -47,6 +51,7 @@ namespace RedScarf.UguiFriend
             public int day;
         }
 
+        [Serializable]
         /// <summary>
         /// 每周某天重复
         /// </summary>
@@ -55,12 +60,14 @@ namespace RedScarf.UguiFriend
             public DayOfWeek day;
         }
 
+        [Serializable]
         /// <summary>
         /// 每年重复
         /// </summary>
         public class DateMarkLoopYear : DateMarkBase
         {
-
+            public int month;
+            public int day;
         }
     }
 }

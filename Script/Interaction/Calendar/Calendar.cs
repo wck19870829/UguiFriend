@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine.UI;
 using System;
+using System.Collections.Generic;
 
 namespace RedScarf.UguiFriend
 {
@@ -10,7 +11,9 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class Calendar: MonoBehaviour
     {
-        const int weekCount = 7;
+        const int daysOfWeek = 7;
+        const int dayLine=5;
+        const int daysDisplayCount = daysOfWeek * dayLine;
 
         [SerializeField]protected GridLayoutGroup dayGrid;
         [SerializeField]protected GridLayoutGroup weekGrid;
@@ -40,14 +43,17 @@ namespace RedScarf.UguiFriend
 
         protected virtual void OnEnabled()
         {
-
+            if (m_Config != null)
+            {
+                Init(m_Config);
+            }
         }
 
         /// <summary>
         /// 初始化
         /// </summary>
         /// <param name="config"></param>
-        public void Init(CalendarConfig config)
+        public virtual void Init(CalendarConfig config)
         {
             if (config == null)
             {
@@ -62,7 +68,7 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 下一月
         /// </summary>
-        public void NextMonth()
+        public virtual void NextMonth()
         {
 
         }
@@ -70,7 +76,7 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 上一月
         /// </summary>
-        public void PrevMonth()
+        public virtual void PrevMonth()
         {
 
         }
@@ -80,19 +86,35 @@ namespace RedScarf.UguiFriend
         /// </summary>
         /// <param name="year"></param>
         /// <param name="month"></param>
-        public void Goto(int year,int month)
+        public virtual void Goto(int year,int month)
         {
-
-
+            m_CurrentMonth = month;
+            m_CurrentYear = year;
             Rebuild();
         }
 
-        void Rebuild()
+        /// <summary>
+        /// 重建视图
+        /// </summary>
+        protected virtual void Rebuild()
         {
             if (m_Config == null) return;
+            if (dayGrid == null) return;
 
+            dayGrid.startAxis = GridLayoutGroup.Axis.Horizontal;
+            dayGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            dayGrid.constraintCount = daysOfWeek;
             var start = new DateTime(m_CurrentYear, m_CurrentMonth, 1);
             var end = start.AddMonths(1).AddDays(-1);
+            var startBlank = Mathf.Abs(start.DayOfWeek - m_Config.weekStart);
+
+            var dateItemList = new List<CalendarDateInfo>();
+            for (var i=0;i< daysDisplayCount;i++)
+            {
+                var date = new DateTime();
+                var info = new CalendarDateInfo(date);
+            }
+
         }
 
         /// <summary>
