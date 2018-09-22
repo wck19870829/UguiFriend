@@ -15,7 +15,7 @@ namespace RedScarf.UguiFriend
         const int dayLine=5;
         const int daysDisplayCount = daysOfWeek * dayLine;
 
-        public bool isGotoNowWhenEnabled=true;
+        public bool isGotoNowWhenEnable=true;
         [SerializeField]protected GridLayoutGroup dayGrid;
         [SerializeField]protected GridLayoutGroup weekGrid;
         [SerializeField]protected CalendarConfig m_Config;
@@ -42,12 +42,12 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        protected virtual void OnEnabled()
+        protected virtual void OnEnable()
         {
             if (m_Config != null)
             {
                 Init(m_Config);
-                if(isGotoNowWhenEnabled)
+                if(isGotoNowWhenEnable)
                     Goto(DateTime.UtcNow.Year, DateTime.UtcNow.Month);
             }
         }

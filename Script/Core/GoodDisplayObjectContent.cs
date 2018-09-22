@@ -13,15 +13,59 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class GoodDisplayObjectContent:DisplayObjectContent
     {
-        /// <summary>
-        /// 创建
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="dataList"></param>
-        /// <param name="scale"></param>
-        public override void Create<T>(List<T> dataList)
-        {
+        public Vector2 spacine = new Vector2(100,100);
+        public Axis startAxis=Axis.Horizontal;
+        public int constraintCount;
 
+        public override void Create(List<DisplayObjectData> dataList)
+        {
+            m_DataList = dataList;
+        }
+
+        protected virtual void Update()
+        {
+            Checker();
+        }
+
+        public override List<DisplayObject> Children
+        {
+            get
+            {
+                Debug.LogErrorFormat("不应当使用此属性.");
+                return null;
+            }
+        }
+
+        protected void Checker()
+        {
+            if (m_DataList==null) return;
+            if (!container) return;
+
+            var index = 0;
+            switch (startAxis)
+            {
+                case Axis.Horizontal:
+                    foreach (var data in m_DataList)
+                    {
+
+                        index++;
+                    }
+                    break;
+
+                case Axis.Vertical:
+                    foreach (var data in m_DataList)
+                    {
+
+                        index++;
+                    }
+                    break;
+            }
+        }
+
+        public enum Axis
+        {
+            Horizontal = 0,
+            Vertical = 1
         }
     }
 }

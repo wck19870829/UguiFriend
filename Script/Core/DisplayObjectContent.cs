@@ -12,9 +12,11 @@ namespace RedScarf.UguiFriend
     {
         [SerializeField]protected Transform container;
         protected List<DisplayObject> m_Children;
+        protected List<DisplayObjectData> m_DataList;
         protected Transform pool;
         protected List<DisplayObject> poolList;
         bool m_Init;
+        DisplayObject ui;
 
         protected virtual void Awake()
         {
@@ -29,8 +31,8 @@ namespace RedScarf.UguiFriend
                 poolList = new List<DisplayObject>();
                 pool = new GameObject("Pool").transform;
                 pool.SetParent(transform.parent);
-                pool.gameObject.SetActive(false);
-                if (container == null) container = transform;
+                pool.transform.position = new Vector3(99999, 99999,99999);
+                if (!container)container = transform;
 
                  m_Init = true;
             }
@@ -39,13 +41,14 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 创建
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="dataList"></param>
-        public virtual void Create<T>(List<T>dataList)where T:DisplayObjectData
+        public virtual void Create(List<DisplayObjectData> dataList)
         {
-            Init();
+            m_DataList = dataList;
 
+            Init();
             PushAll2Pool();
+
             foreach (var data in dataList)
             {
                 var ui = Get(data);
@@ -66,7 +69,6 @@ namespace RedScarf.UguiFriend
 
         protected virtual DisplayObject Get(DisplayObjectData data)
         {
-            DisplayObject ui = null;
             var bindingInfo = DisplayObject.GetBindingInfo(data);
             if (bindingInfo != null)
             {
@@ -102,11 +104,22 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 子元素
         /// </summary>
-        public List<DisplayObject> Children
+        public virtual List<DisplayObject> Children
         {
             get
             {
                 return m_Children;
+            }
+        }
+
+        /// <summary>
+        /// 数据列表
+        /// </summary>
+        public List<DisplayObjectData> DataList
+        {
+            get
+            {
+                return m_DataList;
             }
         }
     }

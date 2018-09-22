@@ -9,17 +9,25 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 时间拾取器
     /// </summary>
-    public class TimePicker
+    public class TimePicker:MonoBehaviour
     {
-        public bool isGotoNowWhenEnabled = true;
-        [SerializeField] protected DisplayObjectContainer hourItem;
-        [SerializeField] protected DisplayObjectContainer minuteItem;
+        public bool isGotoNowWhenEnable = true;
+        [SerializeField] protected DisplayObjectContent hourItem;
+        [SerializeField] protected DisplayObjectContent minuteItem;
         int m_CurrentHour;
         int m_CurrentMinute;
 
-        protected virtual void OnEnabled()
+        protected virtual void OnEnable()
         {
-            if (isGotoNowWhenEnabled)
+            var now = DateTime.Now;
+            for (var i=0;i<1000;i++)
+            {
+                var game = new GameObject(i+"_");
+                game.transform.SetParent(transform);
+            }
+            Debug.Log((DateTime.Now-now).TotalMilliseconds);
+
+            if (isGotoNowWhenEnable)
             {
 
             }
