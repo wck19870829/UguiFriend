@@ -8,16 +8,16 @@ using UnityEngine.UI;
 namespace RedScarf.UguiFriend
 {
     /// <summary>
-    /// 优化的DisplayObject容器
+    /// 优化的UguiWidget容器
     /// 元素会重复使用,适用于背包等需要创建大量物体的容器
     /// </summary>
-    public class GoodDisplayObjectContent:DisplayObjectContent
+    public class GoodUguiWidgetContent : UguiWidgetContent
     {
         public Vector2 spacine = new Vector2(100,100);
         public Axis startAxis=Axis.Horizontal;
         public int constraintCount;
 
-        public override void Create(List<DisplayObjectData> dataList)
+        public override void Create(List<UguiWidgetData> dataList)
         {
             m_DataList = dataList;
         }
@@ -27,7 +27,7 @@ namespace RedScarf.UguiFriend
             Checker();
         }
 
-        public override List<DisplayObject> Children
+        public override List<UguiWidget> Children
         {
             get
             {

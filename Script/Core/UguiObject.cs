@@ -6,25 +6,25 @@ using System.Collections.Generic;
 namespace RedScarf.UguiFriend
 {
     /// <summary>
-    /// 显示元素的基类
+    /// 显示对象基类
     /// </summary>
-    public abstract class DisplayObject : MonoBehaviour
+    public abstract class UguiObject : MonoBehaviour
     {
         const string openAnim = "Open";
         const string closeAnim = "Close";
         const string refreshViewFunc = "RefreshViewDelay";
         static readonly Dictionary<Type, BindingAttribute> bindingDict;           //绑定信息
 
-        protected DisplayObjectData m_Data;
+        protected UguiObjectData m_Data;
         internal bool isOpen;
         Animator m_Anim;
 
-        static DisplayObject()
+        static UguiObject()
         {
             bindingDict = new Dictionary<Type, BindingAttribute>();
 
             var bindingType = typeof(BindingAttribute);
-            var baseType = typeof(DisplayObjectData);
+            var baseType = typeof(UguiObjectData);
             foreach (var type in baseType.Assembly.GetTypes())
             {
                 if (type.IsAbstract) continue;
@@ -91,7 +91,7 @@ namespace RedScarf.UguiFriend
         /// 打开
         /// </summary>
         /// <param name="state"></param>
-        public virtual void Open(DisplayObjectData state)
+        public virtual void Open(UguiObjectData state)
         {
             Data = state;
             Open();
@@ -105,7 +105,7 @@ namespace RedScarf.UguiFriend
             m_Anim.Play(anim, 0, 0);
         }
 
-        public DisplayObjectData Data
+        public UguiObjectData Data
         {
             get
             {
@@ -117,7 +117,7 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        protected virtual bool SetData(DisplayObjectData value)
+        protected virtual bool SetData(UguiObjectData value)
         {
             if (value == null)
             {
@@ -136,7 +136,7 @@ namespace RedScarf.UguiFriend
             return true;
         }
 
-        public T GetData<T>() where T : DisplayObjectData
+        public T GetData<T>() where T : UguiObjectData
         {
             if (m_Data == null) return null;
 
@@ -147,7 +147,7 @@ namespace RedScarf.UguiFriend
         /// 获取快照
         /// </summary>
         /// <returns></returns>
-        public virtual DisplayObjectData StateSnapshot()
+        public virtual UguiObjectData StateSnapshot()
         {
             if (m_Data != null)
             {
@@ -194,7 +194,7 @@ namespace RedScarf.UguiFriend
         /// <param name="data"></param>
         /// <param name="parent"></param>
         /// <returns></returns>
-        public static DisplayObject GetInstanceElementByData(DisplayObjectData data, Transform parent = null)
+        public static UguiObject GetInstanceElementByData(UguiObjectData data, Transform parent = null)
         {
             if (data == null)
             {
@@ -208,7 +208,7 @@ namespace RedScarf.UguiFriend
                 if (!string.IsNullOrEmpty(bindingInfo.prefabPath))
                 {
                     var source = data.GetUIPrefabSource();
-                    var clone = GameObject.Instantiate<DisplayObject>(source);
+                    var clone = GameObject.Instantiate<UguiObject>(source);
                     if (parent != null) clone.transform.SetParent(parent);
                     clone.Data = data;
                     clone.transform.localPosition = Vector3.zero;
@@ -227,7 +227,7 @@ namespace RedScarf.UguiFriend
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static BindingAttribute GetBindingInfo(DisplayObjectData data)
+        public static BindingAttribute GetBindingInfo(UguiObjectData data)
         {
             if (bindingDict.ContainsKey(data.GetType()))
             {
@@ -244,24 +244,24 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// UI元素数据基类
     /// </summary>
-    public abstract class DisplayObjectData
+    public abstract class UguiObjectData
     {
         public long id;
 
-        public DisplayObjectData()
+        public UguiObjectData()
         {
 
         }
 
-        public DisplayObjectData(long id)
+        public UguiObjectData(long id)
             : this()
         {
             this.id = id;
         }
 
-        public virtual DisplayObjectData DeepClone()
+        public virtual UguiObjectData DeepClone()
         {
-            return this.MemberwiseClone() as DisplayObjectData;
+            return this.MemberwiseClone() as UguiObjectData;
         }
 
         /// <summary>
@@ -270,11 +270,11 @@ namespace RedScarf.UguiFriend
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public virtual DisplayObject GetUIPrefabSource()
+        public virtual UguiObject GetUIPrefabSource()
         {
-            var bindInfo = DisplayObject.GetBindingInfo(this);
+            var bindInfo = UguiObject.GetBindingInfo(this);
 
-            return Resources.Load<DisplayObject>(bindInfo.prefabPath);
+            return Resources.Load<UguiObject>(bindInfo.prefabPath);
         }
     }
 }

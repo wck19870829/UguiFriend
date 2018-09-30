@@ -7,7 +7,7 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// UI工具类
     /// </summary>
-    public class UITools
+    public class UguiTools
     {
         /// <summary>
         /// 销毁子元素

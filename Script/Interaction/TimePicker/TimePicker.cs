@@ -12,8 +12,8 @@ namespace RedScarf.UguiFriend
     public class TimePicker:MonoBehaviour
     {
         public bool isGotoNowWhenEnable = true;
-        [SerializeField] protected DisplayObjectContent hourItem;
-        [SerializeField] protected DisplayObjectContent minuteItem;
+        [SerializeField] protected UguiWidgetContent hourItem;
+        [SerializeField] protected UguiWidgetContent minuteItem;
         int m_CurrentHour;
         int m_CurrentMinute;
 
@@ -25,7 +25,6 @@ namespace RedScarf.UguiFriend
                 var game = new GameObject(i+"_");
                 game.transform.SetParent(transform);
             }
-            Debug.Log((DateTime.Now-now).TotalMilliseconds);
 
             if (isGotoNowWhenEnable)
             {

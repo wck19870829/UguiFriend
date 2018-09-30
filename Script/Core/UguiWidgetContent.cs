@@ -5,18 +5,18 @@ using UnityEngine;
 namespace RedScarf.UguiFriend
 {
     /// <summary>
-    /// 简单的DisplayObject元素容器
+    /// 简单的UguiWidget元素容器
     /// 适用于创建小容量的物体
     /// </summary>
-    public class DisplayObjectContent : MonoBehaviour
+    public class UguiWidgetContent : MonoBehaviour
     {
         [SerializeField]protected Transform container;
-        protected List<DisplayObject> m_Children;
-        protected List<DisplayObjectData> m_DataList;
+        protected List<UguiWidget> m_Children;
+        protected List<UguiWidgetData> m_DataList;
         protected Transform pool;
-        protected List<DisplayObject> poolList;
+        protected List<UguiWidget> poolList;
         bool m_Init;
-        DisplayObject ui;
+        UguiWidget ui;
 
         protected virtual void Awake()
         {
@@ -27,8 +27,8 @@ namespace RedScarf.UguiFriend
         {
             if (!m_Init)
             {
-                m_Children = new List<DisplayObject>();
-                poolList = new List<DisplayObject>();
+                m_Children = new List<UguiWidget>();
+                poolList = new List<UguiWidget>();
                 pool = new GameObject("Pool").transform;
                 pool.SetParent(transform.parent);
                 pool.transform.position = new Vector3(99999, 99999,99999);
@@ -42,7 +42,7 @@ namespace RedScarf.UguiFriend
         /// 创建
         /// </summary>
         /// <param name="dataList"></param>
-        public virtual void Create(List<DisplayObjectData> dataList)
+        public virtual void Create(List<UguiWidgetData> dataList)
         {
             m_DataList = dataList;
 
@@ -67,9 +67,9 @@ namespace RedScarf.UguiFriend
             m_Children.Clear();
         }
 
-        protected virtual DisplayObject Get(DisplayObjectData data)
+        protected virtual UguiWidget Get(UguiWidgetData data)
         {
-            var bindingInfo = DisplayObject.GetBindingInfo(data);
+            var bindingInfo = UguiWidget.GetBindingInfo(data);
             if (bindingInfo != null)
             {
                 foreach (var item in poolList)
@@ -91,7 +91,7 @@ namespace RedScarf.UguiFriend
             //实例化新的
             if (ui==null)
             {
-                ui = DisplayObject.GetInstanceElementByData(data);
+                ui = UguiWidget.GetInstanceElementByData(data) as UguiWidget;
                 if (ui == null)
                 {
                     Debug.LogErrorFormat("{0}数据未绑定到元素！", data);
@@ -104,7 +104,7 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 子元素
         /// </summary>
-        public virtual List<DisplayObject> Children
+        public virtual List<UguiWidget> Children
         {
             get
             {
@@ -115,7 +115,7 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 数据列表
         /// </summary>
-        public List<DisplayObjectData> DataList
+        public List<UguiWidgetData> DataList
         {
             get
             {
