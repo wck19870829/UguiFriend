@@ -5,14 +5,32 @@ using System.Collections.Generic;
 
 namespace RedScarf.UguiFriend
 {
+    [Serializable]
     /// <summary>
     /// 配置文件
     /// </summary>
-    public class CalendarConfig:MonoBehaviour
+    public class CalendarConfig: CalendarConfig<DateMarkOnce, DateMarkWeekAfterWeek, DateMarkYearAfterYear>
     {
-        public DayOfWeek weekStart;         //一周开始第一天
 
-        [Header("Week Name")]
+    }
+
+    [Serializable]
+    /// <summary>
+    /// 配置文件
+    /// </summary>
+    public class CalendarConfig<Once,WeekLoop,YearLoop>: MonoBehaviour, ISerializationCallbackReceiver
+        where Once:DateMarkOnce
+        where WeekLoop:DateMarkWeekAfterWeek
+        where YearLoop:DateMarkYearAfterYear
+    {
+        protected static int yearLoopYear;
+
+        [Header("Convention")]
+        [Tooltip("A week begins on the day of the week")]
+        public DayOfWeek weekBegins;
+        public DayOfWeek[] weekend;
+
+        [Header("Day of week")]
         public string monday;
         public string tuesday;
         public string wednesday;
@@ -20,54 +38,153 @@ namespace RedScarf.UguiFriend
         public string friday;
         public string saturday;
         public string sunday;
+        public Dictionary<DayOfWeek, string> dayOfWeekNameDict;
 
-        [Header("Date Mark")]
-        public List<DateMarkOnce> once;
-        public List<DateMarkLoopWeek> weekLoop;
-        public List<DateMarkLoopYear> yearLoop;
+        [Header("Date mark")]
+        public List<Once> once;
+        public List<WeekLoop> weekLoop;
+        public List<YearLoop> yearLoop;
+        protected Dictionary<DateTime, Once> onceDict;
+        protected Dictionary<DayOfWeek, WeekLoop> weekLoopDict;
+        protected Dictionary<DateTime, YearLoop> yearLoopDict;
 
-        public virtual string GetMarks(DateTime date)
+        static CalendarConfig()
         {
-            return string.Empty;
+            yearLoopYear = DateTime.MinValue.Year;
         }
 
         /// <summary>
-        /// 日期标记基类
+        /// 获取标记信息
         /// </summary>
-        public abstract class DateMarkBase
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public virtual DateMarkBase GetMark(DateTime dateTime)
         {
-            public string mark;         //标记，可以为节日，纪念日...
-            public bool isDayOff;       //是否休息日
+            var date = new DateTime(dateTime.Year, dateTime.Month, dateTime.Day);
+            if (onceDict.ContainsKey(date))
+            {
+                return onceDict[date];
+            }
+            if (weekLoopDict.ContainsKey(date.DayOfWeek))
+            {
+                return weekLoopDict[date.DayOfWeek];
+            }
+            var yearLoopDate = new DateTime(yearLoopYear,date.Month,date.Day);
+            if (yearLoopDict.ContainsKey(yearLoopDate))
+            {
+                return yearLoopDict[yearLoopDate];
+            }
+
+            return null;
         }
 
-        [Serializable]
-        /// <summary>
-        /// 只重复一次
-        /// </summary>
-        public class DateMarkOnce: DateMarkBase
+        public virtual void OnAfterDeserialize()
         {
-            public int year;
-            public int month;
-            public int day;
+            dayOfWeekNameDict = new Dictionary<DayOfWeek, string>() {
+                { DayOfWeek.Sunday, sunday},
+                { DayOfWeek.Monday, monday},
+                { DayOfWeek.Tuesday, tuesday},
+                { DayOfWeek.Wednesday, wednesday},
+                { DayOfWeek.Thursday, thursday},
+                { DayOfWeek.Friday, friday},
+                { DayOfWeek.Saturday, saturday}
+            };
+            onceDict = new Dictionary<DateTime, Once>(once.Count);
+            foreach (var mark in once)
+            {
+                try
+                {
+                    var dateTime = new DateTime(mark.year, mark.month, mark.day);
+                    if (!onceDict.ContainsKey(dateTime))
+                    {
+                        onceDict.Add(dateTime, mark);
+                    }
+                    else
+                    {
+                        Debug.LogErrorFormat("The date time exists!");
+                    }
+                }
+                catch (Exception e)
+                {
+
+                }
+            }
+            weekLoopDict = new Dictionary<DayOfWeek, WeekLoop>(weekLoop.Count);
+            foreach (var mark in weekLoop)
+            {
+                if (!weekLoopDict.ContainsKey(mark.dayOfWeek))
+                {
+                    weekLoopDict.Add(mark.dayOfWeek, mark);
+                }
+                else
+                {
+                    Debug.LogErrorFormat("The date time exists!");
+                }
+            }
+            yearLoopDict = new Dictionary<DateTime, YearLoop>(yearLoop.Count);
+            foreach (var mark in yearLoop)
+            {
+                try
+                {
+                    var dateTime = new DateTime(yearLoopYear, mark.month, mark.day);
+                    if (!yearLoopDict.ContainsKey(dateTime))
+                    {
+                        yearLoopDict.Add(dateTime, mark);
+                    }
+                    else
+                    {
+                        Debug.LogErrorFormat("The date time exists!");
+                    }
+                }
+                catch (Exception e)
+                {
+
+                }
+            }
         }
 
-        [Serializable]
-        /// <summary>
-        /// 每周某天重复
-        /// </summary>
-        public class DateMarkLoopWeek : DateMarkBase
+        public virtual void OnBeforeSerialize()
         {
-            public DayOfWeek day;
-        }
 
-        [Serializable]
-        /// <summary>
-        /// 每年重复
-        /// </summary>
-        public class DateMarkLoopYear : DateMarkBase
-        {
-            public int month;
-            public int day;
         }
+    }
+
+    /// <summary>
+    /// 日期标记基类
+    /// </summary>
+    public abstract class DateMarkBase
+    {
+        public string mark;                         //标记，可以为节日，纪念日...
+        public bool isHolidays;                     //是否节假日
+    }
+
+    [Serializable]
+    /// <summary>
+    /// 只重复一次
+    /// </summary>
+    public class DateMarkOnce : DateMarkBase
+    {
+        public int year;
+        public int month;
+        public int day;
+    }
+
+    [Serializable]
+    /// <summary>
+    /// 每周重复
+    /// </summary>
+    public class DateMarkWeekAfterWeek : DateMarkBase
+    {
+        public DayOfWeek dayOfWeek;
+    }
+
+    [Serializable]
+    /// <summary>
+    /// 每年重复
+    /// </summary>
+    public class DateMarkYearAfterYear : DateMarkBase
+    {
+        public int month;
+        public int day;
     }
 }

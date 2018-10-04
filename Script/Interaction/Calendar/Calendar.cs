@@ -9,36 +9,53 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 日历
     /// </summary>
-    public class Calendar: MonoBehaviour
+    public class Calendar : MonoBehaviour
     {
         const int daysOfWeek = 7;
-        const int dayLine=5;
+        const int dayLine = 5;
         const int daysDisplayCount = daysOfWeek * dayLine;
 
-        public bool isGotoNowWhenEnable=true;
-        [SerializeField]protected GridLayoutGroup dayGrid;
-        [SerializeField]protected GridLayoutGroup weekGrid;
-        [SerializeField]protected CalendarConfig m_Config;
-        [SerializeField]protected Button nextMonthButton;
-        [SerializeField]protected Button prevMonthButton;
-        int m_CurrentYear;
-        int m_CurrentMonth;
+        [Tooltip("Go to today when enable")]
+        public bool gotoToday = true;
+
+        [SerializeField] protected GridLayoutGroup dayGrid;
+        [SerializeField] protected GridLayoutGroup dayOfWeekGrid;
+        [SerializeField] protected Button nextMonthButton;
+        [SerializeField] protected Button prevMonthButton;
+        [SerializeField] protected Text yearTitleText;
+        [SerializeField] protected Text monthTitleText;
+
+        [Header("Skin")]
+        [SerializeField] protected CalendarDayOfWeek dayOfWeekPrefab;
+        [SerializeField] protected CalendarDate datePrefab;
+
+        [Header("Config")]
+        [SerializeField] protected CalendarConfig m_Config;
+        int m_SelectYear;
+        int m_SelectMonth;
 
         public Action OnSelectEvent;
 
         protected virtual void Awake()
         {
-            if (nextMonthButton!=null)
+            if (nextMonthButton != null)
             {
-                nextMonthButton.onClick.AddListener(() => {
+                nextMonthButton.onClick.AddListener(() =>
+                {
                     NextMonth();
                 });
             }
             if (prevMonthButton != null)
             {
-                prevMonthButton.onClick.AddListener(() => {
+                prevMonthButton.onClick.AddListener(() =>
+                {
                     PrevMonth();
                 });
+            }
+
+            if (m_Config != null)
+            {
+                Init(m_Config);
             }
         }
 
@@ -46,9 +63,8 @@ namespace RedScarf.UguiFriend
         {
             if (m_Config != null)
             {
-                Init(m_Config);
-                if(isGotoNowWhenEnable)
-                    Goto(DateTime.UtcNow.Year, DateTime.UtcNow.Month);
+                if (gotoToday)
+                    Goto(DateTime.Now.Year, DateTime.Now.Month);
             }
         }
 
@@ -65,7 +81,24 @@ namespace RedScarf.UguiFriend
             }
 
             m_Config = config;
-            Rebuild();
+
+            UguiTools.DestroyChildren(dayOfWeekGrid.gameObject);
+            if (dayOfWeekPrefab != null)
+            {
+                for (var i = 0; i < daysOfWeek; i++)
+                {
+                    var clone = GameObject.Instantiate<CalendarDayOfWeek>(dayOfWeekPrefab);
+                    clone.transform.SetParent(dayOfWeekGrid.transform);
+                    var dayValue = (int)m_Config.weekBegins + i;
+                    var dayOfWeek = (dayValue < daysOfWeek) ? (DayOfWeek)dayValue : (DayOfWeek)Mathf.Abs(dayValue - daysOfWeek);
+                    clone.Set(dayOfWeek, config);
+                    clone.gameObject.name = i.ToString();
+                }
+            }
+            else
+            {
+                Debug.LogError("DayOfWeekPrefab is null!");
+            }
         }
 
         /// <summary>
@@ -89,10 +122,10 @@ namespace RedScarf.UguiFriend
         /// </summary>
         /// <param name="year"></param>
         /// <param name="month"></param>
-        public virtual void Goto(int year,int month)
+        public virtual void Goto(int year, int month)
         {
-            m_CurrentMonth = month;
-            m_CurrentYear = year;
+            m_SelectMonth = month;
+            m_SelectYear = year;
             Rebuild();
         }
 
@@ -104,15 +137,18 @@ namespace RedScarf.UguiFriend
             if (m_Config == null) return;
             if (dayGrid == null) return;
 
+            if (monthTitleText != null) monthTitleText.text = m_SelectMonth.ToString();
+            if (yearTitleText != null) yearTitleText.text = m_SelectYear.ToString();
+
             dayGrid.startAxis = GridLayoutGroup.Axis.Horizontal;
             dayGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             dayGrid.constraintCount = daysOfWeek;
-            var start = new DateTime(m_CurrentYear, m_CurrentMonth, 1);
+            var start = new DateTime(m_SelectYear, m_SelectMonth, 1);
             var end = start.AddMonths(1).AddDays(-1);
-            var startBlank = Mathf.Abs(start.DayOfWeek - m_Config.weekStart);
+            var startBlank = Mathf.Abs(start.DayOfWeek - m_Config.weekBegins);
 
             var dateItemList = new List<CalendarDateInfo>();
-            for (var i=0;i< daysDisplayCount;i++)
+            for (var i = 0; i < daysDisplayCount; i++)
             {
                 var date = new DateTime();
                 var info = new CalendarDateInfo(date);
@@ -123,22 +159,22 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 当前年
         /// </summary>
-        public int CurrentYear
+        public int SelectYear
         {
             get
             {
-                return m_CurrentYear;
+                return m_SelectYear;
             }
         }
 
         /// <summary>
         /// 当前月
         /// </summary>
-        public int CurrentMonth
+        public int SelectMonth
         {
             get
             {
-                return m_CurrentMonth;
+                return m_SelectMonth;
             }
         }
     }

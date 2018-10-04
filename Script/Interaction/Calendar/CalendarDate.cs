@@ -7,13 +7,15 @@ namespace RedScarf.UguiFriend
 {
     [RequireComponent(typeof(CanvasGroup))]
     /// <summary>
-    /// 日期
+    /// 日历日期
     /// </summary>
     public class CalendarDate : MonoBehaviour
     {
-        [SerializeField]protected Text dateText;
+        [SerializeField] protected Text dateText;
         [SerializeField] protected Text mark;
         [SerializeField] protected CalendarDateInfo m_Info;
+        [SerializeField] protected Color workdayColor = Color.black;
+        [SerializeField] protected Color weekendColor = Color.black;
         CanvasGroup m_CanvasGroup;
 
         public Action<CalendarDate> OnClickEvent;
@@ -32,8 +34,9 @@ namespace RedScarf.UguiFriend
             {
                 button = gameObject.AddComponent<Button>();
             }
-            button.onClick.AddListener(()=> {
-                if (OnClickEvent!=null)
+            button.onClick.AddListener(() =>
+            {
+                if (OnClickEvent != null)
                 {
                     OnClickEvent.Invoke(this);
                 }
@@ -66,7 +69,7 @@ namespace RedScarf.UguiFriend
 
             m_Info = info;
             dateText.text = info.date.Day.ToString();
-            if(mark&&info.mark!=null)
+            if (mark && info.mark != null)
                 mark.text = info.mark.mark;
         }
 
@@ -88,9 +91,9 @@ namespace RedScarf.UguiFriend
     public class CalendarDateInfo
     {
         public DateTime date;
-        public CalendarConfig.DateMarkBase mark;
+        public DateMarkBase mark;
 
-        public CalendarDateInfo(DateTime date, CalendarConfig.DateMarkBase mark=null)
+        public CalendarDateInfo(DateTime date, DateMarkBase mark = null)
         {
             this.date = date;
             this.mark = mark;
