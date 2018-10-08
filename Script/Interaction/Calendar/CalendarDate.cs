@@ -13,10 +13,17 @@ namespace RedScarf.UguiFriend
     {
         [SerializeField] protected Text dateText;
         [SerializeField] protected Text mark;
+        [SerializeField] protected GameObject selectIcon;
+        [SerializeField] protected GameObject todayIcon;
+        [SerializeField] protected GameObject mattersIcon;
+        [SerializeField] protected Text mattersText;
         [SerializeField] protected CalendarDateInfo m_Info;
         [SerializeField] protected Color workdayColor = Color.black;
         [SerializeField] protected Color weekendColor = Color.black;
-        CanvasGroup m_CanvasGroup;
+        protected CanvasGroup m_CanvasGroup;
+        protected int m_MattersCount;
+        protected bool m_IsSelect;
+        protected bool m_IsToday;
 
         public Action<CalendarDate> OnClickEvent;
 
@@ -25,6 +32,9 @@ namespace RedScarf.UguiFriend
             m_CanvasGroup = GetComponent<CanvasGroup>();
             if (m_CanvasGroup == null)
                 m_CanvasGroup = gameObject.AddComponent<CanvasGroup>();
+            MattersCount = 0;
+            IsSelect = false;
+            IsToday = false;
         }
 
         protected virtual void Start()
@@ -57,6 +67,68 @@ namespace RedScarf.UguiFriend
         public virtual void SetInactiveState()
         {
             m_CanvasGroup.alpha = 0;
+        }
+
+        /// <summary>
+        /// 是否选中
+        /// </summary>
+        public virtual bool IsSelect
+        {
+            get
+            {
+                return m_IsSelect;
+            }
+            set
+            {
+                m_IsSelect = value;
+                if (selectIcon != null)
+                {
+                    selectIcon.SetActive(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 是否今日
+        /// </summary>
+        public virtual bool IsToday
+        {
+            get
+            {
+                return m_IsToday;
+            }
+            set
+            {
+                m_IsToday = value;
+                if (todayIcon!=null)
+                {
+                    todayIcon.SetActive(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 当日事宜数
+        /// 无事宜隐藏事宜标志
+        /// </summary>
+        public virtual int MattersCount
+        {
+            get
+            {
+                return m_MattersCount;
+            }
+            set
+            {
+                m_MattersCount = value;
+                if (mattersText != null)
+                {
+                    mattersText.text = value.ToString();
+                }
+                if (mattersIcon!=null)
+                {
+                    mattersIcon.SetActive(value>0?true:false);
+                }
+            }
         }
 
         /// <summary>

@@ -23,7 +23,7 @@ namespace RedScarf.UguiFriend
         where WeekLoop:DateMarkWeekAfterWeek
         where YearLoop:DateMarkYearAfterYear
     {
-        protected static int yearLoopYear;
+        protected const int yearLoopDefaultYear=2000;
 
         [Header("Convention")]
         [Tooltip("A week begins on the day of the week")]
@@ -48,11 +48,6 @@ namespace RedScarf.UguiFriend
         protected Dictionary<DayOfWeek, WeekLoop> weekLoopDict;
         protected Dictionary<DateTime, YearLoop> yearLoopDict;
 
-        static CalendarConfig()
-        {
-            yearLoopYear = DateTime.MinValue.Year;
-        }
-
         /// <summary>
         /// 获取标记信息
         /// </summary>
@@ -69,7 +64,7 @@ namespace RedScarf.UguiFriend
             {
                 return weekLoopDict[date.DayOfWeek];
             }
-            var yearLoopDate = new DateTime(yearLoopYear,date.Month,date.Day);
+            var yearLoopDate = new DateTime(yearLoopDefaultYear, date.Month,date.Day);
             if (yearLoopDict.ContainsKey(yearLoopDate))
             {
                 return yearLoopDict[yearLoopDate];
@@ -95,30 +90,23 @@ namespace RedScarf.UguiFriend
                 try
                 {
                     var dateTime = new DateTime(mark.year, mark.month, mark.day);
-                    if (!onceDict.ContainsKey(dateTime))
-                    {
-                        onceDict.Add(dateTime, mark);
-                    }
-                    else
-                    {
-                        Debug.LogErrorFormat("The date time exists!");
-                    }
+                    onceDict.Add(dateTime, mark);
                 }
                 catch (Exception e)
                 {
-
+                    Debug.LogErrorFormat("{0}", e);
                 }
             }
             weekLoopDict = new Dictionary<DayOfWeek, WeekLoop>(weekLoop.Count);
             foreach (var mark in weekLoop)
             {
-                if (!weekLoopDict.ContainsKey(mark.dayOfWeek))
+                try
                 {
                     weekLoopDict.Add(mark.dayOfWeek, mark);
                 }
-                else
+                catch (Exception e)
                 {
-                    Debug.LogErrorFormat("The date time exists!");
+                    Debug.LogErrorFormat("{0}", e);
                 }
             }
             yearLoopDict = new Dictionary<DateTime, YearLoop>(yearLoop.Count);
@@ -126,19 +114,12 @@ namespace RedScarf.UguiFriend
             {
                 try
                 {
-                    var dateTime = new DateTime(yearLoopYear, mark.month, mark.day);
-                    if (!yearLoopDict.ContainsKey(dateTime))
-                    {
-                        yearLoopDict.Add(dateTime, mark);
-                    }
-                    else
-                    {
-                        Debug.LogErrorFormat("The date time exists!");
-                    }
+                    var dateTime = new DateTime(yearLoopDefaultYear, mark.month, mark.day);
+                    yearLoopDict.Add(dateTime, mark);
                 }
                 catch (Exception e)
                 {
-
+                    Debug.LogErrorFormat("{0}", e);
                 }
             }
         }

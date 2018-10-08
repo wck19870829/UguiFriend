@@ -7,13 +7,24 @@ using System.Collections.Generic;
 namespace RedScarf.UguiFriend
 {
     /// <summary>
-    /// 日历
+    /// 通用日历
     /// </summary>
-    public class Calendar : MonoBehaviour
+    public class Calendar: Calendar<CalendarConfig>
+    {
+
+    }
+
+    /// <summary>
+    /// 日历基类
+    /// </summary>
+    /// <typeparam name="TConfig">配置文件类型</typeparam>
+    public class Calendar<TConfig>: MonoBehaviour
+        where TConfig:CalendarConfig
     {
         const int daysOfWeek = 7;
         const int dayLine = 5;
         const int daysDisplayCount = daysOfWeek * dayLine;
+        const int daysDisplayCountTotal = daysDisplayCount * 3;
 
         [Tooltip("Go to today when enable")]
         public bool gotoToday = true;
@@ -30,11 +41,12 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected CalendarDate datePrefab;
 
         [Header("Config")]
-        [SerializeField] protected CalendarConfig m_Config;
-        int m_SelectYear;
-        int m_SelectMonth;
+        [SerializeField] protected TConfig m_Config;
+        int m_ViewYear;
+        int m_ViewMonth;
 
-        public Action OnSelectEvent;
+        //日期选中状态改变事件
+        public Action<List<CalendarDate>> OnDateSelectChangeEvent;
 
         protected virtual void Awake()
         {
@@ -72,7 +84,7 @@ namespace RedScarf.UguiFriend
         /// 初始化
         /// </summary>
         /// <param name="config"></param>
-        public virtual void Init(CalendarConfig config)
+        public virtual void Init(TConfig config)
         {
             if (config == null)
             {
@@ -124,8 +136,8 @@ namespace RedScarf.UguiFriend
         /// <param name="month"></param>
         public virtual void Goto(int year, int month)
         {
-            m_SelectMonth = month;
-            m_SelectYear = year;
+            m_ViewMonth = month;
+            m_ViewYear = year;
             Rebuild();
         }
 
@@ -137,13 +149,13 @@ namespace RedScarf.UguiFriend
             if (m_Config == null) return;
             if (dayGrid == null) return;
 
-            if (monthTitleText != null) monthTitleText.text = m_SelectMonth.ToString();
-            if (yearTitleText != null) yearTitleText.text = m_SelectYear.ToString();
+            if (monthTitleText != null) monthTitleText.text = m_ViewMonth.ToString();
+            if (yearTitleText != null) yearTitleText.text = m_ViewYear.ToString();
 
             dayGrid.startAxis = GridLayoutGroup.Axis.Horizontal;
             dayGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             dayGrid.constraintCount = daysOfWeek;
-            var start = new DateTime(m_SelectYear, m_SelectMonth, 1);
+            var start = new DateTime(m_ViewYear, m_ViewMonth, 1);
             var end = start.AddMonths(1).AddDays(-1);
             var startBlank = Mathf.Abs(start.DayOfWeek - m_Config.weekBegins);
 
@@ -153,28 +165,27 @@ namespace RedScarf.UguiFriend
                 var date = new DateTime();
                 var info = new CalendarDateInfo(date);
             }
-
         }
 
         /// <summary>
         /// 当前年
         /// </summary>
-        public int SelectYear
+        public int ViewYear
         {
             get
             {
-                return m_SelectYear;
+                return m_ViewYear;
             }
         }
 
         /// <summary>
         /// 当前月
         /// </summary>
-        public int SelectMonth
+        public int ViewMonth
         {
             get
             {
-                return m_SelectMonth;
+                return m_ViewMonth;
             }
         }
     }
