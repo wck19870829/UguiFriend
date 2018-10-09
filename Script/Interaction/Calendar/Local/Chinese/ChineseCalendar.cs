@@ -54,22 +54,6 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 获取日期字符串
-        /// </summary>
-        /// <param name="year"></param>
-        /// <param name="month"></param>
-        /// <param name="day"></param>
-        /// <returns></returns>
-        private static string GetDateStr(int year, int month, int day)
-        {
-            var dateStr = year.ToString("0000")
-                        + month.ToString("00")
-                        + day.ToString("00");
-
-            return dateStr;
-        }
-
-        /// <summary>
         /// 该月份之前的天数
         /// </summary>
         /// <param name="month">月份</param>

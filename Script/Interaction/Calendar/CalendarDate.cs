@@ -190,9 +190,9 @@ namespace RedScarf.UguiFriend
     public class CalendarDateInfo
     {
         public DateTime date;
-        public DateMarkBase mark;
+        public DateMark mark;
 
-        public CalendarDateInfo(DateTime date, DateMarkBase mark)
+        public CalendarDateInfo(DateTime date, DateMark mark)
         {
             this.date = date;
             this.mark = mark;

@@ -19,7 +19,7 @@ namespace RedScarf.UguiFriend
     /// </summary>
     /// <typeparam name="TConfig">配置文件类型</typeparam>
     public class Calendar<TConfig>: MonoBehaviour
-        where TConfig:CalendarConfig
+        where TConfig:CalendarConfig,new()
     {
         const int daysOfWeek = 7;
         const int dayLine = 6;
@@ -41,9 +41,7 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected CalendarDayOfWeek dayOfWeekPrefab;
         [SerializeField] protected CalendarDate datePrefab;
 
-        [Header("Config")]
-        [SerializeField] protected TConfig m_Config;
-
+        protected TConfig m_Config;
         List<DayOfWeek> dayOfWeekList;
         HashSet<DateTime> dateSelectSet;
         List<DateTime> dateSelectList;
@@ -72,10 +70,8 @@ namespace RedScarf.UguiFriend
                 });
             }
 
-            if (m_Config != null)
-            {
-                Init(m_Config);
-            }
+            m_Config = new TConfig();
+            Init(m_Config);
         }
 
         protected virtual void OnEnable()
@@ -310,5 +306,37 @@ namespace RedScarf.UguiFriend
                 return m_Config;
             }
         }
+
+        #region 静态方法
+
+        ///// <summary>
+        ///// 获取本月第几周
+        ///// </summary>
+        ///// <param name="date"></param>
+        ///// <param name="weekStart"></param>
+        ///// <returns></returns>
+        //public static int GetWeekOfMonth(DateTime date,DayOfWeek weekStart)
+        //{
+        //    var firstDay = new DateTime(date.Year,date.Month,1);
+        //    firstDay.DayOfWeek
+        //}
+
+        /// <summary>
+        /// 获取日期字符串
+        /// </summary>
+        /// <param name="year"></param>
+        /// <param name="month"></param>
+        /// <param name="day"></param>
+        /// <returns>返回如20180125格式</returns>
+        public static string GetDateStr(int year, int month, int day)
+        {
+            var dateStr = year.ToString("0000")
+                        + month.ToString("00")
+                        + day.ToString("00");
+
+            return dateStr;
+        }
+
+        #endregion
     }
 }
