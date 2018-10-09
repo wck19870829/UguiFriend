@@ -12,7 +12,7 @@ namespace RedScarf.UguiFriend
     /// 中国日历
     /// 
     /// 由于Unity对于System.Globalization.ChineseLunisolarCalendar支持错误,所以未使用
-    /// 参考：
+    /// 库引用于：
     /// https://github.com/Dygood/ChineseLunar
     /// </summary>
     public class ChineseCalendar : Calendar<ChineseCalendarConfig>
@@ -31,6 +31,11 @@ namespace RedScarf.UguiFriend
             Last_Year = int.Parse(lastYearStr);
         }
 
+        public static YearMonthDay Solar2Lunisolar(DateTime solarDate)
+        {
+            return Solar2Lunisolar(solarDate.Year, solarDate.Month, solarDate.Day);
+        }
+
         /// <summary>
         /// 公历转农历
         /// </summary>
@@ -38,15 +43,30 @@ namespace RedScarf.UguiFriend
         /// <param name="month"></param>
         /// <param name="day"></param>
         /// <returns></returns>
-        public static DateTime Solar2Lunisolar(int solarYear, int solarMonth, int solarDay)
+        public static YearMonthDay Solar2Lunisolar(int solarYear, int solarMonth, int solarDay)
         {
-            var lunisolarStr = GetDate(solarYear.ToString()+solarMonth.ToString()+solarDay.ToString());
-            var lunisolarYear = int.Parse(lunisolarStr.Substring(0, 4));
-            var lunisolarMonth = int.Parse(lunisolarStr.Substring(4, 2));
-            var lunisolarDay = int.Parse(lunisolarStr.Substring(6, 2));
-            var lunisolar = new DateTime(lunisolarYear, lunisolarMonth, lunisolarDay);
+            var dateStr = GetDateStr(solarYear, solarMonth, solarDay);
+            Judge(dateStr);
+            var lunisolarDateArr = Cast2Array(dateStr);
+            var lunisolar = new YearMonthDay(lunisolarDateArr[0], lunisolarDateArr[1], lunisolarDateArr[2]);
 
             return lunisolar;
+        }
+
+        /// <summary>
+        /// 获取日期字符串
+        /// </summary>
+        /// <param name="year"></param>
+        /// <param name="month"></param>
+        /// <param name="day"></param>
+        /// <returns></returns>
+        private static string GetDateStr(int year, int month, int day)
+        {
+            var dateStr = year.ToString("0000")
+                        + month.ToString("00")
+                        + day.ToString("00");
+
+            return dateStr;
         }
 
         /// <summary>
@@ -126,7 +146,7 @@ namespace RedScarf.UguiFriend
         /// </summary>
         /// <param name="year">年</param>
         /// <returns></returns>
-        private static string FormatYear(int year)
+        public static string FormatYear(int year)
         {
             var result = new StringBuilder();
             var year2 = year;
@@ -157,7 +177,7 @@ namespace RedScarf.UguiFriend
         /// </summary>
         /// <param name="month"></param>
         /// <returns></returns>
-        private static string FormatMonth(int month)
+        public static string FormatMonth(int month)
         {
             const string table = "正二三四五六七八九十冬腊";
             if (month > 12)
@@ -171,7 +191,7 @@ namespace RedScarf.UguiFriend
         /// <param name="day"></param>
         /// <exception cref="Exception"></exception>
         /// <returns></returns>
-        private static string FormatDay(int day)
+        public static string FormatDay(int day)
         {
             var day1 = day / 10;
             var day2 = day % 10;
@@ -517,12 +537,12 @@ namespace RedScarf.UguiFriend
         {
             var dateArray = Judge(date);
             if (dateArray == null)
-                throw new Exception("-输入的日期不合法-");
+                throw new Exception("输入的日期不合法:"+date);
             if (!Judge(dateArray))
-                throw new Exception("-输入的日期不合法-");
+                throw new Exception("输入的日期不合法:"+date);
             var year = dateArray[0];
             if (year < First_Year || year > Last_Year)
-                throw new Exception("-输入的日期年份超出范围,年份必须在" + First_Year + "与" + Last_Year + "之间-");
+                throw new Exception("输入的日期年份超出范围,年份必须在" + First_Year + "与" + Last_Year + "之间");
             return Cast(Cast(dateArray));
         }
 

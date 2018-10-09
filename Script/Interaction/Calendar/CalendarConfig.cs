@@ -93,7 +93,7 @@ namespace RedScarf.UguiFriend
                 }
                 catch (Exception e)
                 {
-                    Debug.LogErrorFormat("{0}", e);
+                    Debug.LogWarningFormat("{0}", e);
                 }
             }
             weekLoopDict = new Dictionary<DayOfWeek, WeekLoop>(weekLoop.Count);
@@ -105,7 +105,7 @@ namespace RedScarf.UguiFriend
                 }
                 catch (Exception e)
                 {
-                    Debug.LogErrorFormat("{0}", e);
+                    Debug.LogWarningFormat("{0}", e);
                 }
             }
             yearLoopDict = new Dictionary<MonthDay, YearLoop>(yearLoop.Count);
@@ -117,7 +117,7 @@ namespace RedScarf.UguiFriend
                 }
                 catch (Exception e)
                 {
-                    Debug.LogErrorFormat("{0}", e);
+                    Debug.LogWarningFormat("{0}", e);
                 }
             }
         }
@@ -162,6 +162,7 @@ namespace RedScarf.UguiFriend
         }
     }
 
+    [Serializable]
     /// <summary>
     /// 日期标记基类
     /// </summary>

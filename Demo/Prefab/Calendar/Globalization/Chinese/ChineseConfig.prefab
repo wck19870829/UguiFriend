@@ -68,8 +68,13 @@ MonoBehaviour:
     date:
       month: 1
       day: 1
+  - mark: "\u56FD\u5E86\u8282"
+    isHolidays: 1
+    date:
+      month: 10
+      day: 1
   lunisolarYearLoop:
-  - mark: "\u9664\u5915"
+  - mark: "\u6625\u8282"
     isHolidays: 1
     lunisolar:
       month: 1

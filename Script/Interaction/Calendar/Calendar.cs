@@ -22,7 +22,7 @@ namespace RedScarf.UguiFriend
         where TConfig:CalendarConfig
     {
         const int daysOfWeek = 7;
-        const int dayLine = 5;
+        const int dayLine = 6;
         const int daysDisplayCount = daysOfWeek * dayLine;
         const int daysDisplayCountTotal = daysDisplayCount * 3;
 
@@ -35,6 +35,7 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected Button prevMonthButton;
         [SerializeField] protected Text yearTitleText;
         [SerializeField] protected Text monthTitleText;
+        [SerializeField] protected int dateSelectLimit = 1;             //日期选择数量上限，0为不能选择日期，1为单选，大于1为多选
 
         [Header("Skin")]
         [SerializeField] protected CalendarDayOfWeek dayOfWeekPrefab;
@@ -42,14 +43,20 @@ namespace RedScarf.UguiFriend
 
         [Header("Config")]
         [SerializeField] protected TConfig m_Config;
+
+        List<DayOfWeek> dayOfWeekList;
+        HashSet<DateTime> dateSelectSet;
+        List<DateTime> dateSelectList;
         int m_ViewYear;
         int m_ViewMonth;
 
         //日期选中状态改变事件
-        public Action<List<CalendarDate>> OnDateSelectChangeEvent;
+        public Action<List<DateTime>> OnDateSelectChangeEvent;
 
         protected virtual void Awake()
         {
+            dateSelectSet = new HashSet<DateTime>();
+            dateSelectList = new List<DateTime>();
             if (nextMonthButton != null)
             {
                 nextMonthButton.onClick.AddListener(() =>
@@ -76,7 +83,7 @@ namespace RedScarf.UguiFriend
             if (m_Config != null)
             {
                 if (gotoToday)
-                    Goto(DateTime.Now.Year, DateTime.Now.Month);
+                    Goto(DateTime.Today.Year, DateTime.Today.Month);
             }
         }
 
@@ -95,6 +102,7 @@ namespace RedScarf.UguiFriend
             m_Config = config;
 
             UguiTools.DestroyChildren(dayOfWeekGrid.gameObject);
+            dayOfWeekList = new List<DayOfWeek>(daysOfWeek);
             if (dayOfWeekPrefab != null)
             {
                 for (var i = 0; i < daysOfWeek; i++)
@@ -103,6 +111,7 @@ namespace RedScarf.UguiFriend
                     clone.transform.SetParent(dayOfWeekGrid.transform);
                     var dayValue = (int)m_Config.weekBegins + i;
                     var dayOfWeek = (dayValue < daysOfWeek) ? (DayOfWeek)dayValue : (DayOfWeek)Mathf.Abs(dayValue - daysOfWeek);
+                    dayOfWeekList.Add(dayOfWeek);
                     clone.Set(dayOfWeek, config);
                     clone.gameObject.name = i.ToString();
                 }
@@ -118,7 +127,8 @@ namespace RedScarf.UguiFriend
         /// </summary>
         public virtual void NextMonth()
         {
-
+            var date = new DateTime(m_ViewYear, m_ViewMonth, 1).AddMonths(1);
+            Goto(date.Year,date.Month);
         }
 
         /// <summary>
@@ -126,7 +136,8 @@ namespace RedScarf.UguiFriend
         /// </summary>
         public virtual void PrevMonth()
         {
-
+            var date = new DateTime(m_ViewYear, m_ViewMonth, 1).AddMonths(-1);
+            Goto(date.Year, date.Month);
         }
 
         /// <summary>
@@ -157,14 +168,15 @@ namespace RedScarf.UguiFriend
             dayGrid.constraintCount = daysOfWeek;
             var start = new DateTime(m_ViewYear, m_ViewMonth, 1);
             var end = start.AddMonths(1).AddDays(-1);
-            var startBlank = Mathf.Abs(start.DayOfWeek - m_Config.weekBegins);
+            var startBlank = Mathf.Abs(dayOfWeekList.IndexOf(m_Config.weekBegins)-dayOfWeekList.IndexOf(start.DayOfWeek));
             var startDate = start.AddDays(-startBlank);
 
             var dateItemList = new List<CalendarDateInfo>();
             for (var i = 0; i < daysDisplayCount; i++)
             {
                 var date = startDate.AddDays(i);
-                var info = new CalendarDateInfo(date);
+                var mark = m_Config.GetMark(date);
+                var info = new CalendarDateInfo(date, mark);
                 dateItemList.Add(info);
             }
             UguiTools.DestroyChildren(dayGrid.gameObject);
@@ -174,12 +186,95 @@ namespace RedScarf.UguiFriend
                 {
                     var clone = GameObject.Instantiate<CalendarDate>(datePrefab);
                     clone.transform.SetParent(dayGrid.transform);
-                    clone.Init(info);
+                    clone.Init(info,m_Config);
+                    clone.name = info.date.Year.ToString()
+                                +info.date.Month.ToString("00")
+                                +info.date.Day.ToString("00");
+                    clone.OnClickEvent -= OnDateClick;
+                    clone.OnClickEvent += OnDateClick;
+                    if (dateSelectSet.Contains(info.date))
+                    {
+                        clone.IsSelect = true;
+                    }
+                    if (info.date>=start&&info.date<=end)
+                    {
+                        clone.SetActiveState();
+                    }
+                    else
+                    {
+                        clone.SetInactiveState();
+                    }
                 }
             }
             else
             {
                 Debug.LogErrorFormat("Date prefab is null!");
+            }
+        }
+
+        protected virtual void OnDateClick(CalendarDate calendarDate)
+        {
+            if (dateSelectSet.Contains(calendarDate.Info.date))
+            {
+                //取消选择
+                dateSelectSet.Remove(calendarDate.Info.date);
+                dateSelectList.RemoveAll((x)=> 
+                    {
+                        return x == calendarDate.Info.date ? true : false;
+                    }
+                );
+                calendarDate.IsSelect = false;
+            }
+            else
+            {
+                if (dateSelectList.Count>0)
+                {
+                    if (dateSelectList.Count >= dateSelectLimit)
+                    {
+                        var dateItems = dayGrid.GetComponentsInChildren<CalendarDate>();
+                        var removeCount = Math.Abs(dateSelectLimit-dateSelectList.Count)+1;
+                        for (var i=0;i<removeCount;i++)
+                        {
+                            var removeDate = dateSelectList[0];
+                            dateSelectSet.Remove(removeDate);
+                            dateSelectList.RemoveAt(0);
+                            foreach (var dateItem in dateItems)
+                            {
+                                if (dateItem.Info.date == removeDate)
+                                {
+                                    dateItem.IsSelect = false;
+                                }
+                            }
+                        }
+                    }
+                }
+                dateSelectSet.Add(calendarDate.Info.date);
+                dateSelectList.Add(calendarDate.Info.date);
+                calendarDate.IsSelect = true;
+            }
+
+            if (OnDateSelectChangeEvent != null)
+            {
+                OnDateSelectChangeEvent.Invoke(dateSelectList);
+            }
+        }
+
+        /// <summary>
+        /// 清除所有选择
+        /// </summary>
+        public void ClearAllSelectDate()
+        {
+            dateSelectList.Clear();
+            dateSelectSet.Clear();
+            var dateItems = dayGrid.GetComponentsInChildren<CalendarDate>();
+            foreach (var dateItem in dateItems)
+            {
+                dateItem.IsSelect = false;
+            }
+
+            if (OnDateSelectChangeEvent != null)
+            {
+                OnDateSelectChangeEvent.Invoke(dateSelectList);
             }
         }
 
@@ -202,6 +297,17 @@ namespace RedScarf.UguiFriend
             get
             {
                 return m_ViewMonth;
+            }
+        }
+
+        /// <summary>
+        /// 配置文件
+        /// </summary>
+        public CalendarConfig Config
+        {
+            get
+            {
+                return m_Config;
             }
         }
     }

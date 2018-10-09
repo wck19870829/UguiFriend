@@ -5,6 +5,8 @@ using System;
 
 namespace RedScarf.UguiFriend
 {
+    [RequireComponent(typeof(Button))]
+    [RequireComponent(typeof(RawImage))]
     [RequireComponent(typeof(CanvasGroup))]
     /// <summary>
     /// 日历日期
@@ -17,21 +19,26 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected GameObject todayIcon;
         [SerializeField] protected GameObject mattersIcon;
         [SerializeField] protected Text mattersText;
-        [SerializeField] protected CalendarDateInfo m_Info;
         [SerializeField] protected Color workdayColor = Color.black;
         [SerializeField] protected Color weekendColor = Color.black;
+        protected CalendarDateInfo m_Info;
+        protected CalendarConfig m_CalendarConfig;
         protected CanvasGroup m_CanvasGroup;
         protected int m_MattersCount;
         protected bool m_IsSelect;
         protected bool m_IsToday;
 
-        public Action<CalendarDate> OnClickEvent;
+        public event Action<CalendarDate> OnClickEvent;
 
         protected virtual void Awake()
         {
             m_CanvasGroup = GetComponent<CanvasGroup>();
             if (m_CanvasGroup == null)
                 m_CanvasGroup = gameObject.AddComponent<CanvasGroup>();
+            var hotArea = GetComponent<RawImage>();
+            if (hotArea == null)
+                hotArea = gameObject.AddComponent<RawImage>();
+            hotArea.color = Color.clear;
             MattersCount = 0;
             IsSelect = false;
             IsToday = false;
@@ -135,14 +142,33 @@ namespace RedScarf.UguiFriend
         /// 初始化
         /// </summary>
         /// <param name="info"></param>
-        public virtual void Init(CalendarDateInfo info)
+        public virtual void Init(CalendarDateInfo info, CalendarConfig calendarConfig)
         {
             if (info == null) return;
+            if (calendarConfig == null) return;
 
             m_Info = info;
+            m_CalendarConfig = calendarConfig;
+
             dateText.text = info.date.Day.ToString();
-            if (mark && info.mark != null)
+            dateText.color = workdayColor;
+            mark.text = string.Empty;
+
+            if (info.mark != null)
+            {
                 mark.text = info.mark.mark;
+            }
+            if (calendarConfig.weekend!=null)
+            {
+                foreach (var weekend in calendarConfig.weekend)
+                {
+                    if (info.date.DayOfWeek == weekend)
+                    {
+                        dateText.color = weekendColor;
+                        break;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -157,6 +183,7 @@ namespace RedScarf.UguiFriend
         }
     }
 
+    [Serializable]
     /// <summary>
     /// 日历日期
     /// </summary>
@@ -165,7 +192,7 @@ namespace RedScarf.UguiFriend
         public DateTime date;
         public DateMarkBase mark;
 
-        public CalendarDateInfo(DateTime date, DateMarkBase mark = null)
+        public CalendarDateInfo(DateTime date, DateMarkBase mark)
         {
             this.date = date;
             this.mark = mark;
