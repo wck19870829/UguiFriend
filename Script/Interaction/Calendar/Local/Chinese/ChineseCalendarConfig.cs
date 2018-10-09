@@ -12,19 +12,18 @@ namespace RedScarf.UguiFriend
     public class ChineseCalendarConfig : CalendarConfig
     {
         public List<ChineseDateMarkYearAfterYear> lunisolarYearLoop;
-        protected Dictionary<DateTime, ChineseDateMarkYearAfterYear> lunisolarYearLoopDict;
+        protected Dictionary<MonthDay, ChineseDateMarkYearAfterYear> lunisolarYearLoopDict;
 
         public override void OnAfterDeserialize()
         {
             base.OnAfterDeserialize();
 
-            lunisolarYearLoopDict = new Dictionary<DateTime, ChineseDateMarkYearAfterYear>(lunisolarYearLoop.Count);
+            lunisolarYearLoopDict = new Dictionary<MonthDay, ChineseDateMarkYearAfterYear>(lunisolarYearLoop.Count);
             foreach (var mark in lunisolarYearLoop)
             {
                 try
                 {
-                    var solar = ChineseCalendar.Lunisolar2Solar(yearLoopDefaultYear,mark.lunisolarMonth,mark.lunisolarDay);
-                    lunisolarYearLoopDict.Add(solar, mark);
+                    lunisolarYearLoopDict.Add(mark.lunisolar, mark);
                 }
                 catch (Exception e)
                 {
@@ -37,7 +36,6 @@ namespace RedScarf.UguiFriend
     [Serializable]
     public class ChineseDateMarkYearAfterYear : DateMarkBase
     {
-        public int lunisolarMonth;
-        public int lunisolarDay;
+        public MonthDay lunisolar;
     }
 }

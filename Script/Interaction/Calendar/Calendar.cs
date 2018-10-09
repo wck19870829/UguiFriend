@@ -158,12 +158,28 @@ namespace RedScarf.UguiFriend
             var start = new DateTime(m_ViewYear, m_ViewMonth, 1);
             var end = start.AddMonths(1).AddDays(-1);
             var startBlank = Mathf.Abs(start.DayOfWeek - m_Config.weekBegins);
+            var startDate = start.AddDays(-startBlank);
 
             var dateItemList = new List<CalendarDateInfo>();
             for (var i = 0; i < daysDisplayCount; i++)
             {
-                var date = new DateTime();
+                var date = startDate.AddDays(i);
                 var info = new CalendarDateInfo(date);
+                dateItemList.Add(info);
+            }
+            UguiTools.DestroyChildren(dayGrid.gameObject);
+            if (datePrefab!=null)
+            {
+                foreach (var info in dateItemList)
+                {
+                    var clone = GameObject.Instantiate<CalendarDate>(datePrefab);
+                    clone.transform.SetParent(dayGrid.transform);
+                    clone.Init(info);
+                }
+            }
+            else
+            {
+                Debug.LogErrorFormat("Date prefab is null!");
             }
         }
 

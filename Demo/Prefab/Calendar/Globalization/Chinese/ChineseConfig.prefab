@@ -9,30 +9,30 @@ Prefab:
     m_Modifications: []
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 0}
-  m_RootGameObject: {fileID: 1000010167057570}
+  m_RootGameObject: {fileID: 1000010283582844}
   m_IsPrefabParent: 1
---- !u!1 &1000010167057570
+--- !u!1 &1000010283582844
 GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   serializedVersion: 4
   m_Component:
-  - 4: {fileID: 4000011774037996}
-  - 114: {fileID: 114000014258918570}
+  - 4: {fileID: 4000011756037060}
+  - 114: {fileID: 114000012811434604}
   m_Layer: 0
-  m_Name: DefaultConfig
+  m_Name: ChineseConfig
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4000011774037996
+--- !u!4 &4000011756037060
 Transform:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000010167057570}
+  m_GameObject: {fileID: 1000010283582844}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.0024959561, y: 13.802673, z: 13.983485}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -40,26 +40,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
---- !u!114 &114000014258918570
+--- !u!114 &114000012811434604
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000010167057570}
+  m_GameObject: {fileID: 1000010283582844}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2319542cf95e61745b0f8334f825a75f, type: 3}
+  m_Script: {fileID: 11500000, guid: 728f736caf6b0604bb4b54de45381e86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weekBegins: 0
-  weekend: 0000000006000000
-  monday: Mon
-  tuesday: Tue
-  wednesday: Wed
-  thursday: Thur
-  friday: Fri
-  saturday: Sat
-  sunday: Sun
+  weekBegins: 1
+  weekend: 0600000000000000
+  monday: "\u4E00"
+  tuesday: "\u4E8C"
+  wednesday: "\u4E09"
+  thursday: "\u56DB"
+  friday: "\u4E94"
+  saturday: "\u516D"
+  sunday: "\u65E5"
   once: []
   weekLoop: []
-  yearLoop: []
+  yearLoop:
+  - mark: "\u5143\u65E6"
+    isHolidays: 1
+    date:
+      month: 1
+      day: 1
+  lunisolarYearLoop:
+  - mark: "\u9664\u5915"
+    isHolidays: 1
+    lunisolar:
+      month: 1
+      day: 1

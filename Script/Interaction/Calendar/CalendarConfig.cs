@@ -44,9 +44,9 @@ namespace RedScarf.UguiFriend
         public List<Once> once;
         public List<WeekLoop> weekLoop;
         public List<YearLoop> yearLoop;
-        protected Dictionary<DateTime, Once> onceDict;
+        protected Dictionary<YearMonthDay, Once> onceDict;
         protected Dictionary<DayOfWeek, WeekLoop> weekLoopDict;
-        protected Dictionary<DateTime, YearLoop> yearLoopDict;
+        protected Dictionary<MonthDay, YearLoop> yearLoopDict;
 
         /// <summary>
         /// 获取标记信息
@@ -55,19 +55,19 @@ namespace RedScarf.UguiFriend
         /// <returns></returns>
         public virtual DateMarkBase GetMark(DateTime dateTime)
         {
-            var date = new DateTime(dateTime.Year, dateTime.Month, dateTime.Day);
-            if (onceDict.ContainsKey(date))
+            var yearMonthDay = new YearMonthDay(dateTime.Year, dateTime.Month, dateTime.Day);
+            if (onceDict.ContainsKey(yearMonthDay))
             {
-                return onceDict[date];
+                return onceDict[yearMonthDay];
             }
-            if (weekLoopDict.ContainsKey(date.DayOfWeek))
+            if (weekLoopDict.ContainsKey(dateTime.DayOfWeek))
             {
-                return weekLoopDict[date.DayOfWeek];
+                return weekLoopDict[dateTime.DayOfWeek];
             }
-            var yearLoopDate = new DateTime(yearLoopDefaultYear, date.Month,date.Day);
-            if (yearLoopDict.ContainsKey(yearLoopDate))
+            var monthDay = new MonthDay(dateTime.Month, dateTime.Day);
+            if (yearLoopDict.ContainsKey(monthDay))
             {
-                return yearLoopDict[yearLoopDate];
+                return yearLoopDict[monthDay];
             }
 
             return null;
@@ -84,13 +84,12 @@ namespace RedScarf.UguiFriend
                 { DayOfWeek.Friday, friday},
                 { DayOfWeek.Saturday, saturday}
             };
-            onceDict = new Dictionary<DateTime, Once>(once.Count);
+            onceDict = new Dictionary<YearMonthDay, Once>(once.Count);
             foreach (var mark in once)
             {
                 try
                 {
-                    var dateTime = new DateTime(mark.year, mark.month, mark.day);
-                    onceDict.Add(dateTime, mark);
+                    onceDict.Add(mark.date, mark);
                 }
                 catch (Exception e)
                 {
@@ -109,13 +108,12 @@ namespace RedScarf.UguiFriend
                     Debug.LogErrorFormat("{0}", e);
                 }
             }
-            yearLoopDict = new Dictionary<DateTime, YearLoop>(yearLoop.Count);
+            yearLoopDict = new Dictionary<MonthDay, YearLoop>(yearLoop.Count);
             foreach (var mark in yearLoop)
             {
                 try
                 {
-                    var dateTime = new DateTime(yearLoopDefaultYear, mark.month, mark.day);
-                    yearLoopDict.Add(dateTime, mark);
+                    yearLoopDict.Add(mark.date, mark);
                 }
                 catch (Exception e)
                 {
@@ -127,6 +125,40 @@ namespace RedScarf.UguiFriend
         public virtual void OnBeforeSerialize()
         {
 
+        }
+    }
+
+    [Serializable]
+    /// <summary>
+    /// 日期
+    /// </summary>
+    public struct YearMonthDay
+    {
+        public int year;
+        public int month;
+        public int day;
+
+        public YearMonthDay(int year,int month,int day)
+        {
+            this.year = year;
+            this.month = month;
+            this.day = day;
+        }
+    }
+
+    [Serializable]
+    /// <summary>
+    /// 日历日期(无年)
+    /// </summary>
+    public struct MonthDay
+    {
+        public int month;
+        public int day;
+
+        public MonthDay(int month,int day)
+        {
+            this.month = month;
+            this.day = day;
         }
     }
 
@@ -145,9 +177,7 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class DateMarkOnce : DateMarkBase
     {
-        public int year;
-        public int month;
-        public int day;
+        public YearMonthDay date;
     }
 
     [Serializable]
@@ -165,7 +195,6 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class DateMarkYearAfterYear : DateMarkBase
     {
-        public int month;
-        public int day;
+        public MonthDay date;
     }
 }
