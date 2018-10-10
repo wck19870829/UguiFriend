@@ -63,17 +63,9 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 设置激活
         /// </summary>
-        public virtual void SetActiveState()
+        public virtual void SetActiveState(bool isActive)
         {
-            m_CanvasGroup.alpha = 1;
-        }
-
-        /// <summary>
-        /// 设置禁用
-        /// </summary>
-        public virtual void SetInactiveState()
-        {
-            m_CanvasGroup.alpha = 0;
+            m_CanvasGroup.alpha = isActive?1:0.3f;
         }
 
         /// <summary>

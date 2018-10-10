@@ -9,9 +9,9 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 时间拾取器
     /// </summary>
-    public class TimePicker:MonoBehaviour
+    public class TimeSelector:MonoBehaviour
     {
-        public bool isGotoNowWhenEnable = true;
+        [SerializeField]protected bool gotoNow = true;
         [SerializeField] protected UguiWidgetContent hourItem;
         [SerializeField] protected UguiWidgetContent minuteItem;
         int m_CurrentHour;
@@ -26,7 +26,7 @@ namespace RedScarf.UguiFriend
                 game.transform.SetParent(transform);
             }
 
-            if (isGotoNowWhenEnable)
+            if (gotoNow)
             {
 
             }

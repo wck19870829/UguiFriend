@@ -29,13 +29,13 @@ namespace RedScarf.UguiFriend
         public override DateMark GetMark(DateTime dateTime)
         {
             //按星期
-            if (dateTime.Month == 5)
-            {
-                if (dateTime.DayOfWeek == DayOfWeek.Sunday)
-                {
-                    return new DateMark("母亲节");
-                }
-            }
+            //if (dateTime.Month == 5)
+            //{
+            //    if (dateTime.DayOfWeek == DayOfWeek.Sunday)
+            //    {
+            //        return new DateMark("母亲节");
+            //    }
+            //}
 
             //阳历
             if (dateTime.Month == 1&& dateTime.Day == 1)
