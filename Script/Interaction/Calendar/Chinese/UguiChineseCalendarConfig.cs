@@ -9,9 +9,9 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 日历配置-中国
     /// </summary>
-    public class ChineseCalendarConfig : CalendarConfig
+    public class UguiChineseCalendarConfig : UguiCalendarConfig
     {
-        public ChineseCalendarConfig()
+        public UguiChineseCalendarConfig()
         {
             weekBegins = DayOfWeek.Monday;
             dayOfWeekNameDict = new Dictionary<DayOfWeek, string>()
@@ -100,7 +100,7 @@ namespace RedScarf.UguiFriend
             }
 
             //阴历
-            var lunisolar = ChineseCalendar.Solar2Lunisolar(dateTime);
+            var lunisolar = UguiChineseCalendar.Solar2Lunisolar(dateTime);
             if (lunisolar.month == 12 && lunisolar.day == 8)
             {
                 return new DateMark("腊八节");

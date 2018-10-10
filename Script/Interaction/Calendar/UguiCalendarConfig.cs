@@ -9,13 +9,13 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 配置文件
     /// </summary>
-    public class CalendarConfig
+    public class UguiCalendarConfig
     {
         public DayOfWeek weekBegins;
         public DayOfWeek[] weekend;
         public Dictionary<DayOfWeek, string> dayOfWeekNameDict;
 
-        public CalendarConfig()
+        public UguiCalendarConfig()
         {
             weekBegins = DayOfWeek.Sunday;
             weekend = new DayOfWeek[]

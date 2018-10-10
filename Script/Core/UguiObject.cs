@@ -13,7 +13,7 @@ namespace RedScarf.UguiFriend
         const string openAnim = "Open";
         const string closeAnim = "Close";
         const string refreshViewFunc = "RefreshViewDelay";
-        static readonly Dictionary<Type, BindingAttribute> bindingDict;           //绑定信息
+        static readonly Dictionary<Type, UguiBindingAttribute> bindingDict;           //绑定信息
 
         protected UguiObjectData m_Data;
         internal bool isOpen;
@@ -21,9 +21,9 @@ namespace RedScarf.UguiFriend
 
         static UguiObject()
         {
-            bindingDict = new Dictionary<Type, BindingAttribute>();
+            bindingDict = new Dictionary<Type, UguiBindingAttribute>();
 
-            var bindingType = typeof(BindingAttribute);
+            var bindingType = typeof(UguiBindingAttribute);
             var baseType = typeof(UguiObjectData);
             foreach (var type in baseType.Assembly.GetTypes())
             {
@@ -38,7 +38,7 @@ namespace RedScarf.UguiFriend
                     }
                     else if (customAtt.Length == 1)
                     {
-                        bindingDict.Add(type, (BindingAttribute)customAtt[0]);
+                        bindingDict.Add(type, (UguiBindingAttribute)customAtt[0]);
                     }
                     else
                     {
@@ -227,7 +227,7 @@ namespace RedScarf.UguiFriend
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static BindingAttribute GetBindingInfo(UguiObjectData data)
+        public static UguiBindingAttribute GetBindingInfo(UguiObjectData data)
         {
             if (bindingDict.ContainsKey(data.GetType()))
             {

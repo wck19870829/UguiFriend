@@ -9,7 +9,7 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 时间拾取器
     /// </summary>
-    public class TimeSelector:MonoBehaviour
+    public class UguiTimeSelector : MonoBehaviour
     {
         [SerializeField]protected bool gotoNow = true;
         [SerializeField] protected UguiWidgetContent hourItem;

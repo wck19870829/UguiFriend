@@ -11,7 +11,7 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 日历日期
     /// </summary>
-    public class CalendarDate : MonoBehaviour
+    public class UguiCalendarDate : MonoBehaviour
     {
         [SerializeField] protected Text dateText;
         [SerializeField] protected Text mark;
@@ -21,14 +21,14 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected Text mattersText;
         [SerializeField] protected Color workdayColor = Color.black;
         [SerializeField] protected Color weekendColor = Color.black;
-        protected CalendarDateInfo m_Info;
-        protected CalendarConfig m_CalendarConfig;
+        protected UguiCalendarDateInfo m_Info;
+        protected UguiCalendarConfig m_CalendarConfig;
         protected CanvasGroup m_CanvasGroup;
         protected int m_MattersCount;
         protected bool m_IsSelect;
         protected bool m_IsToday;
 
-        public event Action<CalendarDate> OnClickEvent;
+        public event Action<UguiCalendarDate> OnClickEvent;
 
         protected virtual void Awake()
         {
@@ -134,7 +134,7 @@ namespace RedScarf.UguiFriend
         /// 初始化
         /// </summary>
         /// <param name="info"></param>
-        public virtual void Init(CalendarDateInfo info, CalendarConfig calendarConfig)
+        public virtual void Init(UguiCalendarDateInfo info, UguiCalendarConfig calendarConfig)
         {
             if (info == null) return;
             if (calendarConfig == null) return;
@@ -166,7 +166,7 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 数据信息
         /// </summary>
-        public CalendarDateInfo Info
+        public UguiCalendarDateInfo Info
         {
             get
             {
@@ -179,12 +179,12 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 日历日期
     /// </summary>
-    public class CalendarDateInfo
+    public class UguiCalendarDateInfo
     {
         public DateTime date;
         public DateMark mark;
 
-        public CalendarDateInfo(DateTime date, DateMark mark)
+        public UguiCalendarDateInfo(DateTime date, DateMark mark)
         {
             this.date = date;
             this.mark = mark;

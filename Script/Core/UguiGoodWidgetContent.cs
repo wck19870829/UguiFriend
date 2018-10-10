@@ -11,7 +11,7 @@ namespace RedScarf.UguiFriend
     /// 优化的UguiWidget容器
     /// 元素会重复使用,适用于背包等需要创建大量物体的容器
     /// </summary>
-    public class GoodUguiWidgetContent : UguiWidgetContent
+    public class UguiGoodWidgetContent : UguiWidgetContent
     {
         public Vector2 spacine = new Vector2(100,100);
         public Axis startAxis=Axis.Horizontal;

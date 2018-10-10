@@ -9,7 +9,7 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 通用日历
     /// </summary>
-    public class Calendar: Calendar<CalendarConfig>
+    public class UguiCalendar : UguiCalendar<UguiCalendarConfig>
     {
 
     }
@@ -18,8 +18,8 @@ namespace RedScarf.UguiFriend
     /// 日历基类
     /// </summary>
     /// <typeparam name="TConfig">配置文件类型</typeparam>
-    public class Calendar<TConfig>: MonoBehaviour
-        where TConfig:CalendarConfig,new()
+    public class UguiCalendar<TConfig> : MonoBehaviour
+        where TConfig : UguiCalendarConfig, new()
     {
         const int daysOfWeek = 7;
         const int dayLine = 6;
@@ -27,22 +27,23 @@ namespace RedScarf.UguiFriend
         const int daysDisplayCountTotal = daysDisplayCount * 3;
 
         [Tooltip("Go to today when enable")]
-        [SerializeField]protected bool gotoToday = true;
+        [SerializeField] protected bool gotoToday = true;
         [SerializeField] protected GridLayoutGroup dayGrid;
         [SerializeField] protected GridLayoutGroup dayOfWeekGrid;
         [SerializeField] protected Button nextMonthButton;
         [SerializeField] protected Button prevMonthButton;
         [SerializeField] protected Text yearTitleText;
         [SerializeField] protected Text monthTitleText;
-        [SerializeField][Range(0,10)] protected int dateSelectLimit = 1;             //日期选择数量上限，0为不能选择日期，1为单选，大于1为多选
+        [Range(0, 10)]
+        [SerializeField] protected int dateSelectLimit = 1;             //日期选择数量上限，0为不能选择日期，1为单选，大于1为多选
 
         [Header("-Skin")]
-        [SerializeField] protected CalendarDayOfWeek dayOfWeekPrefab;
-        [SerializeField] protected CalendarDate datePrefab;
+        [SerializeField] protected UguiCalendarDayOfWeek dayOfWeekPrefab;
+        [SerializeField] protected UguiCalendarDate datePrefab;
 
         [Header("-DateSelector")]
         [SerializeField] protected Button dateSelectorButton;
-        [SerializeField] protected DateSelector dateSelector;
+        [SerializeField] protected UguiDateSelector dateSelector;
 
         protected TConfig m_Config;
         List<DayOfWeek> dayOfWeekList;
@@ -53,7 +54,7 @@ namespace RedScarf.UguiFriend
 
         //日期选中状态改变事件
         public event Action<List<DateTime>> OnDateSelectChangeEvent;
-        public event Action<CalendarDate[]> OnDateRebuildEvent;
+        public event Action<UguiCalendarDate[]> OnDateRebuildEvent;
 
         protected virtual void Awake()
         {
@@ -75,7 +76,7 @@ namespace RedScarf.UguiFriend
             }
             if (dateSelectorButton != null)
             {
-                dateSelectorButton.onClick.AddListener(()=> 
+                dateSelectorButton.onClick.AddListener(() =>
                 {
                     OpenDateSelector();
                 });
@@ -107,7 +108,7 @@ namespace RedScarf.UguiFriend
             {
                 for (var i = 0; i < daysOfWeek; i++)
                 {
-                    var clone = GameObject.Instantiate<CalendarDayOfWeek>(dayOfWeekPrefab);
+                    var clone = GameObject.Instantiate<UguiCalendarDayOfWeek>(dayOfWeekPrefab);
                     clone.transform.SetParent(dayOfWeekGrid.transform);
                     var dayValue = (int)m_Config.weekBegins + i;
                     var dayOfWeek = (dayValue < daysOfWeek) ? (DayOfWeek)dayValue : (DayOfWeek)Mathf.Abs(dayValue - daysOfWeek);
@@ -125,9 +126,9 @@ namespace RedScarf.UguiFriend
             dayGrid.constraintCount = daysOfWeek;
             if (datePrefab != null)
             {
-                for (var i=0;i< daysDisplayCount;i++)
+                for (var i = 0; i < daysDisplayCount; i++)
                 {
-                    var clone = GameObject.Instantiate<CalendarDate>(datePrefab);
+                    var clone = GameObject.Instantiate<UguiCalendarDate>(datePrefab);
                     clone.transform.SetParent(dayGrid.transform);
                     clone.OnClickEvent -= OnDateClick;
                     clone.OnClickEvent += OnDateClick;
@@ -142,7 +143,7 @@ namespace RedScarf.UguiFriend
         public virtual void NextMonth()
         {
             var date = new DateTime(m_ViewYear, m_ViewMonth, 1).AddMonths(1);
-            Goto(date.Year,date.Month);
+            Goto(date.Year, date.Month);
         }
 
         /// <summary>
@@ -168,7 +169,7 @@ namespace RedScarf.UguiFriend
 
         protected virtual void OpenDateSelector()
         {
-            if (dateSelector!=null)
+            if (dateSelector != null)
             {
 
             }
@@ -187,26 +188,26 @@ namespace RedScarf.UguiFriend
 
             var start = new DateTime(m_ViewYear, m_ViewMonth, 1);
             var end = start.AddMonths(1).AddDays(-1);
-            var startBlank = Mathf.Abs(dayOfWeekList.IndexOf(m_Config.weekBegins)-dayOfWeekList.IndexOf(start.DayOfWeek));
+            var startBlank = Mathf.Abs(dayOfWeekList.IndexOf(m_Config.weekBegins) - dayOfWeekList.IndexOf(start.DayOfWeek));
             var startDate = start.AddDays(-startBlank);
 
             //更新日期
-            var dateItemList = new List<CalendarDateInfo>();
+            var dateItemList = new List<UguiCalendarDateInfo>();
             for (var i = 0; i < daysDisplayCount; i++)
             {
                 var date = startDate.AddDays(i);
                 var mark = m_Config.GetMark(date);
-                var info = new CalendarDateInfo(date, mark);
+                var info = new UguiCalendarDateInfo(date, mark);
                 dateItemList.Add(info);
             }
-            var dateItems = dayGrid.GetComponentsInChildren<CalendarDate>();
-            for (var i=0;i< daysDisplayCount;i++)
+            var dateItems = dayGrid.GetComponentsInChildren<UguiCalendarDate>();
+            for (var i = 0; i < daysDisplayCount; i++)
             {
                 var dateItem = dateItems[i];
                 var info = dateItemList[i];
-                dateItem.Init(info,m_Config);
+                dateItem.Init(info, m_Config);
                 dateItem.name = GetDateStr(info.date.Year, info.date.Month, info.date.Day);
-                dateItem.IsSelect = dateSelectSet.Contains(info.date)?true:false;
+                dateItem.IsSelect = dateSelectSet.Contains(info.date) ? true : false;
                 dateItem.IsToday = info.date == DateTime.Today ? true : false;
                 var isActive = (info.date >= start && info.date <= end) ? true : false;
                 dateItem.SetActiveState(isActive);
@@ -222,9 +223,9 @@ namespace RedScarf.UguiFriend
         /// 日期点击
         /// </summary>
         /// <param name="calendarDate"></param>
-        protected virtual void OnDateClick(CalendarDate calendarDate)
+        protected virtual void OnDateClick(UguiCalendarDate calendarDate)
         {
-            if(calendarDate.Info.date.Year==m_ViewYear&& calendarDate.Info.date.Month == m_ViewMonth)
+            if (calendarDate.Info.date.Year == m_ViewYear && calendarDate.Info.date.Month == m_ViewMonth)
             {
                 //点击当月日期为选择日期
                 if (dateSelectSet.Contains(calendarDate.Info.date))
@@ -244,7 +245,7 @@ namespace RedScarf.UguiFriend
                     {
                         if (dateSelectList.Count >= dateSelectLimit)
                         {
-                            var dateItems = dayGrid.GetComponentsInChildren<CalendarDate>();
+                            var dateItems = dayGrid.GetComponentsInChildren<UguiCalendarDate>();
                             var removeCount = Math.Abs(dateSelectLimit - dateSelectList.Count) + 1;
                             for (var i = 0; i < removeCount; i++)
                             {
@@ -285,7 +286,7 @@ namespace RedScarf.UguiFriend
         {
             dateSelectList.Clear();
             dateSelectSet.Clear();
-            var dateItems = dayGrid.GetComponentsInChildren<CalendarDate>();
+            var dateItems = dayGrid.GetComponentsInChildren<UguiCalendarDate>();
             foreach (var dateItem in dateItems)
             {
                 dateItem.IsSelect = false;
@@ -322,7 +323,7 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 配置文件
         /// </summary>
-        public CalendarConfig Config
+        public UguiCalendarConfig Config
         {
             get
             {

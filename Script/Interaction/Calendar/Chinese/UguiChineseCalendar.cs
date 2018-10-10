@@ -15,14 +15,14 @@ namespace RedScarf.UguiFriend
     /// 库引用于：
     /// https://github.com/Dygood/ChineseLunar
     /// </summary>
-    public class ChineseCalendar : Calendar<ChineseCalendarConfig>
+    public class UguiChineseCalendar : UguiCalendar<UguiChineseCalendarConfig>
     {
         //将月份第十三位规定为闰月大小
         private static int First_Year = -1;
         private static int Last_Year = -1;
         private static readonly string[] dataTopInit;
 
-        static ChineseCalendar()
+        static UguiChineseCalendar()
         {
             dataTopInit = config;
             var year = dataTopInit[1].Substring(0, 4);

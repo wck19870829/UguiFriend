@@ -9,12 +9,12 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// DisplayObjectData绑定DisplayObject
     /// </summary>
-    public class BindingAttribute : Attribute
+    public class UguiBindingAttribute : Attribute
     {
         public string prefabPath;
         public Type uiType;
 
-        public BindingAttribute(Type uiType,string prefabPath="")
+        public UguiBindingAttribute(Type uiType,string prefabPath="")
         {
             this.uiType = uiType;
             this.prefabPath = prefabPath;

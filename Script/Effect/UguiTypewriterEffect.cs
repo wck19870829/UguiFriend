@@ -11,7 +11,7 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 打字机
     /// </summary>
-    public class TypewriterEffect : MonoBehaviour
+    public class UguiTypewriterEffect : MonoBehaviour
     {
         const string runningFunc = "Running";
 
