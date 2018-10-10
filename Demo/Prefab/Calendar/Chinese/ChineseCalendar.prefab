@@ -21,7 +21,6 @@ GameObject:
   - 224: {fileID: 224000013605162078}
   - 222: {fileID: 222000010238185620}
   - 114: {fileID: 114000013233872200}
-  - 223: {fileID: 223000010730872586}
   m_Layer: 5
   m_Name: ChineseCalendar
   m_TagString: Untagged
@@ -910,25 +909,6 @@ CanvasRenderer:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1000013885765564}
---- !u!223 &223000010730872586
-Canvas:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000010349490712}
-  m_Enabled: 1
-  serializedVersion: 2
-  m_RenderMode: 2
-  m_Camera: {fileID: 0}
-  m_PlaneDistance: 100
-  m_PixelPerfect: 0
-  m_ReceivesEvents: 1
-  m_OverrideSorting: 0
-  m_OverridePixelPerfect: 0
-  m_SortingBucketNormalizedSize: 0
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
-  m_TargetDisplay: 0
 --- !u!224 &224000010102331102
 RectTransform:
   m_ObjectHideFlags: 1

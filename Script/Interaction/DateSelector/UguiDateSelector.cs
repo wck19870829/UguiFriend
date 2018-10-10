@@ -9,6 +9,9 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiDateSelector : MonoBehaviour
     {
+        [SerializeField] protected UguiDateSelectorDate yearPrefab;
+        [SerializeField] protected UguiDateSelectorDate monthPrefab;
+        [SerializeField] protected UguiDateSelectorDate dayPrefab;
         protected int m_CurrentYear;
         protected int m_CurrentMonth;
         protected int m_CurrentDay;

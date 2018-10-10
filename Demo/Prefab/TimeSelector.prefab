@@ -19,7 +19,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 224: {fileID: 224000012866656032}
-  - 223: {fileID: 223000012326954870}
   - 114: {fileID: 114000010390030920}
   m_Layer: 5
   m_Name: TimeSelector
@@ -42,25 +41,6 @@ MonoBehaviour:
   gotoNow: 1
   hourItem: {fileID: 0}
   minuteItem: {fileID: 0}
---- !u!223 &223000012326954870
-Canvas:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1000010643603452}
-  m_Enabled: 1
-  serializedVersion: 2
-  m_RenderMode: 2
-  m_Camera: {fileID: 0}
-  m_PlaneDistance: 100
-  m_PixelPerfect: 0
-  m_ReceivesEvents: 1
-  m_OverrideSorting: 0
-  m_OverridePixelPerfect: 0
-  m_SortingBucketNormalizedSize: 0
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
-  m_TargetDisplay: 0
 --- !u!224 &224000012866656032
 RectTransform:
   m_ObjectHideFlags: 1
