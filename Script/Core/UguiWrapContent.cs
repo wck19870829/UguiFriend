@@ -9,7 +9,7 @@ namespace RedScarf.UguiFriend
     [ExecuteInEditMode]
     [RequireComponent(typeof(ScrollRect))]
     /// <summary>
-    /// 元素循环容器
+    /// 循环容器
     /// </summary>
     public class UguiWrapContent : MonoBehaviour
     {
@@ -19,7 +19,7 @@ namespace RedScarf.UguiFriend
         protected Mask mask;
         protected List<RectTransform> items;
         protected Vector3[] maskCorners;
-        protected bool firstTime;
+        protected bool firstTime=true;
 
         protected virtual void Start()
         {
@@ -29,12 +29,7 @@ namespace RedScarf.UguiFriend
                 throw new Exception("Scroll rect is null!");
             if (scrollRect.content == null)
                 throw new Exception("Scroll rect content is null!");
-
-            var fitter = scrollRect.content.GetComponent<ContentSizeFitter>();
-            if (fitter == null)
-                fitter = scrollRect.content.gameObject.AddComponent<ContentSizeFitter>();
-            fitter.horizontalFit = ContentSizeFitter.FitMode.MinSize;
-            fitter.verticalFit = ContentSizeFitter.FitMode.MinSize;
+            scrollRect.movementType = ScrollRect.MovementType.Unrestricted;
 
             mask = scrollRect.GetComponentInChildren<Mask>();
             if (mask == null)
@@ -47,15 +42,11 @@ namespace RedScarf.UguiFriend
                 items.Add(scrollRect.content.GetChild(i) as RectTransform);
             }
 
-            firstTime = true;
             WrapContent();
-            firstTime = false;
-#if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPlaying)
+            if (Application.isPlaying)
             {
-                firstTime = true;
+                firstTime = false;
             }
-#endif
         }
 
         private void Update()
@@ -117,7 +108,7 @@ namespace RedScarf.UguiFriend
                 }
             }
         }
-
+    
         public enum Axis
         {
             Horizontal,
