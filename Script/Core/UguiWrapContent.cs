@@ -13,8 +13,8 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiWrapContent : MonoBehaviour
     {
-        protected static readonly AnimationCurve defaultScaleCurve= AnimationCurve.Linear(0, 0.5f, 1, 1);
-        protected static readonly AnimationCurve defaultRotationCurve = AnimationCurve.Linear(0, 0.5f, 1, 1);
+        protected static readonly AnimationCurve defaultScaleCurve= AnimationCurve.Linear(0, 1, 1, 1);
+        protected static readonly AnimationCurve defaultRotationCurve = AnimationCurve.Linear(0, 0, 1, 0);
 
         [SerializeField] protected AnimationCurve rotationCurve = defaultRotationCurve; //旋转曲线，根据元素到中心点位置旋转
         [SerializeField] protected AnimationCurve scaleCurve = defaultScaleCurve;       //缩放曲线，根据元素到中心点位置缩放      
