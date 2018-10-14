@@ -11,7 +11,7 @@ namespace RedScarf.UguiFriend
     {
         [SerializeField]protected Text dateText;
 
-        public virtual void Init(int num)
+        public virtual void Set(int num)
         {
             if (dateText != null)
             {

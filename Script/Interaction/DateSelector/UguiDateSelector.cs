@@ -9,46 +9,79 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiDateSelector : MonoBehaviour
     {
-        [SerializeField] protected UguiDateSelectorDate yearPrefab;
-        [SerializeField] protected UguiDateSelectorDate monthPrefab;
-        [SerializeField] protected UguiDateSelectorDate dayPrefab;
-        protected int m_CurrentYear;
-        protected int m_CurrentMonth;
-        protected int m_CurrentDay;
+        [Tooltip("Go to today when enable.")]
+        public bool gotoToday=true;
+        [SerializeField] protected UguiWrapContent yearContent;
+        [SerializeField] protected UguiWrapContent monthContent;
+        [SerializeField] protected UguiWrapContent dayContent;
+        int startYear;
+        int startMonth;
+        int startDay;
 
-        public event Action OnSelectChangeEvent; 
+        public Action<int,int,int> OnSelectChangeEvent;
+
+        protected virtual void Awake()
+        {
+            if (yearContent == null)
+                throw new Exception("Year is null.");
+            if (monthContent == null)
+                throw new Exception("Month is null.");
+            if (dayContent == null)
+                throw new Exception("Day is null.");
+
+            yearContent.OnInitItem += OnYearInitItem;
+            monthContent.OnInitItem += OnMonthInitItem;
+            dayContent.OnInitItem += OnDayInitItem;
+        }
+
+        protected virtual void OnEnable()
+        {
+            if (gotoToday)
+            {
+                Goto(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day);
+            }
+        }
 
         public virtual void Goto(int year,int month,int day)
         {
+            startYear = year;
+            startMonth = month;
+            startDay = day;
 
+            yearContent.Realign();
+            monthContent.Realign();
+            dayContent.Realign();
 
             if (OnSelectChangeEvent != null)
             {
-                OnSelectChangeEvent.Invoke();
+                OnSelectChangeEvent.Invoke(year,month,day);
             }
         }
 
-        public int CurrentYear
+        protected virtual void OnYearInitItem(RectTransform item,int index,int realIndex)
         {
-            get
+            var dateItem = item.GetComponent<UguiDateSelectorDate>();
+            if (dateItem != null)
             {
-                return m_CurrentYear;
+                dateItem.Set(startYear+realIndex);
             }
         }
 
-        public int CurrentMonth
+        protected virtual void OnMonthInitItem(RectTransform item, int index, int realIndex)
         {
-            get
+            var dateItem = item.GetComponent<UguiDateSelectorDate>();
+            if (dateItem != null)
             {
-                return m_CurrentMonth;
+                dateItem.Set(startMonth + realIndex);
             }
         }
 
-        public int CurrentDay
+        protected virtual void OnDayInitItem(RectTransform item, int index, int realIndex)
         {
-            get
+            var dateItem = item.GetComponent<UguiDateSelectorDate>();
+            if (dateItem != null)
             {
-                return m_CurrentDay;
+                dateItem.Set(startDay + realIndex);
             }
         }
     }
