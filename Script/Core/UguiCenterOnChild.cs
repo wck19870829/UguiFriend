@@ -87,7 +87,7 @@ namespace RedScarf.UguiFriend
             Init();
 
             actionPeriod = ActionPeriod.PositionAlignment;
-
+            if (!enabled) enabled=true;
             scrollRect.StopMovement();
             mask.rectTransform.GetWorldCorners(maskCorners);
             var center = Vector3.Lerp(maskCorners[0], maskCorners[2], 0.5f);

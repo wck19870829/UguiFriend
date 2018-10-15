@@ -108,13 +108,14 @@ namespace RedScarf.UguiFriend
 
             mask.rectTransform.GetWorldCorners(maskCorners);
             var maskCenter = Vector3.Lerp(maskCorners[0], maskCorners[2], 0.5f);
+            var contentPoint = scrollRect.content.InverseTransformPoint(maskCenter);
             var extents = spacing * items.Count * 0.5f;
             var ext2 = extents * 2f;
             if (axis == Axis.Vertical)
             {
                 var maskHeight = Mathf.Abs(maskCorners[0].y - maskCorners[1].y);
-                var itemOffset = Application.isPlaying?spacing * 0.5f+minIndex*spacing: -spacing * 0.5f;
-                scrollRect.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, spacing * (maxIndex - minIndex));
+                var itemOffset = Application.isPlaying? minIndex * spacing - spacing * 0.5f: -spacing * 0.5f;
+                scrollRect.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, spacing * (maxIndex - minIndex+1));
                 for (var i = 0; i < items.Count; i++)
                 {
                     var item = items[i];
@@ -129,7 +130,7 @@ namespace RedScarf.UguiFriend
                     else if (distance < -extents)
                     {
                         localPos.y += ext2;
-                        var realIndex = GetRealIndex(item);
+                        var realIndex = GetRealIndex(localPos);
                         if (minIndex == maxIndex || (minIndex <= realIndex && realIndex <= maxIndex))
                         {
                             item.localPosition = localPos;
@@ -139,7 +140,7 @@ namespace RedScarf.UguiFriend
                     else if (distance > extents)
                     {
                         localPos.y -= ext2;
-                        var realIndex = GetRealIndex(item);
+                        var realIndex = GetRealIndex(localPos);
                         if (minIndex == maxIndex || (minIndex <= realIndex && realIndex <= maxIndex))
                         {
                             item.localPosition = localPos;
@@ -203,20 +204,20 @@ namespace RedScarf.UguiFriend
                 //}
             }
 
-            //中间元素置顶
-            if (keepCenterFront&&Application.isPlaying)
-            {
-                itemsTemp.Sort((a, b) => {
-                    var distA = Vector3.Distance(maskCenter, a.position);
-                    var distB = Vector3.Distance(maskCenter, b.position);
-                    if (distA == distB) return 0;
-                    return distA > distB ? 1 : -1;
-                });
-                foreach (var item in itemsTemp)
-                {
-                    item.SetAsFirstSibling();
-                }
-            }
+            ////中间元素置顶
+            //if (keepCenterFront&&Application.isPlaying)
+            //{
+            //    itemsTemp.Sort((a, b) => {
+            //        var distA = Vector3.Distance(maskCenter, a.position);
+            //        var distB = Vector3.Distance(maskCenter, b.position);
+            //        if (distA == distB) return 0;
+            //        return distA > distB ? 1 : -1;
+            //    });
+            //    foreach (var item in itemsTemp)
+            //    {
+            //        item.SetAsFirstSibling();
+            //    }
+            //}
         }
 
         /// <summary>
@@ -229,23 +230,23 @@ namespace RedScarf.UguiFriend
         {
             if (OnInitItem != null)
             {
-                var realIndex = GetRealIndex(item);
+                var realIndex = GetRealIndex(item.localPosition);
                 OnInitItem.Invoke(item, index, realIndex);
             }
         }
 
-        protected virtual int GetRealIndex(RectTransform item)
+        protected virtual int GetRealIndex(Vector3 localPosition)
         {
             var realIndex = 0;
             if (axis==Axis.Vertical)
             {
-                var itemOffset = Application.isPlaying ? spacing * 0.5f + minIndex * spacing : -spacing * 0.5f;
-                realIndex = -Mathf.CeilToInt((item.localPosition.y-itemOffset) / spacing);
+                var itemOffset = Application.isPlaying ? minIndex * spacing - spacing * 0.5f : -spacing * 0.5f;
+                realIndex = -Mathf.RoundToInt((localPosition.y - itemOffset) / spacing);
             }
             else
             {
                 var itemOffset = mask.rectTransform.rect.width * 0.5f - spacing * 0.5f;
-                realIndex = Mathf.CeilToInt((item.localPosition.x - itemOffset) / spacing);
+                realIndex = Mathf.CeilToInt((localPosition.x - itemOffset) / spacing);
             }
 
             return realIndex;
