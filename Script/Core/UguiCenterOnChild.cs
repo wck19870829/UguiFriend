@@ -21,14 +21,14 @@ namespace RedScarf.UguiFriend
 
         public Action<Transform> OnCenter;
 
+        protected virtual void Awake()
+        {
+            Init();
+        }
+
         protected virtual void OnEnable()
         {
             actionPeriod = ActionPeriod.None;
-        }
-
-        protected virtual void Start()
-        {
-            Init();
         }
 
         void Update()
