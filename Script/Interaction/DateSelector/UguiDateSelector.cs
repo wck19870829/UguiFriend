@@ -22,6 +22,7 @@ namespace RedScarf.UguiFriend
         int currentYear;
         int currentMonth;
         int currentDay;
+        int daysInMonth;
         bool isDateChange;
 
         public Action<DateTime> OnDateChange;
@@ -56,6 +57,14 @@ namespace RedScarf.UguiFriend
             if (isDateChange)
             {
                 isDateChange = false;
+
+                //限定天数
+                var days = DateTime.DaysInMonth(currentYear, currentMonth);
+                if (days > daysInMonth)
+                {
+                    daysInMonth = days;
+
+                }
 
                 try
                 {
