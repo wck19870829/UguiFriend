@@ -15,14 +15,16 @@ namespace RedScarf.UguiFriend
     {
         protected readonly Vector2 contentDefaultPivot = new Vector2(0,1);
 
-        [SerializeField] protected int minIndex = -5;
-        [SerializeField] protected int maxIndex = 5;
+        [SerializeField] protected int minIndex = -9999;
+        [SerializeField] protected int maxIndex = 9999;
         [SerializeField] protected bool keepCenterFront=true;                                           //保持中间元素置顶显示        
         [SerializeField] protected float spacing = 100;                                                 //元素间距
         [SerializeField] protected Axis axis;
 
         [Header("-Rotation control")]
         [SerializeField] protected AnimationCurve rotationCurve = AnimationCurve.Linear(0, 0, 1, 0);    //旋转曲线，根据元素到中心点位置旋转
+        [SerializeField] protected Vector3 sideAngle;
+        [SerializeField] protected Vector3 centerAngle;
 
         [Header("-Scale control")]
         [SerializeField] protected AnimationCurve scaleCurve = AnimationCurve.Linear(0, 1, 1, 1);       //缩放曲线，根据元素到中心点位置缩放
@@ -140,7 +142,7 @@ namespace RedScarf.UguiFriend
                     {
                         localPos.y += ext2;
                         var realIndex = GetRealIndex(localPos);
-                        if (minIndex == maxIndex || (minIndex <= realIndex && realIndex <= maxIndex))
+                        if (minIndex <= realIndex && realIndex <= maxIndex)
                         {
                             item.localPosition = localPos;
                             UpdateItem(item, i);
@@ -150,7 +152,7 @@ namespace RedScarf.UguiFriend
                     {
                         localPos.y -= ext2;
                         var realIndex = GetRealIndex(localPos);
-                        if (minIndex == maxIndex || (minIndex <= realIndex && realIndex <= maxIndex))
+                        if (minIndex <= realIndex && realIndex <= maxIndex)
                         {
                             item.localPosition = localPos;
                             UpdateItem(item, i);
@@ -177,7 +179,7 @@ namespace RedScarf.UguiFriend
                     {
                         localPos.x += ext2;
                         var realIndex = GetRealIndex(localPos);
-                        if (minIndex == maxIndex || (minIndex <= realIndex && realIndex <= maxIndex))
+                        if (minIndex <= realIndex && realIndex <= maxIndex)
                         {
                             item.localPosition = localPos;
                             UpdateItem(item, i);
@@ -187,7 +189,7 @@ namespace RedScarf.UguiFriend
                     {
                         localPos.x -= ext2;
                         var realIndex = GetRealIndex(localPos);
-                        if (minIndex == maxIndex || (minIndex <= realIndex && realIndex <= maxIndex))
+                        if (minIndex <= realIndex && realIndex <= maxIndex)
                         {
                             item.localPosition = localPos;
                             UpdateItem(item, i);
@@ -206,17 +208,17 @@ namespace RedScarf.UguiFriend
                 item.localScale = new Vector3(scale, scale, scale);
 
                 //旋转
-                var angle = rotationCurve.Evaluate(1 - time)*90;
+                var angle = Vector3.Lerp(centerAngle,sideAngle,rotationCurve.Evaluate(1 - time));
                 switch (axis)
                 {
                     case Axis.Horizontal:
                         angle *= Mathf.Sign(item.localPosition.x - contentPoint.x);
-                        item.localEulerAngles = new Vector3(0, angle, 0);
+                        item.localEulerAngles = angle;
                         break;
 
                     case Axis.Vertical:
                         angle *= Mathf.Sign(item.localPosition.y - contentPoint.y);
-                        item.localEulerAngles = new Vector3(angle, 0, 0);
+                        item.localEulerAngles = angle;
                         break;
                 }
             }

@@ -10,14 +10,17 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 子元素居中
     /// </summary>
-    public class UguiCenterOnChild : MonoBehaviour, IEndDragHandler,IBeginDragHandler
+    public class UguiCenterOnChild : MonoBehaviour, IEndDragHandler, IBeginDragHandler
     {
+        public Vector2 v2;
         public float velocityThreshold = 300;             //速度临界值，小于此值才会开始居中操作
         protected ScrollRect scrollRect;
         protected Mask mask;
-        protected Vector3[] maskCorners=new Vector3[4];
+        protected Vector3[] maskCorners = new Vector3[4];
         protected ActionPeriod actionPeriod;
         protected Vector3 contentPos;
+        ScrollRect.MovementType cacheMovementType;
+        Transform centerTarget;
 
         public Action<Transform> OnCenter;
 
@@ -44,28 +47,35 @@ namespace RedScarf.UguiFriend
             }
             else if (actionPeriod == ActionPeriod.PositionAlignment)
             {
-                var decelerationRate = (scrollRect.decelerationRate==0|| !scrollRect.inertia)
-                                    ? 1f
-                                    : scrollRect.decelerationRate;
-                var pos = Vector3.Lerp(scrollRect.content.position,contentPos, decelerationRate);
+                var decelerationRate = (scrollRect.decelerationRate == 0 || !scrollRect.inertia)
+                    ? 1f
+                    : scrollRect.decelerationRate;
+                var pos = Vector3.Lerp(scrollRect.content.position, contentPos, decelerationRate);
                 scrollRect.content.position = pos;
+            }
 
-                if(Vector3.Distance(scrollRect.content.position, contentPos) < 0.01f)
+            var closest = GetClosest();
+            if (centerTarget != closest)
+            {
+                centerTarget = closest;
+                if (centerTarget != null)
                 {
-                    actionPeriod = ActionPeriod.None;
-                    scrollRect.content.position = contentPos;
-
                     if (OnCenter != null)
                     {
-                        OnCenter.Invoke(GetClosest());
+                        OnCenter.Invoke(centerTarget);
                     }
                 }
             }
         }
 
+        protected virtual void OnDestroy()
+        {
+            scrollRect.movementType = cacheMovementType;
+        }
+
         void Init()
         {
-            if(scrollRect==null)
+            if (scrollRect == null)
                 scrollRect = GetComponent<ScrollRect>();
             if (scrollRect == null)
                 throw new Exception("Scroll rect is null.");
@@ -74,6 +84,9 @@ namespace RedScarf.UguiFriend
             mask = scrollRect.GetComponentInChildren<Mask>();
             if (mask == null)
                 throw new Exception("Mask is null.");
+
+            cacheMovementType = scrollRect.movementType;
+            scrollRect.movementType = ScrollRect.MovementType.Unrestricted;
         }
 
         /// <summary>
@@ -87,13 +100,18 @@ namespace RedScarf.UguiFriend
             Init();
 
             actionPeriod = ActionPeriod.PositionAlignment;
-            if (!enabled) enabled=true;
+            if (!enabled) enabled = true;
             scrollRect.StopMovement();
             mask.rectTransform.GetWorldCorners(maskCorners);
             var center = Vector3.Lerp(maskCorners[0], maskCorners[2], 0.5f);
             var offset = center - target.position;
             contentPos = scrollRect.content.position;
             contentPos += offset;
+
+            if (!gameObject.activeSelf)
+            {
+                scrollRect.content.position = contentPos;
+            }
         }
 
         /// <summary>

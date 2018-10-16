@@ -10,12 +10,26 @@ namespace RedScarf.UguiFriend
     public class UguiDateSelectorDate : MonoBehaviour
     {
         [SerializeField]protected Text dateText;
+        int m_Num;
 
-        public virtual void Set(int num)
+        protected virtual void Awake()
         {
-            if (dateText != null)
+            Num = 0;
+        }
+
+        public virtual int Num
+        {
+            get
             {
-                dateText.text = num.ToString();
+                return m_Num;
+            }
+            set
+            {
+                m_Num = value;
+                if (dateText != null)
+                {
+                    dateText.text = m_Num.ToString();
+                }
             }
         }
     }
