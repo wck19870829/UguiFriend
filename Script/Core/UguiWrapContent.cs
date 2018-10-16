@@ -29,6 +29,11 @@ namespace RedScarf.UguiFriend
         [Header("-Scale control")]
         [SerializeField] protected AnimationCurve scaleCurve = AnimationCurve.Linear(0, 1, 1, 1);       //缩放曲线，根据元素到中心点位置缩放
 
+        [Header("-Color tint")]
+        [SerializeField] protected AnimationCurve colorCurve= AnimationCurve.Linear(0, 0, 1, 1);        //颜色曲线
+        [SerializeField] protected Color centerColor = Color.white;
+        [SerializeField] protected Color sideColor = Color.white;
+
         protected Comparison<RectTransform> m_SortComparison;
         protected ScrollRect scrollRect;
         protected Mask mask;
@@ -208,18 +213,32 @@ namespace RedScarf.UguiFriend
                 item.localScale = new Vector3(scale, scale, scale);
 
                 //旋转
-                var angle = Vector3.Lerp(centerAngle,sideAngle,rotationCurve.Evaluate(1 - time));
-                switch (axis)
+                if (sideAngle!=centerAngle)
                 {
-                    case Axis.Horizontal:
-                        angle *= Mathf.Sign(item.localPosition.x - contentPoint.x);
-                        item.localEulerAngles = angle;
-                        break;
+                    var angle = Vector3.Lerp(centerAngle, sideAngle, rotationCurve.Evaluate(1 - time));
+                    switch (axis)
+                    {
+                        case Axis.Horizontal:
+                            angle *= Mathf.Sign(item.localPosition.x - contentPoint.x);
+                            item.localEulerAngles = angle;
+                            break;
 
-                    case Axis.Vertical:
-                        angle *= Mathf.Sign(item.localPosition.y - contentPoint.y);
-                        item.localEulerAngles = angle;
-                        break;
+                        case Axis.Vertical:
+                            angle *= Mathf.Sign(item.localPosition.y - contentPoint.y);
+                            item.localEulerAngles = angle;
+                            break;
+                    }
+                }
+
+                //颜色
+                if (centerColor != sideColor)
+                {
+                    var colorTint = item.GetComponent<UguiColorTint>();
+                    if (colorTint!=null)
+                    {
+                        var col = Color.Lerp(sideColor, centerColor, colorCurve.Evaluate(time));
+                        colorTint.color = col;
+                    }
                 }
             }
 

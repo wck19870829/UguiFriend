@@ -58,16 +58,16 @@ namespace RedScarf.UguiFriend
             {
                 isDateChange = false;
 
-                //限定天数
-                var days = DateTime.DaysInMonth(currentYear, currentMonth);
-                if (days > daysInMonth)
-                {
-                    daysInMonth = days;
-
-                }
-
                 try
                 {
+                    //限定天数
+                    var days = DateTime.DaysInMonth(currentYear, currentMonth);
+                    if (days > daysInMonth)
+                    {
+                        daysInMonth = days;
+
+                    }
+
                     var selectDay = new DateTime(currentYear, currentMonth, currentDay);
                     DateChange(selectDay);
 
@@ -86,7 +86,7 @@ namespace RedScarf.UguiFriend
         protected virtual void DateChange(DateTime date)
         {
             if (dateText != null)
-                dateText.text = currentYear + "年" + currentMonth + "月" + currentDay + "日";
+                dateText.text = currentYear + "/" + currentMonth + "/" + currentDay;
         }
 
         public virtual void Goto(int year,int month,int day)

@@ -12,7 +12,6 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiCenterOnChild : MonoBehaviour, IEndDragHandler, IBeginDragHandler
     {
-        public Vector2 v2;
         public float velocityThreshold = 300;             //速度临界值，小于此值才会开始居中操作
         protected ScrollRect scrollRect;
         protected Mask mask;
