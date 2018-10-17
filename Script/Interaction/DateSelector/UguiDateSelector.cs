@@ -24,18 +24,19 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected AudioClip turnSound;
 
         protected AudioSource audioSource;
-        public int startYear;
-        public int startMonth;
-        public int startDay;
-        public int currentYear;
-        public int currentMonth;
-        public int currentDay;
-        public int daysInMonth;
+        protected DateTime selectDate;
+        protected int startYear;
+        protected int startMonth;
+        protected int startDay;
+        protected int currentYear;
+        protected int currentMonth;
+        protected int currentDay;
+        protected int daysInMonth;
         bool isDateChange;
 
         public Action<DateTime> OnDateChange;
         public Action OnCancel;
-        public Action OnConfirm;
+        public Action<DateTime> OnConfirm;
 
         protected virtual void Awake()
         {
@@ -55,7 +56,10 @@ namespace RedScarf.UguiFriend
             monthContent.GetComponent<UguiCenterOnChild>().OnCenter += OnMonthCenter;
             dayContent.GetComponent<UguiCenterOnChild>().OnCenter += OnDayCenter;
 
-            confirmButton.onClick.AddListener(null);
+            if (confirmButton != null)
+                confirmButton.onClick.AddListener(OnConfirmClick);
+            if (cancelButton != null)
+                cancelButton.onClick.AddListener(OnCancelClick);
         }
 
         protected virtual void OnEnable()
@@ -82,12 +86,12 @@ namespace RedScarf.UguiFriend
 
                     }
 
-                    var selectDay = new DateTime(currentYear, currentMonth, currentDay);
-                    DateChange(selectDay);
+                    selectDate = new DateTime(currentYear, currentMonth, currentDay);
+                    DateChange(selectDate);
 
                     if (OnDateChange != null)
                     {
-                        OnDateChange.Invoke(selectDay);
+                        OnDateChange.Invoke(selectDate);
                     }
                 }
                 catch (Exception e)
@@ -97,11 +101,26 @@ namespace RedScarf.UguiFriend
             }
         }
 
+        protected virtual void OnConfirmClick()
+        {
+            if (OnConfirm != null)
+            {
+                OnConfirm.Invoke(selectDate);
+            }
+        }
+
+        protected virtual void OnCancelClick()
+        {
+            if (OnCancel != null)
+            {
+                OnCancel.Invoke();
+            }
+        }
+
         protected virtual void DateChange(DateTime date)
         {
             if (dateText != null)
-                dateText.text = currentYear + "/" + currentMonth + "/" + currentDay+" "+
-                                date.DayOfWeek;
+                dateText.text = date.ToLongDateString();
 
             //播放声音
             if (audioSource != null)
