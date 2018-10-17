@@ -59,7 +59,7 @@ namespace RedScarf.UguiFriend
         {
             yield return new WaitWhile(()=> 
             {
-                return Time.time- cacheStartTime >= interval ? false:true;
+                return !(Time.time- cacheStartTime >= interval);
             });
 
             cacheStartTime = Time.time;

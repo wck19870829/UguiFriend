@@ -46,9 +46,9 @@ namespace RedScarf.UguiFriend
             }
             else if (actionPeriod == ActionPeriod.PositionAlignment)
             {
-                var decelerationRate = (scrollRect.decelerationRate == 0 || !scrollRect.inertia)
-                    ? 1f
-                    : scrollRect.decelerationRate;
+                var decelerationRate = (scrollRect.decelerationRate == 0 || !scrollRect.inertia)?
+                                        1f:
+                                        scrollRect.decelerationRate;
                 var pos = Vector3.Lerp(scrollRect.content.position, contentPos, decelerationRate);
                 scrollRect.content.position = pos;
             }

@@ -111,7 +111,9 @@ namespace RedScarf.UguiFriend
                     var clone = GameObject.Instantiate<UguiCalendarDayOfWeek>(dayOfWeekPrefab);
                     clone.transform.SetParent(dayOfWeekGrid.transform);
                     var dayValue = (int)m_Config.weekBegins + i;
-                    var dayOfWeek = (dayValue < daysOfWeek) ? (DayOfWeek)dayValue : (DayOfWeek)Mathf.Abs(dayValue - daysOfWeek);
+                    var dayOfWeek = (dayValue < daysOfWeek) ?
+                                    (DayOfWeek)dayValue :
+                                    (DayOfWeek)Mathf.Abs(dayValue - daysOfWeek);
                     dayOfWeekList.Add(dayOfWeek);
                     clone.Set(dayOfWeek, m_Config);
                     clone.gameObject.name = i.ToString();

@@ -130,7 +130,9 @@ namespace RedScarf.UguiFriend
             var ext2 = extents * 2f;
             if (axis == Axis.Vertical)
             {
-                itemOffset = Application.isPlaying ? minIndex * spacing - spacing * 0.5f : -spacing * 0.5f;
+                itemOffset = Application.isPlaying ?
+                            minIndex * spacing - spacing * 0.5f :
+                            -spacing * 0.5f;
                 content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, spacing * (maxIndex - minIndex+1));
                 for (var i = 0; i < items.Count; i++)
                 {
@@ -167,7 +169,9 @@ namespace RedScarf.UguiFriend
             }
             else
             {
-                itemOffset = Application.isPlaying ? -minIndex * spacing + spacing * 0.5f : spacing * 0.5f;
+                itemOffset = Application.isPlaying ?
+                            -minIndex * spacing + spacing * 0.5f :
+                            spacing * 0.5f;
                 content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, spacing * (maxIndex - minIndex + 1));
                 for (var i = 0; i < items.Count; i++)
                 {
@@ -271,6 +275,20 @@ namespace RedScarf.UguiFriend
             {
                 var realIndex = GetRealIndex(item.localPosition);
                 OnInitItem.Invoke(item, index, realIndex);
+            }
+        }
+
+        public virtual void ForceUpdateItems()
+        {
+            Init();
+
+            if (OnInitItem!=null)
+            {
+                for(var i=0;i<items.Count;i++)
+                {
+                    var realIndex = GetRealIndex(items[i].localPosition);
+                    OnInitItem.Invoke(items[i], i, realIndex);
+                }
             }
         }
 
