@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -167,6 +168,28 @@ namespace RedScarf.UguiFriend
                 case (PivotPresets.BottomCenter): target.pivot = new Vector2(0.5f, 0); break;
                 case (PivotPresets.BottomRight): target.pivot = new Vector2(1, 0); break;
             }
+        }
+
+        /// <summary>
+        /// 复制一个元素
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="parent"></param>
+        /// <returns></returns>
+        public static T AddChild<T>(T source, Transform parent=null) where T:Component
+        {
+            if (source == null)
+                throw new Exception("Source is null.");
+
+            var clone=GameObject.Instantiate<T>(source);
+            if(parent!=null)
+                clone.transform.SetParent(parent);
+            clone.transform.localScale = Vector3.one;
+            clone.transform.localRotation = Quaternion.identity;
+            clone.transform.localPosition = Vector3.zero;
+
+            return clone;
         }
     }
 
