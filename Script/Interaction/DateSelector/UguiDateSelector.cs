@@ -48,6 +48,8 @@ namespace RedScarf.UguiFriend
                 throw new Exception("Day is null.");
 
             audioSource = GetComponent<AudioSource>();
+            if (dateText != null)
+                dateText.text = "";
 
             yearContent.OnInitItem += OnYearInitItem;
             monthContent.OnInitItem += OnMonthInitItem;

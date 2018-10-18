@@ -12,16 +12,22 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiColorPresetSelector : MonoBehaviour
     {
+        static readonly int defaultRow = 5;
+        static readonly int defaultColumn = 5;
+
         [SerializeField] protected UguiColorPresetSelectorItem selectColorItem;
         [SerializeField] protected UguiColorPresetSelectorItem itemPrefab;
         [SerializeField] protected GridLayoutGroup content;
         [SerializeField] protected GameObject presetPanel;
 
+        [Header("- Select color")]
+        [SerializeField] protected Color m_SelectColor = Color.white;
+
         [Header("- Preset colors")]
-        [SerializeField] protected Color[] presetColors;
-        protected Color m_SelectColor;
+        [SerializeField] protected Color[] presetColors = GetBeautifulPresetColors(defaultRow * defaultColumn);
 
         public Action<Color> OnSelectColor;
+
 
         protected virtual void OnEnable()
         {
@@ -41,26 +47,31 @@ namespace RedScarf.UguiFriend
                 throw new Exception("Content is null.");
 
             selectColorItem.OnClick += OnSelectColorClick;
-            Init(presetColors);
+            SetPresetColors(presetColors);
+            SelectColor = m_SelectColor;
         }
 
-        public virtual void Init(Color[] colors)
+        /// <summary>
+        /// 设置预设颜色
+        /// </summary>
+        /// <param name="colors"></param>
+        public virtual void SetPresetColors(Color[] colors)
         {
-            if (colors == null) return;
+            if (colors == null|| itemPrefab == null) return;
 
             UguiTools.DestroyChildren(content.gameObject);
             presetColors = colors;
-            if (itemPrefab != null)
+            foreach (var color in presetColors)
             {
-                foreach (var color in presetColors)
-                {
-                    var item=UguiTools.AddChild<UguiColorPresetSelectorItem>(itemPrefab,content.transform);
-                    item.Color = color;
-                    item.OnClick += OnItemClick;
-                }
+                var item = UguiTools.AddChild<UguiColorPresetSelectorItem>(itemPrefab, content.transform);
+                item.Color = color;
+                item.OnClick += OnItemClick;
             }
         }
 
+        /// <summary>
+        /// 当前选择的颜色
+        /// </summary>
         public virtual Color SelectColor
         {
             get
@@ -88,6 +99,7 @@ namespace RedScarf.UguiFriend
 
         private void OnItemClick(UguiColorPresetSelectorItem item)
         {
+            SelectColor = item.Color;
             ClosePresetPanel();
         }
 
@@ -111,5 +123,21 @@ namespace RedScarf.UguiFriend
                 presetPanel.SetActive(false);
             }
         }
+
+        #region 静态方法
+
+        /// <summary>
+        /// 获得色彩协调的预设颜色
+        /// </summary>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static Color[] GetBeautifulPresetColors(int count)
+        {
+            var colors = new Color[count];
+
+            return colors;
+        }
+
+        #endregion
     }
 }

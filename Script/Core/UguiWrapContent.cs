@@ -125,6 +125,7 @@ namespace RedScarf.UguiFriend
             content.pivot = contentDefaultPivot;
             mask.rectTransform.GetWorldCorners(maskCorners);
             var maskCenter = Vector3.Lerp(maskCorners[0], maskCorners[2], 0.5f);
+            var maskLocalCenter = mask.transform.InverseTransformPoint(maskCenter);
             var contentPoint = content.InverseTransformPoint(maskCenter);
             var extents = spacing * items.Count * 0.5f;
             var ext2 = extents * 2f;
@@ -134,6 +135,23 @@ namespace RedScarf.UguiFriend
                             minIndex * spacing - spacing * 0.5f :
                             -spacing * 0.5f;
                 content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, spacing * (maxIndex - minIndex+1));
+                
+                //限制位置到视图内
+                if (content.localPosition.y< maskLocalCenter.y)
+                {
+                    scrollRect.StopMovement();
+                    var pos = content.localPosition;
+                    pos.y = maskLocalCenter.y;
+                    content.localPosition = pos;
+                }
+                else if (content.localPosition.y-content.rect.height> maskLocalCenter.y)
+                {
+                    scrollRect.StopMovement();
+                    var pos = content.localPosition;
+                    pos.y = maskLocalCenter.y+ content.rect.height;
+                    content.localPosition = pos;
+                }
+
                 for (var i = 0; i < items.Count; i++)
                 {
                     var item = items[i];
@@ -173,6 +191,23 @@ namespace RedScarf.UguiFriend
                             -minIndex * spacing + spacing * 0.5f :
                             spacing * 0.5f;
                 content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, spacing * (maxIndex - minIndex + 1));
+
+                //限制位置到视图内
+                if (content.localPosition.x > maskLocalCenter.x)
+                {
+                    scrollRect.StopMovement();
+                    var pos = content.localPosition;
+                    pos.x = maskLocalCenter.x;
+                    content.localPosition = pos;
+                }
+                else if (content.localPosition.x + content.rect.width < maskLocalCenter.x)
+                {
+                    scrollRect.StopMovement();
+                    var pos = content.localPosition;
+                    pos.x = maskLocalCenter.x - content.rect.width;
+                    content.localPosition = pos;
+                }
+
                 for (var i = 0; i < items.Count; i++)
                 {
                     var item = items[i];
