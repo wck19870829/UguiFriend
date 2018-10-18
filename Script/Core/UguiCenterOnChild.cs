@@ -10,7 +10,7 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 子元素居中
     /// </summary>
-    public class UguiCenterOnChild : MonoBehaviour, IEndDragHandler, IBeginDragHandler
+    public class UguiCenterOnChild : MonoBehaviour, IEndDragHandler, IBeginDragHandler,IScrollHandler
     {
         public float velocityThreshold = 300;             //速度临界值，小于此值才会开始居中操作
         protected ScrollRect scrollRect;
@@ -155,6 +155,11 @@ namespace RedScarf.UguiFriend
         public void OnBeginDrag(PointerEventData eventData)
         {
             actionPeriod = ActionPeriod.None;
+        }
+
+        public void OnScroll(PointerEventData eventData)
+        {
+
         }
 
         public enum ActionPeriod

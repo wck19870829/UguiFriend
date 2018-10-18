@@ -21,25 +21,33 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected float spacing = 100;                                                 //元素间距
         [SerializeField] protected Axis axis;
 
-        [Header("- Rotation control")]
+        [Header("- Position offset effect")]
+        [SerializeField] protected bool usePositionEffect;
+        [SerializeField] protected bool isMirrorPositionEffect = true;
+        [SerializeField] protected AnimationCurve posOffsetCurve = AnimationCurve.Linear(0, 0, 1, 0);    //位置偏移
+        [SerializeField] protected Vector3 centerPositionOffset;
+        [SerializeField] protected Vector3 sidePositionOffset;
+
+        [Header("- Rotation effect")]
+        [SerializeField] protected bool useRotationEffect;
+        [SerializeField] protected bool isMirrorRotationEffect = true;
         [SerializeField] protected AnimationCurve rotationCurve = AnimationCurve.Linear(0, 0, 1, 0);    //旋转曲线，根据元素到中心点位置旋转
         [SerializeField] protected Vector3 centerAngle;
         [SerializeField] protected Vector3 sideAngle;
 
-        [Header("- Scale control")]
+        [Header("- Scale effect")]
+        [SerializeField] protected bool useScaleEffect;
         [SerializeField] protected AnimationCurve scaleCurve = AnimationCurve.Linear(0, 1, 1, 1);       //缩放曲线，根据元素到中心点位置缩放
+        [SerializeField] protected Vector3 centerScale=Vector3.one;
+        [SerializeField] protected Vector3 sideScale = Vector3.one;
 
-        [Header("- Color tint")]
+        [Header("- Color tint effect")]
+        [SerializeField] protected bool useColorTintEffect;
         [SerializeField] protected AnimationCurve colorCurve= AnimationCurve.Linear(0, 0, 1, 1);        //颜色曲线
         [SerializeField] protected Color centerColor = Color.white;
         [SerializeField] protected Color sideColor = Color.white;
 
-        [Header("- Position offset")]
-        [SerializeField] protected AnimationCurve posOffsetCurve= AnimationCurve.Linear(0, 0, 1, 0);    //位置偏移
-        [SerializeField] protected Vector3 centerPositionOffset;
-        [SerializeField] protected Vector3 sidePositionOffset;
-
-        protected Comparison<RectTransform> m_SortComparison;
+        protected Comparison<RectTransform> m_DepthSortComparison;
         protected ScrollRect scrollRect;
         protected Mask mask;
         protected RectTransform content;
@@ -47,7 +55,8 @@ namespace RedScarf.UguiFriend
         protected Vector3[] maskCorners;
         protected bool firstTime;
         protected float itemOffset;
-        List<Transform> itemsTemp;
+        protected List<RectTransform> itemsTemp;
+        protected Dictionary<RectTransform, Vector3> itemPosDict;
 
         public Action<RectTransform, int, int> OnInitItem;                                  //子元素初始回调
 
@@ -55,7 +64,8 @@ namespace RedScarf.UguiFriend
         {
             items = new List<RectTransform>();
             maskCorners = new Vector3[4];
-            itemsTemp = new List<Transform>();
+            itemsTemp = new List<RectTransform>();
+            itemPosDict = new Dictionary<RectTransform, Vector3>();
         }
 
         protected virtual void Start()
@@ -101,10 +111,6 @@ namespace RedScarf.UguiFriend
             {
                 items.Add(content.GetChild(i) as RectTransform);
             }
-            if (m_SortComparison != null)
-            {
-                items.Sort(m_SortComparison);
-            }
             itemsTemp.Clear();
             foreach (var item in items)
             {
@@ -123,7 +129,7 @@ namespace RedScarf.UguiFriend
         /// </summary>
         protected virtual void WrapContent()
         {
-            if (items.Count == 0) return;
+            if (items==null||items.Count == 0) return;
             if (scrollRect == null || content == null || mask == null) return;
 
             content.pivot = contentDefaultPivot;
@@ -139,7 +145,8 @@ namespace RedScarf.UguiFriend
                             minIndex * spacing - spacing * 0.5f :
                             -spacing * 0.5f;
                 content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, spacing * (maxIndex - minIndex+1));
-                
+                content.localPosition = new Vector3(0,content.localPosition.y,0);
+
                 //限制位置到视图内
                 if (content.localPosition.y< maskLocalCenter.y)
                 {
@@ -159,13 +166,15 @@ namespace RedScarf.UguiFriend
                 for (var i = 0; i < items.Count; i++)
                 {
                     var item = items[i];
-                    var localPos = item.localPosition;
+                    var localPos = itemPosDict.ContainsKey(item)?
+                                    itemPosDict[item]:
+                                    item.localPosition;
                     var distance = localPos.y - contentPoint.y;
+                    var isUpdateItem = false;
                     if (firstTime)
                     {
                         localPos = new Vector3(contentPoint.x, -i * spacing+ itemOffset);
-                        item.localPosition = localPos;
-                        UpdateItem(item, i);
+                        isUpdateItem = true;
                     }
                     else if (distance < -extents)
                     {
@@ -173,8 +182,7 @@ namespace RedScarf.UguiFriend
                         var realIndex = GetRealIndex(localPos);
                         if (minIndex <= realIndex && realIndex <= maxIndex)
                         {
-                            item.localPosition = localPos;
-                            UpdateItem(item, i);
+                            isUpdateItem = true;
                         }
                     }
                     else if (distance > extents)
@@ -183,9 +191,17 @@ namespace RedScarf.UguiFriend
                         var realIndex = GetRealIndex(localPos);
                         if (minIndex <= realIndex && realIndex <= maxIndex)
                         {
-                            item.localPosition = localPos;
-                            UpdateItem(item, i);
+                            isUpdateItem = true;
                         }
+                    }
+                    if (isUpdateItem)
+                    {
+                        if (!itemPosDict.ContainsKey(item))
+                            itemPosDict.Add(item, localPos);
+                        itemPosDict[item] = localPos;
+
+                        item.localPosition = localPos;
+                        UpdateItem(item, i);
                     }
                 }
             }
@@ -195,6 +211,7 @@ namespace RedScarf.UguiFriend
                             -minIndex * spacing + spacing * 0.5f :
                             spacing * 0.5f;
                 content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, spacing * (maxIndex - minIndex + 1));
+                content.localPosition = new Vector3(content.localPosition.x, 0, 0);
 
                 //限制位置到视图内
                 if (content.localPosition.x > maskLocalCenter.x)
@@ -215,13 +232,15 @@ namespace RedScarf.UguiFriend
                 for (var i = 0; i < items.Count; i++)
                 {
                     var item = items[i];
-                    var localPos = item.localPosition;
+                    var localPos = itemPosDict.ContainsKey(item) ?
+                                    itemPosDict[item] :
+                                    item.localPosition;
                     var distance = localPos.x - contentPoint.x;
+                    var isUpdateItem = false;
                     if (firstTime)
                     {
                         localPos = new Vector3(i * spacing + itemOffset,contentPoint.y);
-                        item.localPosition = localPos;
-                        UpdateItem(item, i);
+                        isUpdateItem = true;
                     }
                     else if (distance < -extents)
                     {
@@ -229,8 +248,7 @@ namespace RedScarf.UguiFriend
                         var realIndex = GetRealIndex(localPos);
                         if (minIndex <= realIndex && realIndex <= maxIndex)
                         {
-                            item.localPosition = localPos;
-                            UpdateItem(item, i);
+                            isUpdateItem = true;
                         }
                     }
                     else if (distance > extents)
@@ -239,9 +257,17 @@ namespace RedScarf.UguiFriend
                         var realIndex = GetRealIndex(localPos);
                         if (minIndex <= realIndex && realIndex <= maxIndex)
                         {
-                            item.localPosition = localPos;
-                            UpdateItem(item, i);
+                            isUpdateItem = true;
                         }
+                    }
+                    if (isUpdateItem)
+                    {
+                        if (!itemPosDict.ContainsKey(item))
+                            itemPosDict.Add(item,localPos);
+                        itemPosDict[item] = localPos;
+
+                        item.localPosition = localPos;
+                        UpdateItem(item, i);
                     }
                 }
             }
@@ -249,36 +275,15 @@ namespace RedScarf.UguiFriend
             //控制子元素
             foreach (var item in items)
             {
-                //缩放
                 var dist = (axis == Axis.Horizontal) ?
                             Mathf.Abs(item.localPosition.x-contentPoint.x):
                             Mathf.Abs(item.localPosition.y-contentPoint.y);
                 var time = 1 - Mathf.Clamp01(dist / extents);
-                var scale = scaleCurve.Evaluate(time);
-                item.localScale = new Vector3(scale, scale, scale);
-
-                //旋转
-                if (sideAngle!=centerAngle)
-                {
-                    var angle = Vector3.Lerp(sideAngle,centerAngle, rotationCurve.Evaluate(time));
-                    switch (axis)
-                    {
-                        case Axis.Horizontal:
-                            angle *= Mathf.Sign(item.localPosition.x - contentPoint.x);
-                            item.localEulerAngles = angle;
-                            break;
-
-                        case Axis.Vertical:
-                            angle *= Mathf.Sign(item.localPosition.y - contentPoint.y);
-                            item.localEulerAngles = angle;
-                            break;
-                    }
-                }
 
                 //偏移
-                if (centerPositionOffset != sidePositionOffset)
+                if (usePositionEffect)
                 {
-                    var offset = Vector3.Lerp(sidePositionOffset,centerPositionOffset,posOffsetCurve.Evaluate(time));
+                    var offset = Vector3.Lerp(sidePositionOffset, centerPositionOffset, posOffsetCurve.Evaluate(time));
                     switch (axis)
                     {
                         case Axis.Horizontal:
@@ -289,14 +294,44 @@ namespace RedScarf.UguiFriend
                             offset.y *= Mathf.Sign(item.localPosition.y - contentPoint.y);
                             break;
                     }
-                    item.localPosition += offset;
+                    if (itemPosDict.ContainsKey(item))
+                    {
+                        item.localPosition = itemPosDict[item] + offset;
+                    }
+                }
+
+                //旋转
+                if (useRotationEffect)
+                {
+                    var angle = Vector3.Lerp(sideAngle, centerAngle, rotationCurve.Evaluate(time));
+                    if (isMirrorRotationEffect)
+                    {
+                        switch (axis)
+                        {
+                            case Axis.Horizontal:
+                                angle *= Mathf.Sign(item.localPosition.x - contentPoint.x);
+                                break;
+
+                            case Axis.Vertical:
+                                angle *= Mathf.Sign(item.localPosition.y - contentPoint.y);
+                                break;
+                        }
+                    }
+                    item.localEulerAngles = angle;
+                }
+
+                //缩放
+                if (useScaleEffect)
+                {
+                    var scale = Vector3.Lerp(sideScale,centerScale,scaleCurve.Evaluate(time));
+                    item.localScale = scale;
                 }
 
                 //颜色
-                if (centerColor != sideColor)
+                if (useColorTintEffect)
                 {
                     var colorTint = item.GetComponent<UguiColorTint>();
-                    if (colorTint!=null)
+                    if (colorTint != null)
                     {
                         var col = Color.Lerp(sideColor, centerColor, colorCurve.Evaluate(time));
                         colorTint.color = col;
@@ -304,9 +339,18 @@ namespace RedScarf.UguiFriend
                 }
             }
 
-            //中间元素置顶
-            if (keepCenterFront && Application.isPlaying)
+            //层级排序
+            if (m_DepthSortComparison != null)
             {
+                itemsTemp.Sort(m_DepthSortComparison);
+                foreach (var item in itemsTemp)
+                {
+                    item.SetAsFirstSibling();
+                }
+            }
+            else if (keepCenterFront)
+            {
+                //中间元素置顶
                 itemsTemp.Sort((a, b) =>
                 {
                     var distA = Vector3.Distance(maskCenter, a.position);
@@ -366,19 +410,18 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 排序规则
+        /// 深度层级排序规则
         /// 设置此值按自定义排序
         /// </summary>
-        public Comparison<RectTransform> SortComparison
+        public Comparison<RectTransform> DepthSortComparison
         {
             get
             {
-                return m_SortComparison;
+                return m_DepthSortComparison;
             }
             set
             {
-                m_SortComparison = value;
-                Realign();
+                m_DepthSortComparison = value;
             }
         }
 

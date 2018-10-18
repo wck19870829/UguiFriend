@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 namespace RedScarf.UguiFriend
 {
+    [ExecuteInEditMode]
     /// <summary>
     /// 颜色着色
     /// </summary>
