@@ -21,18 +21,23 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected float spacing = 100;                                                 //元素间距
         [SerializeField] protected Axis axis;
 
-        [Header("-Rotation control")]
+        [Header("- Rotation control")]
         [SerializeField] protected AnimationCurve rotationCurve = AnimationCurve.Linear(0, 0, 1, 0);    //旋转曲线，根据元素到中心点位置旋转
-        [SerializeField] protected Vector3 sideAngle;
         [SerializeField] protected Vector3 centerAngle;
+        [SerializeField] protected Vector3 sideAngle;
 
-        [Header("-Scale control")]
+        [Header("- Scale control")]
         [SerializeField] protected AnimationCurve scaleCurve = AnimationCurve.Linear(0, 1, 1, 1);       //缩放曲线，根据元素到中心点位置缩放
 
-        [Header("-Color tint")]
+        [Header("- Color tint")]
         [SerializeField] protected AnimationCurve colorCurve= AnimationCurve.Linear(0, 0, 1, 1);        //颜色曲线
         [SerializeField] protected Color centerColor = Color.white;
         [SerializeField] protected Color sideColor = Color.white;
+
+        [Header("- Position offset")]
+        [SerializeField] protected AnimationCurve posOffsetCurve= AnimationCurve.Linear(0, 0, 1, 0);    //位置偏移
+        [SerializeField] protected Vector3 centerPositionOffset;
+        [SerializeField] protected Vector3 sidePositionOffset;
 
         protected Comparison<RectTransform> m_SortComparison;
         protected ScrollRect scrollRect;
@@ -58,7 +63,7 @@ namespace RedScarf.UguiFriend
             Realign();
         }
 
-        private void Update()
+        protected virtual void Update()
         {
             if (!Application.isPlaying)
             {
@@ -76,10 +81,9 @@ namespace RedScarf.UguiFriend
             content = scrollRect.content;
             if (content == null)
                 throw new Exception("Scroll rect content is null!");
-            if(scrollRect.movementType == ScrollRect.MovementType.Unrestricted)
-                scrollRect.movementType = ScrollRect.MovementType.Elastic;
 
-            mask = scrollRect.GetComponentInChildren<Mask>();
+            if(mask==null)
+                mask = scrollRect.GetComponentInChildren<Mask>();
             if (mask == null)
                 throw new Exception("Mask is null!");
         }
@@ -246,7 +250,9 @@ namespace RedScarf.UguiFriend
             foreach (var item in items)
             {
                 //缩放
-                var dist = Vector3.Distance(item.localPosition, contentPoint);
+                var dist = (axis == Axis.Horizontal) ?
+                            Mathf.Abs(item.localPosition.x-contentPoint.x):
+                            Mathf.Abs(item.localPosition.y-contentPoint.y);
                 var time = 1 - Mathf.Clamp01(dist / extents);
                 var scale = scaleCurve.Evaluate(time);
                 item.localScale = new Vector3(scale, scale, scale);
@@ -254,7 +260,7 @@ namespace RedScarf.UguiFriend
                 //旋转
                 if (sideAngle!=centerAngle)
                 {
-                    var angle = Vector3.Lerp(centerAngle, sideAngle, rotationCurve.Evaluate(1 - time));
+                    var angle = Vector3.Lerp(sideAngle,centerAngle, rotationCurve.Evaluate(time));
                     switch (axis)
                     {
                         case Axis.Horizontal:
@@ -267,6 +273,23 @@ namespace RedScarf.UguiFriend
                             item.localEulerAngles = angle;
                             break;
                     }
+                }
+
+                //偏移
+                if (centerPositionOffset != sidePositionOffset)
+                {
+                    var offset = Vector3.Lerp(sidePositionOffset,centerPositionOffset,posOffsetCurve.Evaluate(time));
+                    switch (axis)
+                    {
+                        case Axis.Horizontal:
+                            offset.x *= Mathf.Sign(item.localPosition.x - contentPoint.x);
+                            break;
+
+                        case Axis.Vertical:
+                            offset.y *= Mathf.Sign(item.localPosition.y - contentPoint.y);
+                            break;
+                    }
+                    item.localPosition += offset;
                 }
 
                 //颜色

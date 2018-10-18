@@ -8,19 +8,11 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiFlowBanner : UguiBanner
     {
-        public float sideBorder=300;                    //侧边距
-        public float bannerBorder=400;                  //广告边距，此值总是大于sideBorder
-        public int sideItemCount = 2;                   //侧边元素最大数量
+        [SerializeField] protected UguiWrapContent content;
 
-        protected virtual void Update()
+        protected override void Start()
         {
 
-        }
-
-        private void OnValidate()
-        {
-            sideBorder = Mathf.Max(sideBorder,0);
-            bannerBorder = Mathf.Clamp(bannerBorder,sideBorder, bannerBorder);
         }
     }
 }
