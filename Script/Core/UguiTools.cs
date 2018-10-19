@@ -23,6 +23,26 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 矩形世界坐标转局部坐标
+        /// </summary>
+        /// <param name="transform"></param>
+        /// <param name="globalRect"></param>
+        /// <returns></returns>
+        public static Rect RectGlobal2Local(Transform transform, Rect globalRect)
+        {
+            var p1 = transform.InverseTransformPoint(globalRect.min);
+            var p2 = transform.InverseTransformPoint(globalRect.max);
+            var rect = Rect.MinMaxRect(
+                        Mathf.Min(p1.x, p2.x),
+                        Mathf.Min(p1.y, p2.y),
+                        Mathf.Max(p1.x, p2.x),
+                        Mathf.Max(p1.y, p2.y)
+                );
+
+            return rect;
+        }
+
+        /// <summary>
         /// 设置锚点
         /// </summary>
         /// <param name="target"></param>
@@ -36,116 +56,116 @@ namespace RedScarf.UguiFriend
             switch (anchorPresets)
             {
                 case (AnchorPresets.TopLeft):
-                {
-                    target.anchorMin = new Vector2(0, 1);
-                    target.anchorMax = new Vector2(0, 1);
-                    break;
-                }
+                    {
+                        target.anchorMin = new Vector2(0, 1);
+                        target.anchorMax = new Vector2(0, 1);
+                        break;
+                    }
 
                 case (AnchorPresets.TopCenter):
-                {
-                    target.anchorMin = new Vector2(0.5f, 1);
-                    target.anchorMax = new Vector2(0.5f, 1);
-                    break;
-                }
+                    {
+                        target.anchorMin = new Vector2(0.5f, 1);
+                        target.anchorMax = new Vector2(0.5f, 1);
+                        break;
+                    }
 
                 case (AnchorPresets.TopRight):
-                {
-                    target.anchorMin = new Vector2(1, 1);
-                    target.anchorMax = new Vector2(1, 1);
-                    break;
-                }
+                    {
+                        target.anchorMin = new Vector2(1, 1);
+                        target.anchorMax = new Vector2(1, 1);
+                        break;
+                    }
 
                 case (AnchorPresets.MiddleLeft):
-                {
-                    target.anchorMin = new Vector2(0, 0.5f);
-                    target.anchorMax = new Vector2(0, 0.5f);
-                    break;
-                }
+                    {
+                        target.anchorMin = new Vector2(0, 0.5f);
+                        target.anchorMax = new Vector2(0, 0.5f);
+                        break;
+                    }
 
                 case (AnchorPresets.MiddleCenter):
-                {
-                    target.anchorMin = new Vector2(0.5f, 0.5f);
-                    target.anchorMax = new Vector2(0.5f, 0.5f);
-                    break;
-                }
+                    {
+                        target.anchorMin = new Vector2(0.5f, 0.5f);
+                        target.anchorMax = new Vector2(0.5f, 0.5f);
+                        break;
+                    }
 
                 case (AnchorPresets.MiddleRight):
-                {
-                    target.anchorMin = new Vector2(1, 0.5f);
-                    target.anchorMax = new Vector2(1, 0.5f);
-                    break;
-                }
+                    {
+                        target.anchorMin = new Vector2(1, 0.5f);
+                        target.anchorMax = new Vector2(1, 0.5f);
+                        break;
+                    }
 
                 case (AnchorPresets.BottomLeft):
-                {
-                    target.anchorMin = new Vector2(0, 0);
-                    target.anchorMax = new Vector2(0, 0);
-                    break;
-                }
+                    {
+                        target.anchorMin = new Vector2(0, 0);
+                        target.anchorMax = new Vector2(0, 0);
+                        break;
+                    }
 
                 case (AnchorPresets.BottonCenter):
-                {
-                    target.anchorMin = new Vector2(0.5f, 0);
-                    target.anchorMax = new Vector2(0.5f, 0);
-                    break;
-                }
+                    {
+                        target.anchorMin = new Vector2(0.5f, 0);
+                        target.anchorMax = new Vector2(0.5f, 0);
+                        break;
+                    }
 
                 case (AnchorPresets.BottomRight):
-                {
-                    target.anchorMin = new Vector2(1, 0);
-                    target.anchorMax = new Vector2(1, 0);
-                    break;
-                }
+                    {
+                        target.anchorMin = new Vector2(1, 0);
+                        target.anchorMax = new Vector2(1, 0);
+                        break;
+                    }
 
                 case (AnchorPresets.HorStretchTop):
-                {
-                    target.anchorMin = new Vector2(0, 1);
-                    target.anchorMax = new Vector2(1, 1);
-                    break;
-                }
+                    {
+                        target.anchorMin = new Vector2(0, 1);
+                        target.anchorMax = new Vector2(1, 1);
+                        break;
+                    }
 
                 case (AnchorPresets.HorStretchMiddle):
-                {
-                    target.anchorMin = new Vector2(0, 0.5f);
-                    target.anchorMax = new Vector2(1, 0.5f);
-                    break;
-                }
+                    {
+                        target.anchorMin = new Vector2(0, 0.5f);
+                        target.anchorMax = new Vector2(1, 0.5f);
+                        break;
+                    }
 
                 case (AnchorPresets.HorStretchBottom):
-                {
-                    target.anchorMin = new Vector2(0, 0);
-                    target.anchorMax = new Vector2(1, 0);
-                    break;
-                }
+                    {
+                        target.anchorMin = new Vector2(0, 0);
+                        target.anchorMax = new Vector2(1, 0);
+                        break;
+                    }
 
                 case (AnchorPresets.VertStretchLeft):
-                {
-                    target.anchorMin = new Vector2(0, 0);
-                    target.anchorMax = new Vector2(0, 1);
-                    break;
-                }
+                    {
+                        target.anchorMin = new Vector2(0, 0);
+                        target.anchorMax = new Vector2(0, 1);
+                        break;
+                    }
 
                 case (AnchorPresets.VertStretchCenter):
-                {
-                    target.anchorMin = new Vector2(0.5f, 0);
-                    target.anchorMax = new Vector2(0.5f, 1);
-                    break;
-                }
+                    {
+                        target.anchorMin = new Vector2(0.5f, 0);
+                        target.anchorMax = new Vector2(0.5f, 1);
+                        break;
+                    }
 
                 case (AnchorPresets.VertStretchRight):
-                {
-                    target.anchorMin = new Vector2(1, 0);
-                    target.anchorMax = new Vector2(1, 1);
-                    break;
-                }
+                    {
+                        target.anchorMin = new Vector2(1, 0);
+                        target.anchorMax = new Vector2(1, 1);
+                        break;
+                    }
 
                 case (AnchorPresets.StretchAll):
-                {
-                    target.anchorMin = new Vector2(0, 0);
-                    target.anchorMax = new Vector2(1, 1);
-                    break;
-                }
+                    {
+                        target.anchorMin = new Vector2(0, 0);
+                        target.anchorMax = new Vector2(1, 1);
+                        break;
+                    }
             }
         }
 
@@ -177,13 +197,13 @@ namespace RedScarf.UguiFriend
         /// <param name="source"></param>
         /// <param name="parent"></param>
         /// <returns></returns>
-        public static T AddChild<T>(T source, Transform parent=null) where T:Component
+        public static T AddChild<T>(T source, Transform parent = null) where T : Component
         {
             if (source == null)
                 throw new Exception("Source is null.");
 
-            var clone=GameObject.Instantiate<T>(source);
-            if(parent!=null)
+            var clone = GameObject.Instantiate<T>(source);
+            if (parent != null)
                 clone.transform.SetParent(parent);
             clone.transform.localScale = Vector3.one;
             clone.transform.localRotation = Quaternion.identity;
