@@ -23,7 +23,7 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected int maxIndex = 9999;
         [SerializeField] protected bool keepCenterFront=true;                                           //保持中间元素置顶显示        
         [SerializeField] protected float spacing = 100;                                                 //元素间距
-        [SerializeField] protected Axis axis;
+        [SerializeField] protected Axis m_StartAxis;
 
         protected Comparison<RectTransform> m_DepthSortComparison;
         protected ScrollRect scrollRect;
@@ -36,6 +36,12 @@ namespace RedScarf.UguiFriend
         protected List<RectTransform> itemsTemp;
         protected Dictionary<RectTransform, IUguiChildControl> childControlDict;
         protected Dictionary<RectTransform, UguiColorTint> colorTintDict;
+
+        protected UguiPositionControlByPosition positionControl;
+        protected UguiRotationControlByPosition rotationControl;
+        protected UguiScaleControlByPosition scaleControl;
+        protected UguiColorControlByPosition colorControl;
+        protected UguiDepthControlByPosition depthControl;
 
         public Action<RectTransform, int, int> OnInitItem;                                              //子元素初始回调
 
@@ -76,6 +82,12 @@ namespace RedScarf.UguiFriend
                 mask = scrollRect.GetComponentInChildren<Mask>();
             if (mask == null)
                 throw new Exception("Mask is null!");
+
+            positionControl = GetComponent<UguiPositionControlByPosition>();
+            rotationControl = GetComponent<UguiRotationControlByPosition>();
+            scaleControl = GetComponent<UguiScaleControlByPosition>();
+            colorControl = GetComponent<UguiColorControlByPosition>();
+            depthControl = GetComponent<UguiDepthControlByPosition>();
         }
 
         /// <summary>
@@ -127,7 +139,7 @@ namespace RedScarf.UguiFriend
             var contentPoint = content.InverseTransformPoint(maskCenter);
             var extents = spacing * items.Count * 0.5f;
             var ext2 = extents * 2f;
-            if (axis == Axis.Vertical)
+            if (m_StartAxis == Axis.Vertical)
             {
                 itemOffset = Application.isPlaying ?
                             minIndex * spacing - spacing * 0.5f :
@@ -247,80 +259,6 @@ namespace RedScarf.UguiFriend
                     }
                 }
             }
-
-            var half = new Vector3(mask.rectTransform.rect.width, mask.rectTransform.rect.height)*0.5f;
-            var point = contentPoint - half;
-            var maskRectRelativeContent = new Rect(point, mask.rectTransform.rect.size);
-
-            ApplyDepthSort(maskRectRelativeContent);
-        }
-
-        /// <summary>
-        /// 层级排序
-        /// </summary>
-        /// <param name="contentPoint"></param>
-        protected virtual void ApplyDepthSort(Rect maskRectRelativeContent)
-        {
-            if (m_DepthSortComparison != null)
-            {
-                //优先自定义排序
-                itemsTemp.Sort(m_DepthSortComparison);
-                foreach (var item in itemsTemp)
-                {
-                    item.SetAsFirstSibling();
-                }
-            }
-            else if (keepCenterFront)
-            {
-                //默认排序规则：距离中点越近，层级越高
-                itemsTemp.Sort((a, b) =>
-                {
-                    var weightA = GetEffectWeight(a,true,maskRectRelativeContent);
-                    var weightB = GetEffectWeight(b, true, maskRectRelativeContent);
-                    if (weightA == weightB) return 0;
-                    return weightA > weightB ? 1 : -1;
-                });
-                foreach (var item in itemsTemp)
-                {
-                    item.SetAsFirstSibling();
-                }
-            }
-        }
-
-        /// <summary>
-        /// 获取权重
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="isMirror"></param>
-        /// <param name="maskRectRelativeContent"></param>
-        /// <returns></returns>
-        protected float GetEffectWeight(RectTransform item,bool isMirror,Rect maskRectRelativeContent)
-        {
-            var weight = 0f;
-            if (isMirror)
-            {
-                if (axis == Axis.Horizontal)
-                {
-                    weight = Mathf.Abs(item.localPosition.x - maskRectRelativeContent.center.x)/(maskRectRelativeContent.width*0.5f);
-                }
-                else
-                {
-                    weight = Mathf.Abs(item.localPosition.y - maskRectRelativeContent.center.y) / (maskRectRelativeContent.height * 0.5f);
-                }
-            }
-            else
-            {
-                if (axis == Axis.Horizontal)
-                {
-                    weight=(item.localPosition.x - maskRectRelativeContent.xMin) / maskRectRelativeContent.width;
-                }
-                else
-                {
-                    weight = (item.localPosition.y - maskRectRelativeContent.yMax) / maskRectRelativeContent.height;
-                }
-            }
-
-            return weight;
         }
 
         /// <summary>
@@ -355,7 +293,7 @@ namespace RedScarf.UguiFriend
         protected virtual int GetRealIndex(Vector3 localPosition)
         {
             var realIndex = 0;
-            if (axis==Axis.Vertical)
+            if (m_StartAxis==Axis.Vertical)
             {
                 realIndex = -Mathf.RoundToInt((localPosition.y - itemOffset) / spacing);
             }
@@ -380,6 +318,17 @@ namespace RedScarf.UguiFriend
             set
             {
                 m_DepthSortComparison = value;
+            }
+        }
+
+        /// <summary>
+        /// 轴向
+        /// </summary>
+        public Axis StartAxis
+        {
+            get
+            {
+                return m_StartAxis;
             }
         }
 

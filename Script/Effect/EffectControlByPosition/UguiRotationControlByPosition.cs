@@ -10,7 +10,13 @@ namespace RedScarf.UguiFriend
     {
         protected override void UpdateItem(Transform item, float weight)
         {
-            item.localEulerAngles = Vector3.Lerp(valueFrom, valueTo, weight);
+            var angle= Vector3.Lerp(valueFrom, valueTo, weight);
+            if (isCenterMirror)
+            {
+                var normal = Vector3.up;
+                angle = Vector3.Reflect(angle, normal);
+            }
+            item.localEulerAngles = angle;
         }
     }
 }

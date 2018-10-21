@@ -39,7 +39,13 @@ namespace RedScarf.UguiFriend
             if (!originDict.ContainsKey(item))
                 throw new Exception("You must be cache item origin.");
 
-            item.localPosition = originDict[item]+Vector3.Lerp(valueFrom, valueTo, weight);
+            var offset= Vector3.Lerp(valueFrom, valueTo, weight);
+            if (isCenterMirror)
+            {
+                var normal = Vector3.up;
+                offset = Vector3.Reflect(offset, normal);
+            }
+            item.localPosition = originDict[item] + offset;
         }
     }
 }
