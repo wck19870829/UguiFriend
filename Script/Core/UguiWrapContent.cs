@@ -11,6 +11,9 @@ namespace RedScarf.UguiFriend
     [RequireComponent(typeof(ScrollRect))]
     /// <summary>
     /// 循环容器
+    /// 
+    /// 1.如果使用效果（如位移特效，旋转特效，缩放特效），需子物体实现IUguiChildControl接口
+    /// 2.如果使用颜色改变效果，需子物体挂载UguiColorTint组件
     /// </summary>
     public class UguiWrapContent : UIBehaviour
     {
@@ -22,34 +25,6 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected float spacing = 100;                                                 //元素间距
         [SerializeField] protected Axis axis;
 
-        [Header("- Position offset effect")]
-        [SerializeField] protected bool usePositionEffect;                                              //位移效果参数
-        [SerializeField] protected bool isMirrorPositionEffect = true;
-        [SerializeField] protected AnimationCurve posOffsetCurve = AnimationCurve.Linear(0, 0, 1, 0);    
-        [SerializeField] protected Vector3 positionFrom;
-        [SerializeField] protected Vector3 positionTo;
-
-        [Header("- Rotation effect")]
-        [SerializeField] protected bool useRotationEffect;                                              //旋转效果参数
-        [SerializeField] protected bool isMirrorRotationEffect = true;
-        [SerializeField] protected AnimationCurve rotationCurve = AnimationCurve.Linear(0, 0, 1, 0);    
-        [SerializeField] protected Vector3 angleFrom;
-        [SerializeField] protected Vector3 angleTo;
-
-        [Header("- Scale effect")]
-        [SerializeField] protected bool useScaleEffect;                                                 //缩放效果参数
-        [SerializeField] protected bool isMirrorScaleEffect = true;
-        [SerializeField] protected AnimationCurve scaleCurve = AnimationCurve.Linear(0, 1, 1, 1);       
-        [SerializeField] protected Vector3 scaleFrom=Vector3.one;
-        [SerializeField] protected Vector3 scaleTo = Vector3.one;
-
-        [Header("- Color tint effect")]
-        [SerializeField] protected bool useColorTintEffect;                                             //颜色效果参数
-        [SerializeField] protected bool isMirrorColorTintEffect = true;
-        [SerializeField] protected AnimationCurve colorCurve= AnimationCurve.Linear(0, 0, 1, 1);        
-        [SerializeField] protected Color colorFrom = Color.white;
-        [SerializeField] protected Color colorTo = Color.white;
-
         protected Comparison<RectTransform> m_DepthSortComparison;
         protected ScrollRect scrollRect;
         protected Mask mask;
@@ -59,7 +34,8 @@ namespace RedScarf.UguiFriend
         protected bool firstTime;
         protected float itemOffset;
         protected List<RectTransform> itemsTemp;
-        protected Dictionary<RectTransform, Vector3> itemOriginDict;                                    //子元素原点
+        protected Dictionary<RectTransform, IUguiChildControl> childControlDict;
+        protected Dictionary<RectTransform, UguiColorTint> colorTintDict;
 
         public Action<RectTransform, int, int> OnInitItem;                                              //子元素初始回调
 
@@ -68,7 +44,8 @@ namespace RedScarf.UguiFriend
             items = new List<RectTransform>();
             maskCorners = new Vector3[4];
             itemsTemp = new List<RectTransform>();
-            itemOriginDict = new Dictionary<RectTransform, Vector3>();
+            childControlDict = new Dictionary<RectTransform, IUguiChildControl>();
+            colorTintDict = new Dictionary<RectTransform, UguiColorTint>();
         }
 
         protected override void Start()
@@ -115,9 +92,15 @@ namespace RedScarf.UguiFriend
                 items.Add(content.GetChild(i) as RectTransform);
             }
             itemsTemp.Clear();
+            childControlDict.Clear();
+            colorTintDict.Clear();
             foreach (var item in items)
             {
                 itemsTemp.Add(item);
+                var childControl = item.GetComponent<IUguiChildControl>();
+                childControlDict.Add(item,childControl);
+                var colorTint = item.GetComponent<UguiColorTint>();
+                colorTintDict.Add(item,colorTint);
             }
 
             WrapContent();
@@ -136,6 +119,8 @@ namespace RedScarf.UguiFriend
             if (scrollRect == null || content == null || mask == null) return;
 
             content.pivot = contentDefaultPivot;
+            content.localScale = Vector3.one;
+            content.localRotation = Quaternion.identity;
             mask.rectTransform.GetWorldCorners(maskCorners);
             var maskCenter = Vector3.Lerp(maskCorners[0], maskCorners[2], 0.5f);
             var maskLocalCenter = mask.transform.InverseTransformPoint(maskCenter);
@@ -169,9 +154,7 @@ namespace RedScarf.UguiFriend
                 for (var i = 0; i < items.Count; i++)
                 {
                     var item = items[i];
-                    var localPos = itemOriginDict.ContainsKey(item)?
-                                    itemOriginDict[item]:
-                                    item.localPosition;
+                    var localPos = item.localPosition;            
                     var distance = localPos.y - contentPoint.y;
                     var isUpdateItem = false;
                     if (firstTime)
@@ -199,10 +182,6 @@ namespace RedScarf.UguiFriend
                     }
                     if (isUpdateItem)
                     {
-                        if (!itemOriginDict.ContainsKey(item))
-                            itemOriginDict.Add(item, localPos);
-                        itemOriginDict[item] = localPos;
-
                         item.localPosition = localPos;
                         UpdateItem(item, i);
                     }
@@ -235,9 +214,7 @@ namespace RedScarf.UguiFriend
                 for (var i = 0; i < items.Count; i++)
                 {
                     var item = items[i];
-                    var localPos = itemOriginDict.ContainsKey(item) ?
-                                    itemOriginDict[item] :
-                                    item.localPosition;
+                    var localPos = item.localPosition;
                     var distance = localPos.x - contentPoint.x;
                     var isUpdateItem = false;
                     if (firstTime)
@@ -265,95 +242,17 @@ namespace RedScarf.UguiFriend
                     }
                     if (isUpdateItem)
                     {
-                        if (!itemOriginDict.ContainsKey(item))
-                            itemOriginDict.Add(item,localPos);
-                        itemOriginDict[item] = localPos;
-
                         item.localPosition = localPos;
                         UpdateItem(item, i);
                     }
                 }
             }
 
-            var maskRectRelativeContent = UguiTools.RectGlobal2Local(content,mask.rectTransform.rect);
-
-            ApplyPositionEffect(maskRectRelativeContent);
-            ApplyRotationEffect(maskRectRelativeContent);
-            ApplyScaleEffect(maskRectRelativeContent);
+            var half = new Vector3(mask.rectTransform.rect.width, mask.rectTransform.rect.height)*0.5f;
+            var point = contentPoint - half;
+            var maskRectRelativeContent = new Rect(point, mask.rectTransform.rect.size);
 
             ApplyDepthSort(maskRectRelativeContent);
-        }
-
-        /// <summary>
-        /// 位移效果
-        /// </summary>
-        /// <param name="maskRectRelativeContent"></param>
-        protected virtual void ApplyPositionEffect(Rect maskRectRelativeContent)
-        {
-            if (usePositionEffect)
-            {
-                foreach (var item in items)
-                {
-                    var weight = GetEffectWeight(item, isMirrorPositionEffect, maskRectRelativeContent);
-                    var offset = Vector3.Lerp(positionFrom, positionTo, posOffsetCurve.Evaluate(weight));
-                    item.localPosition = itemOriginDict[item] + offset;
-                }
-            }
-        }
-
-        /// <summary>
-        /// 旋转效果
-        /// </summary>
-        /// <param name="maskRectRelativeContent"></param>
-        protected virtual void ApplyRotationEffect(Rect maskRectRelativeContent)
-        {
-            if (useRotationEffect)
-            {
-                foreach (var item in items)
-                {
-                    var weight = GetEffectWeight(item, isMirrorRotationEffect, maskRectRelativeContent);
-                    var angle = Vector3.Lerp(angleFrom, angleTo, rotationCurve.Evaluate(weight));
-                    item.localEulerAngles = angle;
-                }
-            }
-        }
-
-        /// <summary>
-        /// 缩放效果
-        /// </summary>
-        /// <param name="maskRectRelativeContent"></param>
-        protected virtual void ApplyScaleEffect(Rect maskRectRelativeContent)
-        {
-            if (useScaleEffect)
-            {
-                foreach (var item in items)
-                {
-                    var weight = GetEffectWeight(item, isMirrorScaleEffect, maskRectRelativeContent);
-                    var scale = Vector3.Lerp(scaleFrom, scaleTo, scaleCurve.Evaluate(weight));
-                    item.localScale = scale;
-                }
-            }
-        }
-
-        /// <summary>
-        /// 颜色控制效果
-        /// </summary>
-        /// <param name="maskRectRelativeContent"></param>
-        protected virtual void ApplyColorTintEffect(Rect maskRectRelativeContent)
-        {
-            if (useColorTintEffect)
-            {
-                foreach (var item in items)
-                {
-                    var weight = GetEffectWeight(item,isMirrorColorTintEffect, maskRectRelativeContent);
-                    var colorTint = item.GetComponent<UguiColorTint>();
-                    if (colorTint != null)
-                    {
-                        var col = Color.Lerp(colorFrom, colorTo, colorCurve.Evaluate(weight));
-                        colorTint.color = col;
-                    }
-                }
-            }
         }
 
         /// <summary>

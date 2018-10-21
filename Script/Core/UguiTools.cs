@@ -23,6 +23,23 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 投射点到线上
+        /// </summary>
+        /// <param name="point"></param>
+        /// <param name="lineStart"></param>
+        /// <param name="lineEnd"></param>
+        /// <returns></returns>
+        public static Vector3 ProjectPointLine(Vector3 point,Vector3 lineStart,Vector3 lineEnd)
+        {
+            var normal = lineEnd - lineStart;
+            var vector = point - lineStart;
+            var projectVector=Vector3.Project(vector, normal);
+            var projectPoint = lineStart+ projectVector;
+
+            return projectPoint;
+        }
+
+        /// <summary>
         /// 矩形世界坐标转局部坐标
         /// </summary>
         /// <param name="transform"></param>
