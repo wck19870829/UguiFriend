@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 namespace RedScarf.UguiFriend
 {
+    [ExecuteInEditMode]
     public abstract class UguiEffectControlByPosition : UIBehaviour
     {
         [SerializeField] protected Transform content;                   //容器
@@ -55,6 +56,8 @@ namespace RedScarf.UguiFriend
         /// <returns></returns>
         public virtual float GetWeight(Transform item)
         {
+            if (startPoint == null || endPoint == null || item == null) return 0;
+
             var projectPoint = UguiTools.ProjectPointLine(item.position, startPoint.position, endPoint.position);
             if (isCenterMirror)
             {
@@ -91,6 +94,8 @@ namespace RedScarf.UguiFriend
 
         public override void CacheItems()
         {
+            if (content == null) return;
+
             cacheItmeList.Clear();
             foreach (Transform t in content)
             {
@@ -104,6 +109,8 @@ namespace RedScarf.UguiFriend
 
         protected override void MidifyChildren()
         {
+            if (startPoint == null || endPoint == null) return;
+
             foreach (var item in cacheItmeList)
             {
                 UpdateItem(item,GetWeight(item.transform));

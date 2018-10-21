@@ -42,8 +42,7 @@ namespace RedScarf.UguiFriend
             var offset= Vector3.Lerp(valueFrom, valueTo, weight);
             if (isCenterMirror)
             {
-                var normal = Vector3.up;
-                offset = Vector3.Reflect(offset, normal);
+
             }
             item.localPosition = originDict[item] + offset;
         }

@@ -13,8 +13,7 @@ namespace RedScarf.UguiFriend
             var angle= Vector3.Lerp(valueFrom, valueTo, weight);
             if (isCenterMirror)
             {
-                var normal = Vector3.up;
-                angle = Vector3.Reflect(angle, normal);
+
             }
             item.localEulerAngles = angle;
         }

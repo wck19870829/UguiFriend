@@ -9,10 +9,5 @@ namespace RedScarf.UguiFriend
     public class UguiFlowBanner : UguiBanner
     {
         [SerializeField] protected UguiWrapContent content;
-
-        protected override void Start()
-        {
-
-        }
     }
 }

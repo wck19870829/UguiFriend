@@ -20,8 +20,7 @@ namespace RedScarf.UguiFriend
         protected readonly Vector2 contentDefaultPivot = new Vector2(0,1);
 
         [SerializeField] protected int minIndex = -9999;
-        [SerializeField] protected int maxIndex = 9999;
-        [SerializeField] protected bool keepCenterFront=true;                                           //保持中间元素置顶显示        
+        [SerializeField] protected int maxIndex = 9999;      
         [SerializeField] protected float spacing = 100;                                                 //元素间距
         [SerializeField] protected Axis m_StartAxis;
 
@@ -33,15 +32,6 @@ namespace RedScarf.UguiFriend
         protected Vector3[] maskCorners;
         protected bool firstTime;
         protected float itemOffset;
-        protected List<RectTransform> itemsTemp;
-        protected Dictionary<RectTransform, IUguiChildControl> childControlDict;
-        protected Dictionary<RectTransform, UguiColorTint> colorTintDict;
-
-        protected UguiPositionControlByPosition positionControl;
-        protected UguiRotationControlByPosition rotationControl;
-        protected UguiScaleControlByPosition scaleControl;
-        protected UguiColorControlByPosition colorControl;
-        protected UguiDepthControlByPosition depthControl;
 
         public Action<RectTransform, int, int> OnInitItem;                                              //子元素初始回调
 
@@ -49,9 +39,6 @@ namespace RedScarf.UguiFriend
         {
             items = new List<RectTransform>();
             maskCorners = new Vector3[4];
-            itemsTemp = new List<RectTransform>();
-            childControlDict = new Dictionary<RectTransform, IUguiChildControl>();
-            colorTintDict = new Dictionary<RectTransform, UguiColorTint>();
         }
 
         protected override void Start()
@@ -82,12 +69,6 @@ namespace RedScarf.UguiFriend
                 mask = scrollRect.GetComponentInChildren<Mask>();
             if (mask == null)
                 throw new Exception("Mask is null!");
-
-            positionControl = GetComponent<UguiPositionControlByPosition>();
-            rotationControl = GetComponent<UguiRotationControlByPosition>();
-            scaleControl = GetComponent<UguiScaleControlByPosition>();
-            colorControl = GetComponent<UguiColorControlByPosition>();
-            depthControl = GetComponent<UguiDepthControlByPosition>();
         }
 
         /// <summary>
@@ -102,17 +83,6 @@ namespace RedScarf.UguiFriend
             for (var i = 0; i < content.childCount; i++)
             {
                 items.Add(content.GetChild(i) as RectTransform);
-            }
-            itemsTemp.Clear();
-            childControlDict.Clear();
-            colorTintDict.Clear();
-            foreach (var item in items)
-            {
-                itemsTemp.Add(item);
-                var childControl = item.GetComponent<IUguiChildControl>();
-                childControlDict.Add(item,childControl);
-                var colorTint = item.GetComponent<UguiColorTint>();
-                colorTintDict.Add(item,colorTint);
             }
 
             WrapContent();
@@ -293,7 +263,7 @@ namespace RedScarf.UguiFriend
         protected virtual int GetRealIndex(Vector3 localPosition)
         {
             var realIndex = 0;
-            if (m_StartAxis==Axis.Vertical)
+            if (m_StartAxis == Axis.Vertical)
             {
                 realIndex = -Mathf.RoundToInt((localPosition.y - itemOffset) / spacing);
             }
