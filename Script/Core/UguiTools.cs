@@ -27,18 +27,37 @@ namespace RedScarf.UguiFriend
         /// </summary>
         /// <param name="content"></param>
         /// <returns></returns>
-        public static Rect GetBoundsIncludeChildren(RectTransform content,Space space=Space.World)
+        public static Rect GetRectIncludeChildren(RectTransform content,Space space)
         {
             var children = content.GetComponentsInChildren<RectTransform>();
             var cornersArr = new Vector3[4];
-
+            content.GetWorldCorners(cornersArr);
+            var contentRect = GetRectContainsPoints(cornersArr);
             foreach (var child in children)
             {
                 child.GetWorldCorners(cornersArr);
-                var rect = GetRectContainsPoints(cornersArr);
+                contentRect = RectCombine(contentRect, GetRectContainsPoints(cornersArr));
             }
 
-            return new Rect();
+            if (space == Space.Self)
+            {
+                if (content.parent == null)
+                    throw new Exception("Content's parent is null.");
+
+                var localCorners = new Vector3[] {
+                    new Vector3(contentRect.xMin,contentRect.yMin),
+                    new Vector3(contentRect.xMax,contentRect.yMin),
+                    new Vector3(contentRect.xMax,contentRect.yMax),
+                    new Vector3(contentRect.xMin,contentRect.yMax)
+                };
+                for (var i=0;i< localCorners.Length;i++)
+                {
+                    localCorners[i] = content.parent.worldToLocalMatrix.MultiplyPoint(localCorners[i]);
+                }
+                contentRect = GetRectContainsPoints(localCorners);
+            }
+
+            return contentRect;
         }
 
         /// <summary>
@@ -96,26 +115,6 @@ namespace RedScarf.UguiFriend
 
             return projectPoint;
         }
-
-        ///// <summary>
-        ///// 矩形世界坐标转局部坐标
-        ///// </summary>
-        ///// <param name="transform"></param>
-        ///// <param name="globalRect"></param>
-        ///// <returns></returns>
-        //public static Rect RectGlobal2Local(Transform transform, Rect globalRect)
-        //{
-        //    var p1 = transform.InverseTransformPoint(globalRect.min);
-        //    var p2 = transform.InverseTransformPoint(globalRect.max);
-        //    var rect = Rect.MinMaxRect(
-        //                Mathf.Min(p1.x, p2.x),
-        //                Mathf.Min(p1.y, p2.y),
-        //                Mathf.Max(p1.x, p2.x),
-        //                Mathf.Max(p1.y, p2.y)
-        //        );
-
-        //    return rect;
-        //}
 
         /// <summary>
         /// 设置锚点
