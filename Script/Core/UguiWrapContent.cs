@@ -58,7 +58,7 @@ namespace RedScarf.UguiFriend
         void Init()
         {
             if (scrollRect == null)
-                scrollRect = GetComponentInChildren<ScrollRect>();
+                scrollRect = GetComponent<ScrollRect>();
             if (scrollRect == null)
                 throw new Exception("Scroll rect is null!");
             content = scrollRect.content;

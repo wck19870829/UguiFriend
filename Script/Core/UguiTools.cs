@@ -23,6 +23,64 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 获取物体的边界(包含所有子物体)
+        /// </summary>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public static Rect GetBoundsIncludeChildren(RectTransform content,Space space=Space.World)
+        {
+            var children = content.GetComponentsInChildren<RectTransform>();
+            var cornersArr = new Vector3[4];
+
+            foreach (var child in children)
+            {
+                child.GetWorldCorners(cornersArr);
+                var rect = GetRectContainsPoints(cornersArr);
+            }
+
+            return new Rect();
+        }
+
+        /// <summary>
+        /// 合并矩形
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="rect2"></param>
+        /// <returns></returns>
+        public static Rect RectCombine(Rect rect,Rect rect2)
+        {
+            var combine = Rect.MinMaxRect(
+                Mathf.Min(rect.xMin,rect2.xMin),
+                Mathf.Min(rect.yMin, rect2.yMin),
+                Mathf.Max(rect.xMax, rect2.xMax),
+                Mathf.Max(rect.yMax, rect2.yMax)
+                );
+
+            return combine;
+        }
+
+        /// <summary>
+        /// 获取包含所有点的矩形
+        /// </summary>
+        /// <param name="points"></param>
+        /// <returns></returns>
+        public static Rect GetRectContainsPoints(Vector3[]points)
+        {
+            if (points == null || points.Length == 0) return new Rect();
+
+            var rect = new Rect(points[0], Vector3.zero);
+            foreach (var point in points)
+            {
+                rect.xMax = Mathf.Max(rect.xMax,point.x);
+                rect.xMin = Mathf.Min(rect.xMin, point.x);
+                rect.yMax = Mathf.Max(rect.yMax,point.y);
+                rect.yMin = Math.Min(rect.yMin, point.y);
+            }
+
+            return rect;
+        }
+
+        /// <summary>
         /// 投射点到线上
         /// </summary>
         /// <param name="point"></param>
