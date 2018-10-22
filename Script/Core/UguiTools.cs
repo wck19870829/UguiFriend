@@ -39,25 +39,25 @@ namespace RedScarf.UguiFriend
             return projectPoint;
         }
 
-        /// <summary>
-        /// 矩形世界坐标转局部坐标
-        /// </summary>
-        /// <param name="transform"></param>
-        /// <param name="globalRect"></param>
-        /// <returns></returns>
-        public static Rect RectGlobal2Local(Transform transform, Rect globalRect)
-        {
-            var p1 = transform.InverseTransformPoint(globalRect.min);
-            var p2 = transform.InverseTransformPoint(globalRect.max);
-            var rect = Rect.MinMaxRect(
-                        Mathf.Min(p1.x, p2.x),
-                        Mathf.Min(p1.y, p2.y),
-                        Mathf.Max(p1.x, p2.x),
-                        Mathf.Max(p1.y, p2.y)
-                );
+        ///// <summary>
+        ///// 矩形世界坐标转局部坐标
+        ///// </summary>
+        ///// <param name="transform"></param>
+        ///// <param name="globalRect"></param>
+        ///// <returns></returns>
+        //public static Rect RectGlobal2Local(Transform transform, Rect globalRect)
+        //{
+        //    var p1 = transform.InverseTransformPoint(globalRect.min);
+        //    var p2 = transform.InverseTransformPoint(globalRect.max);
+        //    var rect = Rect.MinMaxRect(
+        //                Mathf.Min(p1.x, p2.x),
+        //                Mathf.Min(p1.y, p2.y),
+        //                Mathf.Max(p1.x, p2.x),
+        //                Mathf.Max(p1.y, p2.y)
+        //        );
 
-            return rect;
-        }
+        //    return rect;
+        //}
 
         /// <summary>
         /// 设置锚点

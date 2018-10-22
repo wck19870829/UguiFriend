@@ -75,6 +75,22 @@ namespace RedScarf.UguiFriend
                 return weightCurve.Evaluate(weight);
             }
         }
+
+        /// <summary>
+        /// 以中点为界限获取投射点的符号,接近开始点为负，接近结束点为正
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        protected int GetSignRelativeCenter(Transform item)
+        {
+            if (startPoint == null || endPoint == null || item == null) return 0;
+
+            var projectPoint = UguiTools.ProjectPointLine(item.position, startPoint.position, endPoint.position);
+            var startDist = Vector3.Distance(projectPoint, startPoint.position);
+            var endDist = Vector3.Distance(projectPoint, endPoint.position);
+
+            return startDist < endDist ? -1 : 1;
+        }
     }
 
     /// <summary>

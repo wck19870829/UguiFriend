@@ -9,5 +9,15 @@ namespace RedScarf.UguiFriend
     public class UguiFlowBanner : UguiBanner
     {
         [SerializeField] protected UguiWrapContent content;
+
+        public Vector3 normal;
+        public Transform target;
+        public Transform plane;
+        public Transform refObject;
+
+        private void Update()
+        {
+
+        }
     }
 }
