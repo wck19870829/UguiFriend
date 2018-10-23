@@ -47,11 +47,23 @@ namespace RedScarf.UguiFriend
                 }
                 else if (keyDict.ContainsKey(key.KeyCode))
                 {
-                    Debug.LogErrorFormat("{0} is repeat!", key.KeyCode);
+                    Debug.LogErrorFormat("{0} is repeat! Key:{1}", key.KeyCode, key);
                 }
                 else
                 {
                     keyDict.Add(key.KeyCode, key);
+                }
+
+                if (key.ShiftKeyCode != KeyCode.None)
+                {
+                    if (keyDict.ContainsKey(key.ShiftKeyCode))
+                    {
+                        Debug.LogErrorFormat("{0} is repeat! Key:{1}", key.KeyCode,key);
+                    }
+                    else
+                    {
+                        keyDict.Add(key.ShiftKeyCode, key);
+                    }
                 }
 
                 key.OnKeyDown += OnKeyDownHandle;

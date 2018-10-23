@@ -7,27 +7,75 @@ using System.Collections.Generic;
 
 namespace RedScarf.UguiFriend
 {
+    [ExecuteInEditMode]
     [RequireComponent(typeof(Button))]
     /// <summary>
     /// 键盘按键
     /// </summary>
     public class UguiKeypress : UIBehaviour,IPointerDownHandler,IPointerUpHandler
     {
-        static readonly Dictionary<KeyCode, string> specialDisplayNameDict;
+        protected static readonly HashSet<KeyCode> keepPressSet;
+        protected static readonly Dictionary<KeyCode, string> nameDict;
 
-        [SerializeField] protected KeyCode m_KeyCode;
-        [SerializeField] protected Text nameText;
+        [SerializeField] protected KeyCode m_KeyCode;   
+        [SerializeField] protected KeyCode m_ShiftKeyCode;
         protected Button button;
+        protected Text nameText;
         protected bool m_Press;
+        protected UguiKeyboard keyboard;
 
         public Action<KeyCode> OnKeyDown;
         public Action<KeyCode> OnKeyUp;
 
         static UguiKeypress()
         {
-            specialDisplayNameDict = new Dictionary<KeyCode, string>()
+            keepPressSet = new HashSet<KeyCode>()
             {
-                { KeyCode.Backspace,"←"}
+                KeyCode.LeftShift,
+                KeyCode.RightShift,
+                KeyCode.LeftCommand,
+                KeyCode.RightCommand,
+                KeyCode.LeftControl,
+                KeyCode.RightControl,
+                KeyCode.CapsLock,
+                KeyCode.LeftWindows,
+                KeyCode.RightWindows,
+                KeyCode.ScrollLock
+            };
+            nameDict = new Dictionary<KeyCode, string>()
+            {
+                {KeyCode.Space,""},
+                {KeyCode.Backspace,"←" },
+                {KeyCode.CapsLock,"Caps Lock" },
+                {KeyCode.LeftShift,"Shift" },
+                {KeyCode.RightShift,"Shift" },
+                {KeyCode.LeftAlt,"Alt" },
+                {KeyCode.RightAlt,"Alt" },
+                {KeyCode.At,"@" },
+                {KeyCode.Exclaim,"!"},
+                {KeyCode.Hash,"#" },
+                {KeyCode.Dollar,"$" },
+                { KeyCode.Caret,"^"},
+                { KeyCode.Ampersand,"&"},
+                { KeyCode.Asterisk,"*"},
+                { KeyCode.LeftParen,"("},
+                { KeyCode.RightParen,")"},
+                { KeyCode.Underscore,"_"},
+                { KeyCode.KeypadPlus,"+"},
+                { KeyCode.Minus,"-"},
+                {KeyCode.BackQuote,"`" },
+                { KeyCode.Backslash,"\\"},
+                { KeyCode.LeftBracket,"["},
+                { KeyCode.RightBracket,"]"},
+                { KeyCode.Colon,":"},
+                { KeyCode.Semicolon,";"},
+                {KeyCode.DoubleQuote,"\"" },
+                { KeyCode.Escape,"Esc"},
+
+                //小键盘
+                { KeyCode.KeypadPeriod,"."},
+                { KeyCode.KeypadDivide,"/"},
+
             };
         }
 
@@ -36,30 +84,49 @@ namespace RedScarf.UguiFriend
             base.Awake();
 
             button = GetComponent<Button>();
+            if (button == null)
+                button = gameObject.AddComponent<Button>();
+            if (button.targetGraphic == null)
+                button.targetGraphic = GetComponentInChildren<Graphic>();
+
             if (m_KeyCode == KeyCode.None)
-            {
-                try
-                {
-                    m_KeyCode = (KeyCode)Enum.Parse(typeof(KeyCode), name);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogErrorFormat("Key code is error:{0}",e);
-                }
-            }
+                throw new Exception("Key code is None.");
+
+            keyboard = GetComponentInParent<UguiKeyboard>();
+            if (keyboard == null)
+                throw new Exception("Keyboard is null.");
 
             if (nameText == null)
                 nameText = GetComponentInChildren<Text>();
-            if (nameText == null)
-                throw new Exception("Text is null.");
-            if (specialDisplayNameDict.ContainsKey(m_KeyCode))
+            if (nameText != null)
             {
-                nameText.text = specialDisplayNameDict[m_KeyCode];
+                var nameStr = "";
+                if (m_ShiftKeyCode != KeyCode.None)
+                {
+                    if (nameDict.ContainsKey(m_ShiftKeyCode))
+                    {
+                        nameStr += nameDict[m_ShiftKeyCode] + "\n";
+                    }
+                    else
+                    {
+                        nameStr += m_ShiftKeyCode + "\n";
+                    }
+                }
+                if (nameDict.ContainsKey(m_KeyCode))
+                {
+                    nameStr += nameDict[m_KeyCode];
+                }
+                else
+                {
+                    nameStr += m_KeyCode.ToString();
+                }
+                nameText.text = nameStr;
             }
-            else
-            {
-                nameText.text = m_KeyCode.ToString();
-            }
+        }
+
+        protected override void OnValidate()
+        {
+            base.OnValidate();
         }
 
         public void KeyDown()
@@ -115,11 +182,19 @@ namespace RedScarf.UguiFriend
             KeyUp();
         }
 
-        public virtual KeyCode KeyCode
+        public KeyCode KeyCode
         {
             get
             {
                 return m_KeyCode;
+            }
+        }
+
+        public KeyCode ShiftKeyCode
+        {
+            get
+            {
+                return m_ShiftKeyCode;
             }
         }
 
