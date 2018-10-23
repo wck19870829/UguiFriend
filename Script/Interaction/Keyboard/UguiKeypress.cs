@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEngine.UI;
 using System;
 using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
 namespace RedScarf.UguiFriend
 {
@@ -12,18 +13,53 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiKeypress : UIBehaviour,IPointerDownHandler,IPointerUpHandler
     {
+        static readonly Dictionary<KeyCode, string> specialDisplayNameDict;
+
         [SerializeField] protected KeyCode m_KeyCode;
+        [SerializeField] protected Text nameText;
         protected Button button;
         protected bool m_Press;
 
         public Action<KeyCode> OnKeyDown;
         public Action<KeyCode> OnKeyUp;
 
+        static UguiKeypress()
+        {
+            specialDisplayNameDict = new Dictionary<KeyCode, string>()
+            {
+                { KeyCode.Backspace,"←"}
+            };
+        }
+
         protected override void Awake()
         {
             base.Awake();
 
             button = GetComponent<Button>();
+            if (m_KeyCode == KeyCode.None)
+            {
+                try
+                {
+                    m_KeyCode = (KeyCode)Enum.Parse(typeof(KeyCode), name);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogErrorFormat("Key code is error:{0}",e);
+                }
+            }
+
+            if (nameText == null)
+                nameText = GetComponentInChildren<Text>();
+            if (nameText == null)
+                throw new Exception("Text is null.");
+            if (specialDisplayNameDict.ContainsKey(m_KeyCode))
+            {
+                nameText.text = specialDisplayNameDict[m_KeyCode];
+            }
+            else
+            {
+                nameText.text = m_KeyCode.ToString();
+            }
         }
 
         public void KeyDown()
