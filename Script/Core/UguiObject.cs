@@ -2,13 +2,14 @@
 using System.Collections;
 using System;
 using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 namespace RedScarf.UguiFriend
 {
     /// <summary>
     /// 显示对象基类
     /// </summary>
-    public abstract class UguiObject : MonoBehaviour
+    public abstract class UguiObject : UIBehaviour
     {
         const string openAnim = "Open";
         const string closeAnim = "Close";
@@ -49,39 +50,41 @@ namespace RedScarf.UguiFriend
         }
 
         #region Mono运行时序
-        protected virtual void Awake()
+        protected override void Awake()
         {
-
+            base.Awake();
         }
 
-        protected virtual void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
             isOpen = true;
         }
 
-        protected virtual void Start()
+        protected override void Start()
         {
-
+            base.Start();
         }
 
-        protected virtual void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
             isOpen = false;
         }
 
-        protected virtual void OnDestroy()
+        protected override void OnDestroy()
         {
-
+            base.OnDestroy();
         }
         #endregion
 
-        public void Open()
+        public virtual void Open()
         {
             isOpen = true;
             PlayAnim(openAnim);
         }
 
-        public void Close()
+        public virtual void Close()
         {
             isOpen = false;
             PlayAnim(closeAnim);
@@ -97,7 +100,7 @@ namespace RedScarf.UguiFriend
             Open();
         }
 
-        public void PlayAnim(string anim)
+        public virtual void PlayAnim(string anim)
         {
             if (m_Anim == null) m_Anim = GetComponent<Animator>();
             if (m_Anim == null) return;
@@ -105,7 +108,7 @@ namespace RedScarf.UguiFriend
             m_Anim.Play(anim, 0, 0);
         }
 
-        public UguiObjectData Data
+        public virtual UguiObjectData Data
         {
             get
             {

@@ -30,7 +30,8 @@ namespace RedScarf.UguiFriend
 
         protected virtual void OnEnable()
         {
-            actionPeriod = ActionPeriod.None;
+            centerTarget = null;
+            CenterOn(true);
         }
 
         void Update()
@@ -41,7 +42,7 @@ namespace RedScarf.UguiFriend
             {
                 if (scrollRect.velocity.magnitude < velocityThreshold)
                 {
-                    CenterOn();
+                    CenterOn(false);
                 }
             }
             else if (actionPeriod == ActionPeriod.PositionAlignment)
@@ -92,7 +93,8 @@ namespace RedScarf.UguiFriend
         /// 居中
         /// </summary>
         /// <param name="target"></param>
-        public virtual void CenterOn(Transform target)
+        /// <param name="isImmediate">立即居中</param>
+        public virtual void CenterOn(Transform target,bool isImmediate)
         {
             if (target == null) return;
 
@@ -107,7 +109,7 @@ namespace RedScarf.UguiFriend
             contentPos = scrollRect.content.position;
             contentPos += offset;
 
-            if (!gameObject.activeSelf)
+            if (isImmediate)
             {
                 scrollRect.content.position = contentPos;
             }
@@ -116,14 +118,15 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 居中
         /// </summary>
-        public virtual void CenterOn()
+        /// <param name="isImmediate"></param>
+        public virtual void CenterOn(bool isImmediate)
         {
             var closest = GetClosest();
-            CenterOn(closest);
+            CenterOn(closest,isImmediate);
         }
 
         /// <summary>
-        /// 获取里中心点最近的元素
+        /// 获取距离中心点最近的元素
         /// </summary>
         /// <returns></returns>
         public Transform GetClosest()

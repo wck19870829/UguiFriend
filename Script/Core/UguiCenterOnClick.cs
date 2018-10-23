@@ -19,6 +19,7 @@ namespace RedScarf.UguiFriend
             button = GetComponent<Button>();
             if (button == null)
                 throw new Exception("Button is null.");
+
             button.onClick.AddListener(OnButtonClick);
         }
 
@@ -31,7 +32,7 @@ namespace RedScarf.UguiFriend
                 var centerOnChild = scrollRect.GetComponent<UguiCenterOnChild>();
                 if (centerOnChild == null)
                     centerOnChild = scrollRect.gameObject.AddComponent<UguiCenterOnChild>();
-                centerOnChild.CenterOn(transform);
+                centerOnChild.CenterOn(transform,false);
             }
         }
     }
