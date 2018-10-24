@@ -356,10 +356,13 @@ MonoBehaviour:
   prevMonthButton: {fileID: 114000013584926600}
   yearTitleText: {fileID: 114000010048571386}
   monthTitleText: {fileID: 114000011448207724}
+  dateSelectLimit: 1
   dayOfWeekPrefab: {fileID: 114000011939706714, guid: 9bc111c9c1a0de54a99862cab575aa2c,
     type: 2}
-  datePrefab: {fileID: 0}
-  m_Config: {fileID: 114000012811434604, guid: 74a456c6b3c6adf4382b43f2d1a1bf68, type: 2}
+  datePrefab: {fileID: 114000012156714038, guid: a2e33821354e99245ba2784e67559c15,
+    type: 2}
+  dateSelectorButton: {fileID: 0}
+  dateSelector: {fileID: 0}
 --- !u!114 &114000011448207724
 MonoBehaviour:
   m_ObjectHideFlags: 1

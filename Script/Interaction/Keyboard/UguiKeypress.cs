@@ -8,21 +8,24 @@ using System.Collections.Generic;
 namespace RedScarf.UguiFriend
 {
     [ExecuteInEditMode]
-    [RequireComponent(typeof(Button))]
+    [RequireComponent(typeof(Animation))]
     /// <summary>
     /// 键盘按键
     /// </summary>
     public class UguiKeypress : UIBehaviour,IPointerDownHandler,IPointerUpHandler
     {
-        protected static readonly HashSet<KeyCode> keepPressSet;
+        protected const string KeyDownAnim = "KeyDown";
+        protected const string KeyUpAnim = "KeyUp";
+        protected static readonly HashSet<KeyCode> keepPressSet;                    //可以挂起的按键
         protected static readonly Dictionary<KeyCode, string> nameDict;
 
         [SerializeField] protected KeyCode m_KeyCode;   
         [SerializeField] protected KeyCode m_ShiftKeyCode;
-        protected Button button;
         protected Text nameText;
         protected bool m_Press;
         protected UguiKeyboard keyboard;
+        protected int clickCount;
+        protected Animation m_Anim;
 
         public Action<KeyCode> OnKeyDown;
         public Action<KeyCode> OnKeyUp;
@@ -83,14 +86,13 @@ namespace RedScarf.UguiFriend
         {
             base.Awake();
 
-            button = GetComponent<Button>();
-            if (button == null)
-                button = gameObject.AddComponent<Button>();
-            if (button.targetGraphic == null)
-                button.targetGraphic = GetComponentInChildren<Graphic>();
-
             if (m_KeyCode == KeyCode.None)
                 throw new Exception("Key code is None.");
+
+            if (m_Anim == null)
+                m_Anim = GetComponent<Animation>();
+            if (m_Anim == null)
+                m_Anim = gameObject.AddComponent<Animation>();
 
             keyboard = GetComponentInParent<UguiKeyboard>();
             if (keyboard == null)
@@ -124,31 +126,72 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        protected override void OnValidate()
-        {
-            base.OnValidate();
-        }
-
         public void KeyDown()
         {
-            if (m_Press) return;
-
-            m_Press = true;
-            if (OnKeyDown != null)
+            if (keepPressSet.Contains(m_KeyCode))
             {
-                OnKeyDown.Invoke(m_KeyCode);
+                clickCount++;
+                if (clickCount == 1)
+                {
+                    m_Press = true;
+                    PlayKeyDownAnim();
+                    if (OnKeyDown != null)
+                    {
+                        OnKeyDown.Invoke(m_KeyCode);
+                    }
+                }
+            }
+            else
+            {
+                if (!m_Press)
+                {
+                    m_Press = true;
+                    PlayKeyDownAnim();
+                    if (OnKeyDown != null)
+                    {
+                        OnKeyDown.Invoke(m_KeyCode);
+                    }
+                }
             }
         }
 
         public void KeyUp()
         {
-            if (!m_Press) return;
-
-            m_Press = false;
-            if (OnKeyUp != null)
+            if (keepPressSet.Contains(m_KeyCode))
             {
-                OnKeyUp.Invoke(m_KeyCode);
+                if (clickCount==2)
+                {
+                    clickCount = 0;
+                    m_Press = false;
+                    PlayKeyUpAnim();
+                    if (OnKeyUp != null)
+                    {
+                        OnKeyUp.Invoke(m_KeyCode);
+                    }
+                }
             }
+            else
+            {
+                if (m_Press)
+                {
+                    m_Press = false;
+                    PlayKeyUpAnim();
+                    if (OnKeyUp != null)
+                    {
+                        OnKeyUp.Invoke(m_KeyCode);
+                    }
+                }
+            }
+        }
+
+        protected virtual void PlayKeyDownAnim()
+        {
+            m_Anim.Play(KeyDownAnim);
+        }
+
+        protected virtual void PlayKeyUpAnim()
+        {
+            m_Anim.Play(KeyUpAnim);
         }
 
         /// <summary>
