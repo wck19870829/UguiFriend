@@ -3,6 +3,7 @@ using System.Collections;
 using System;
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace RedScarf.UguiFriend
 {
@@ -20,7 +21,15 @@ namespace RedScarf.UguiFriend
         protected UguiKeypress[] keypressArr;
         protected Dictionary<KeyCode, int> keyDownStateDict;
         protected AudioSource audioSource;
-        protected bool m_Shift;
+        protected bool m_IsShiftPress;
+        protected bool m_IsCapsLockOpen;
+        protected bool m_IsUpper;
+
+        protected GameObject cacheSelectObject;
+        protected InputField cacheInputField;
+        protected int cacheCaretPosition;
+        protected int cacheSelectionAnchorPosition;
+        protected int cacheSelectionFocusPosition;
 
         [Header("Sound")]
         [SerializeField] protected AudioClip keyDownSound;
@@ -39,19 +48,6 @@ namespace RedScarf.UguiFriend
         protected override void Awake()
         {
             base.Awake();
-            OnKey += (x) => {
-                Debug.LogFormat("onkey:{0}", x);
-            };
-        }
-
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-        }
-
-        protected override void Start()
-        {
-            base.Start();
 
             keypressArr = GetComponentsInChildren<UguiKeypress>();
             foreach (var key in keypressArr)
@@ -91,6 +87,58 @@ namespace RedScarf.UguiFriend
             InvokeRepeating(keyUpdate, keyInterval, keyInterval);
         }
 
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            Init();
+        }
+
+        protected virtual void Update()
+        {
+            if (cacheSelectObject!=EventSystem.current)
+            {
+                cacheSelectObject = EventSystem.current.currentSelectedGameObject;
+                if (cacheSelectObject != null)
+                {
+                    cacheInputField = cacheSelectObject.GetComponent<InputField>();
+                    if (cacheInputField!=null)
+                    {
+                        //Debug.LogFormat("{0}  {1}  {2}",
+                        //    cacheInputField.caretPosition,
+                        //    cacheInputField.selectionFocusPosition,
+                        //    cacheInputField.selectionAnchorPosition);
+                        cacheCaretPosition = cacheInputField.caretPosition;
+                        cacheSelectionAnchorPosition = cacheInputField.selectionAnchorPosition;
+                        cacheSelectionFocusPosition = cacheInputField.selectionFocusPosition;
+                    }
+                }
+            }
+        }
+
+        public virtual void Init()
+        {
+            m_IsCapsLockOpen = false;
+            m_IsShiftPress = false;
+            m_IsUpper = false;
+            foreach (var keypress in keypressArr)
+            {
+                keypress.Init();
+            }
+        }
+
+        internal void ForcusOnInputField()
+        {
+            if (cacheSelectObject!=null&&cacheInputField != null)
+            {
+                cacheInputField.ActivateInputField();
+                cacheInputField.Select();
+                cacheInputField.selectionAnchorPosition = cacheSelectionAnchorPosition;
+                cacheInputField.selectionFocusPosition = cacheSelectionFocusPosition;
+                cacheInputField.caretPosition = cacheCaretPosition;
+                cacheInputField.ForceLabelUpdate();
+            }
+        }
+
         void CheckKeyDownState()
         {
             if (OnKey != null)
@@ -115,26 +163,30 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        protected virtual void CheckShiftStateChange()
+        protected virtual void CheckStateChange(KeyCode keyCode,bool isKeyDown)
         {
-            m_Shift = false;
+            m_IsShiftPress = false;
             if (keyDict.ContainsKey(KeyCode.LeftShift))
             {
                 if (keyDict[KeyCode.LeftShift].IsPress)
                 {
-                    m_Shift = true;
+                    m_IsShiftPress = true;
                 }
             }
             if (keyDict.ContainsKey(KeyCode.RightShift))
             {
                 if (keyDict[KeyCode.RightShift].IsPress)
                 {
-                    m_Shift = true;
+                    m_IsShiftPress = true;
                 }
             }
-            foreach (var keypress in keypressArr)
+
+            if (keyCode == KeyCode.CapsLock)
             {
-                keypress.SetShiftState(m_Shift);
+                if (!isKeyDown)
+                {
+                    m_IsCapsLockOpen = !m_IsCapsLockOpen;
+                }
             }
         }
 
@@ -145,7 +197,7 @@ namespace RedScarf.UguiFriend
                 keyDownStateDict.Add(keyCode, 0);
                 StartCoroutine(BeginCheckKeyDownState(keyCode));
             }
-            CheckShiftStateChange();
+            CheckStateChange(keyCode,true);
             if (audioSource != null && keyDownSound != null)
             {
                 audioSource.PlayOneShot(keyDownSound);
@@ -160,7 +212,7 @@ namespace RedScarf.UguiFriend
         protected void OnKeyUpHandle(KeyCode keyCode)
         {
             keyDownStateDict.Remove(keyCode);
-            CheckShiftStateChange();
+            CheckStateChange(keyCode, false);
             if (audioSource != null && keyUpSound != null)
             {
                 audioSource.PlayOneShot(keyUpSound);
@@ -172,13 +224,20 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        public bool Shift
-        {
-            get
-            {
-                return m_Shift;
-            }
-        }
+        /// <summary>
+        /// Shift键是否按下
+        /// </summary>
+        public bool IsShiftPress { get { return m_IsShiftPress; } }
+
+        /// <summary>
+        /// 大小写是否锁定
+        /// </summary>
+        public bool IsCapsLockOpen { get { return m_IsCapsLockOpen; } }
+
+        /// <summary>
+        /// 是否为大写
+        /// </summary>
+        public bool IsUpper { get { return m_IsUpper; } }
 
         /// <summary>
         /// 按下按键

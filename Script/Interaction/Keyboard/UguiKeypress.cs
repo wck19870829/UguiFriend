@@ -11,10 +11,8 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 键盘按键
     /// </summary>
-    public class UguiKeypress : Selectable, IPointerDownHandler, IPointerUpHandler
+    public class UguiKeypress : Selectable
     {
-        protected const string KeyDownAnim = "KeyDown";
-        protected const string KeyUpAnim = "KeyUp";
         protected static readonly HashSet<KeyCode> keepPressSet;                    //可以挂起的按键
         protected static readonly Dictionary<KeyCode, string> nameDict;
 
@@ -28,8 +26,8 @@ namespace RedScarf.UguiFriend
         protected bool isShiftPress;
         protected bool isUpper;
 
-        public Action<KeyCode,Char> OnRealKeyDown;                                       //按键按下
-        public Action<KeyCode,Char> OnRealKeyUp;                                         //按键弹起
+        public Action<KeyCode> OnRealKeyDown;                                       //按键按下
+        public Action<KeyCode> OnRealKeyUp;                                         //按键弹起
 
         static UguiKeypress()
         {
@@ -96,9 +94,9 @@ namespace RedScarf.UguiFriend
             UpdateDisplayName();
         }
 
-        protected virtual Char GetCurrentChar()
+        public virtual void Init()
         {
-            return ' ';
+
         }
 
         protected virtual KeyCode GetCurrentKeyCode()
@@ -233,34 +231,22 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        /// <summary>
-        /// Shift状态改变对应的变化
-        /// </summary>
-        /// <param name="isShiftPress"></param>
-        public virtual void SetShiftState(bool shiftPress)
+        internal virtual void SetState(bool shiftPress,bool upper,bool capsLockOpen)
         {
             isShiftPress = shiftPress;
-            isUpper = (isCapsLockOpen && isShiftPress) ?
-                        false :
-                        (isCapsLockOpen || isShiftPress);
-            UpdateDisplayName();
-        }
-
-        /// <summary>
-        /// Caps Lock状态改变对应的变化
-        /// </summary>
-        /// <param name="isCapsLockOpen"></param>
-        public virtual void SetCapsLockState(bool capsLockOpen)
-        {
+            isUpper = upper;
             isCapsLockOpen = capsLockOpen;
-            isUpper = (isCapsLockOpen && isShiftPress) ?
-                        false :
-                        (isCapsLockOpen || isShiftPress);
+
             UpdateDisplayName();
         }
 
         public override void OnPointerDown(PointerEventData eventData)
         {
+            if (keyboard != null)
+            {
+                keyboard.ForcusOnInputField();
+            }
+
             KeyDown();
         }
 
@@ -271,11 +257,22 @@ namespace RedScarf.UguiFriend
 
         public override void OnPointerExit(PointerEventData eventData)
         {
-
+            if (m_Press)
+            {
+                DoStateTransition(SelectionState.Pressed, false);
+            }
+            else
+            {
+                DoStateTransition(SelectionState.Normal, false);
+            }
         }
+
         public override void OnPointerEnter(PointerEventData eventData)
         {
-
+            if (!m_Press)
+            {
+                DoStateTransition(SelectionState.Highlighted, false);
+            }
         }
 
         /// <summary>
