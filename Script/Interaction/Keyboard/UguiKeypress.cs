@@ -8,27 +8,28 @@ using System.Collections.Generic;
 namespace RedScarf.UguiFriend
 {
     [ExecuteInEditMode]
-    [RequireComponent(typeof(Animation))]
     /// <summary>
     /// 键盘按键
     /// </summary>
-    public class UguiKeypress : UIBehaviour,IPointerDownHandler,IPointerUpHandler
+    public class UguiKeypress : Selectable, IPointerDownHandler, IPointerUpHandler
     {
         protected const string KeyDownAnim = "KeyDown";
         protected const string KeyUpAnim = "KeyUp";
         protected static readonly HashSet<KeyCode> keepPressSet;                    //可以挂起的按键
         protected static readonly Dictionary<KeyCode, string> nameDict;
 
-        [SerializeField] protected KeyCode m_KeyCode;   
+        [SerializeField] protected KeyCode m_KeyCode;
         [SerializeField] protected KeyCode m_ShiftKeyCode;
         protected Text nameText;
         protected bool m_Press;
         protected UguiKeyboard keyboard;
-        protected int clickCount;
-        protected Animation m_Anim;
+        protected int keyDownCount;
+        protected bool isCapsLockOpen;
+        protected bool isShiftPress;
+        protected bool isUpper;
 
-        public Action<KeyCode> OnKeyDown;
-        public Action<KeyCode> OnKeyUp;
+        public Action<KeyCode,Char> OnRealKeyDown;                                       //按键按下
+        public Action<KeyCode,Char> OnRealKeyUp;                                         //按键弹起
 
         static UguiKeypress()
         {
@@ -47,17 +48,17 @@ namespace RedScarf.UguiFriend
             };
             nameDict = new Dictionary<KeyCode, string>()
             {
-                {KeyCode.Space,""},
-                {KeyCode.Backspace,"←" },
-                {KeyCode.CapsLock,"Caps Lock" },
-                {KeyCode.LeftShift,"Shift" },
-                {KeyCode.RightShift,"Shift" },
-                {KeyCode.LeftAlt,"Alt" },
-                {KeyCode.RightAlt,"Alt" },
-                {KeyCode.At,"@" },
-                {KeyCode.Exclaim,"!"},
-                {KeyCode.Hash,"#" },
-                {KeyCode.Dollar,"$" },
+                { KeyCode.Space,""},
+                { KeyCode.Backspace,"←Backspace" },
+                { KeyCode.CapsLock,"Caps Lock" },
+                { KeyCode.LeftShift,"Shift" },
+                { KeyCode.RightShift,"Shift" },
+                { KeyCode.LeftAlt,"Alt" },
+                { KeyCode.RightAlt,"Alt" },
+                { KeyCode.At,"@" },
+                { KeyCode.Exclaim,"!"},
+                { KeyCode.Hash,"#" },
+                { KeyCode.Dollar,"$" },
                 { KeyCode.Caret,"^"},
                 { KeyCode.Ampersand,"&"},
                 { KeyCode.Asterisk,"*"},
@@ -66,19 +67,18 @@ namespace RedScarf.UguiFriend
                 { KeyCode.Underscore,"_"},
                 { KeyCode.KeypadPlus,"+"},
                 { KeyCode.Minus,"-"},
-                {KeyCode.BackQuote,"`" },
+                { KeyCode.BackQuote,"`" },
                 { KeyCode.Backslash,"\\"},
                 { KeyCode.LeftBracket,"["},
                 { KeyCode.RightBracket,"]"},
                 { KeyCode.Colon,":"},
                 { KeyCode.Semicolon,";"},
-                {KeyCode.DoubleQuote,"\"" },
+                { KeyCode.DoubleQuote,"\"" },
                 { KeyCode.Escape,"Esc"},
 
                 //小键盘
                 { KeyCode.KeypadPeriod,"."},
                 { KeyCode.KeypadDivide,"/"},
-
             };
         }
 
@@ -89,15 +89,33 @@ namespace RedScarf.UguiFriend
             if (m_KeyCode == KeyCode.None)
                 throw new Exception("Key code is None.");
 
-            if (m_Anim == null)
-                m_Anim = GetComponent<Animation>();
-            if (m_Anim == null)
-                m_Anim = gameObject.AddComponent<Animation>();
-
             keyboard = GetComponentInParent<UguiKeyboard>();
             if (keyboard == null)
                 throw new Exception("Keyboard is null.");
 
+            UpdateDisplayName();
+        }
+
+        protected virtual Char GetCurrentChar()
+        {
+            return ' ';
+        }
+
+        protected virtual KeyCode GetCurrentKeyCode()
+        {
+            if (isShiftPress&&m_ShiftKeyCode!=KeyCode.None)
+            {
+                return m_ShiftKeyCode;
+            }
+
+            return m_KeyCode;
+        }
+
+        /// <summary>
+        /// 更新显示
+        /// </summary>
+        protected virtual void UpdateDisplayName()
+        {
             if (nameText == null)
                 nameText = GetComponentInChildren<Text>();
             if (nameText != null)
@@ -126,18 +144,18 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        public void KeyDown()
+        protected void KeyDown()
         {
             if (keepPressSet.Contains(m_KeyCode))
             {
-                clickCount++;
-                if (clickCount == 1)
+                keyDownCount++;
+                if (keyDownCount == 1)
                 {
                     m_Press = true;
                     PlayKeyDownAnim();
-                    if (OnKeyDown != null)
+                    if (OnRealKeyDown != null)
                     {
-                        OnKeyDown.Invoke(m_KeyCode);
+                        OnRealKeyDown.Invoke(GetCurrentKeyCode());
                     }
                 }
             }
@@ -147,26 +165,26 @@ namespace RedScarf.UguiFriend
                 {
                     m_Press = true;
                     PlayKeyDownAnim();
-                    if (OnKeyDown != null)
+                    if (OnRealKeyDown != null)
                     {
-                        OnKeyDown.Invoke(m_KeyCode);
+                        OnRealKeyDown.Invoke(GetCurrentKeyCode());
                     }
                 }
             }
         }
 
-        public void KeyUp()
+        protected void KeyUp()
         {
             if (keepPressSet.Contains(m_KeyCode))
             {
-                if (clickCount==2)
+                if (keyDownCount == 2)
                 {
-                    clickCount = 0;
+                    keyDownCount = 0;
                     m_Press = false;
                     PlayKeyUpAnim();
-                    if (OnKeyUp != null)
+                    if (OnRealKeyUp != null)
                     {
-                        OnKeyUp.Invoke(m_KeyCode);
+                        OnRealKeyUp.Invoke(GetCurrentKeyCode());
                     }
                 }
             }
@@ -176,9 +194,9 @@ namespace RedScarf.UguiFriend
                 {
                     m_Press = false;
                     PlayKeyUpAnim();
-                    if (OnKeyUp != null)
+                    if (OnRealKeyUp != null)
                     {
-                        OnKeyUp.Invoke(m_KeyCode);
+                        OnRealKeyUp.Invoke(GetCurrentKeyCode());
                     }
                 }
             }
@@ -186,12 +204,12 @@ namespace RedScarf.UguiFriend
 
         protected virtual void PlayKeyDownAnim()
         {
-            m_Anim.Play(KeyDownAnim);
+            DoStateTransition(SelectionState.Pressed, false);
         }
 
         protected virtual void PlayKeyUpAnim()
         {
-            m_Anim.Play(KeyUpAnim);
+            DoStateTransition(SelectionState.Normal, false);
         }
 
         /// <summary>
@@ -211,20 +229,58 @@ namespace RedScarf.UguiFriend
             else
             {
                 KeyDown();
-                Invoke("KeyUp",duration);
+                Invoke("KeyUp", duration);
             }
         }
 
-        public void OnPointerDown(PointerEventData eventData)
+        /// <summary>
+        /// Shift状态改变对应的变化
+        /// </summary>
+        /// <param name="isShiftPress"></param>
+        public virtual void SetShiftState(bool shiftPress)
+        {
+            isShiftPress = shiftPress;
+            isUpper = (isCapsLockOpen && isShiftPress) ?
+                        false :
+                        (isCapsLockOpen || isShiftPress);
+            UpdateDisplayName();
+        }
+
+        /// <summary>
+        /// Caps Lock状态改变对应的变化
+        /// </summary>
+        /// <param name="isCapsLockOpen"></param>
+        public virtual void SetCapsLockState(bool capsLockOpen)
+        {
+            isCapsLockOpen = capsLockOpen;
+            isUpper = (isCapsLockOpen && isShiftPress) ?
+                        false :
+                        (isCapsLockOpen || isShiftPress);
+            UpdateDisplayName();
+        }
+
+        public override void OnPointerDown(PointerEventData eventData)
         {
             KeyDown();
         }
 
-        public void OnPointerUp(PointerEventData eventData)
+        public override void OnPointerUp(PointerEventData eventData)
         {
             KeyUp();
         }
 
+        public override void OnPointerExit(PointerEventData eventData)
+        {
+
+        }
+        public override void OnPointerEnter(PointerEventData eventData)
+        {
+
+        }
+
+        /// <summary>
+        /// 未按下Shift键对应的下档键
+        /// </summary>
         public KeyCode KeyCode
         {
             get
@@ -233,6 +289,9 @@ namespace RedScarf.UguiFriend
             }
         }
 
+        /// <summary>
+        /// 按下Shift键对应的上档键
+        /// </summary>
         public KeyCode ShiftKeyCode
         {
             get
@@ -241,6 +300,9 @@ namespace RedScarf.UguiFriend
             }
         }
 
+        /// <summary>
+        /// 是否按下
+        /// </summary>
         public virtual bool IsPress
         {
             get

@@ -3051,8 +3051,8 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 224: {fileID: 1596712978}
-  - 111: {fileID: 1596712980}
   - 114: {fileID: 1596712979}
+  - 95: {fileID: 1596712980}
   m_Layer: 5
   m_Name: Key (1)
   m_TagString: Untagged
@@ -3093,24 +3093,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b7b1669d9304094faff73a9ba2c34e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 3
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0, g: 0.5745438, b: 0.8088235, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1916551505}
   m_KeyCode: 97
   m_ShiftKeyCode: 0
---- !u!111 &1596712980
-Animation:
+--- !u!95 &1596712980
+Animator:
+  serializedVersion: 3
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1596712977}
   m_Enabled: 1
-  serializedVersion: 3
-  m_Animation: {fileID: 0}
-  m_Animations:
-  - {fileID: 7400000, guid: f8c2141ceeb986242a0044d5c5aced39, type: 2}
-  - {fileID: 7400000, guid: 98ef3d0757dbe3043a2969c370de1ecf, type: 2}
-  m_WrapMode: 0
-  m_PlayAutomatically: 1
-  m_AnimatePhysics: 0
-  m_CullingType: 0
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: adfc6fdfe6a68ac4dbc0047350d8eeaa, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
 --- !u!1 &1601828724
 GameObject:
   m_ObjectHideFlags: 0
@@ -4185,8 +4211,8 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 224: {fileID: 1830127842}
-  - 111: {fileID: 1830127844}
   - 114: {fileID: 1830127843}
+  - 95: {fileID: 1830127844}
   m_Layer: 5
   m_Name: Key
   m_TagString: Untagged
@@ -4227,24 +4253,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b7b1669d9304094faff73a9ba2c34e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 3
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0, g: 0.5745438, b: 0.8088235, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1596518310}
   m_KeyCode: 304
   m_ShiftKeyCode: 0
---- !u!111 &1830127844
-Animation:
+--- !u!95 &1830127844
+Animator:
+  serializedVersion: 3
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1830127841}
   m_Enabled: 1
-  serializedVersion: 3
-  m_Animation: {fileID: 0}
-  m_Animations:
-  - {fileID: 7400000, guid: f8c2141ceeb986242a0044d5c5aced39, type: 2}
-  - {fileID: 7400000, guid: 98ef3d0757dbe3043a2969c370de1ecf, type: 2}
-  m_WrapMode: 0
-  m_PlayAutomatically: 1
-  m_AnimatePhysics: 0
-  m_CullingType: 0
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: adfc6fdfe6a68ac4dbc0047350d8eeaa, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
 --- !u!1 &1844154002
 GameObject:
   m_ObjectHideFlags: 0
@@ -4382,7 +4434,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Shift
+  m_Text: A
 --- !u!222 &1900077669
 CanvasRenderer:
   m_ObjectHideFlags: 0

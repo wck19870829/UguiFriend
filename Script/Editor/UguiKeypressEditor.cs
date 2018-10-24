@@ -6,14 +6,17 @@ using System;
 
 namespace RedScarf.UguiFriend
 {
-    //[CustomEditor(typeof(UguiKeypress), true)]
-    public class UguiKeypressEditor : Editor
+    [CanEditMultipleObjects]
+    [CustomEditor(typeof(UguiKeypress), true)]
+    public class UguiKeypressEditor : SelectableEditor
     {
         protected SerializedProperty keyCodeProp;
         protected SerializedProperty shiftKeyCodeProp;
 
-        protected virtual void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             keyCodeProp = serializedObject.FindProperty("m_KeyCode");
             shiftKeyCodeProp = serializedObject.FindProperty("m_ShiftKeyCode");
         }
@@ -24,6 +27,8 @@ namespace RedScarf.UguiFriend
             EditorGUILayout.PropertyField(shiftKeyCodeProp);
 
             serializedObject.ApplyModifiedProperties();
+
+            base.OnInspectorGUI();
         }
     }
 }

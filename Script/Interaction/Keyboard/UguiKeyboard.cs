@@ -17,8 +17,10 @@ namespace RedScarf.UguiFriend
         protected static readonly float keyIntervalDelay = 0.2f;
 
         protected Dictionary<KeyCode, UguiKeypress> keyDict;
+        protected UguiKeypress[] keypressArr;
         protected Dictionary<KeyCode, int> keyDownStateDict;
         protected AudioSource audioSource;
+        protected bool m_Shift;
 
         [Header("Sound")]
         [SerializeField] protected AudioClip keyDownSound;
@@ -34,11 +36,24 @@ namespace RedScarf.UguiFriend
             keyDownStateDict = new Dictionary<KeyCode, int>();
         }
 
+        protected override void Awake()
+        {
+            base.Awake();
+            OnKey += (x) => {
+                Debug.LogFormat("onkey:{0}", x);
+            };
+        }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+        }
+
         protected override void Start()
         {
             base.Start();
 
-            var keypressArr = GetComponentsInChildren<UguiKeypress>();
+            keypressArr = GetComponentsInChildren<UguiKeypress>();
             foreach (var key in keypressArr)
             {
                 if (key.KeyCode == KeyCode.None)
@@ -66,8 +81,8 @@ namespace RedScarf.UguiFriend
                     }
                 }
 
-                key.OnKeyDown += OnKeyDownHandle;
-                key.OnKeyUp += OnKeyUpHandle;
+                key.OnRealKeyDown += OnKeyDownHandle;
+                key.OnRealKeyUp += OnKeyUpHandle;
             }
             audioSource = GetComponent<AudioSource>();
             if (audioSource == null)
@@ -100,13 +115,37 @@ namespace RedScarf.UguiFriend
             }
         }
 
+        protected virtual void CheckShiftStateChange()
+        {
+            m_Shift = false;
+            if (keyDict.ContainsKey(KeyCode.LeftShift))
+            {
+                if (keyDict[KeyCode.LeftShift].IsPress)
+                {
+                    m_Shift = true;
+                }
+            }
+            if (keyDict.ContainsKey(KeyCode.RightShift))
+            {
+                if (keyDict[KeyCode.RightShift].IsPress)
+                {
+                    m_Shift = true;
+                }
+            }
+            foreach (var keypress in keypressArr)
+            {
+                keypress.SetShiftState(m_Shift);
+            }
+        }
+
         protected void OnKeyDownHandle(KeyCode keyCode)
         {
             if (!keyDownStateDict.ContainsKey(keyCode))
             {
                 keyDownStateDict.Add(keyCode, 0);
-                BeginCheckKeyDownState(keyCode);
+                StartCoroutine(BeginCheckKeyDownState(keyCode));
             }
+            CheckShiftStateChange();
             if (audioSource != null && keyDownSound != null)
             {
                 audioSource.PlayOneShot(keyDownSound);
@@ -121,7 +160,7 @@ namespace RedScarf.UguiFriend
         protected void OnKeyUpHandle(KeyCode keyCode)
         {
             keyDownStateDict.Remove(keyCode);
-
+            CheckShiftStateChange();
             if (audioSource != null && keyUpSound != null)
             {
                 audioSource.PlayOneShot(keyUpSound);
@@ -130,6 +169,14 @@ namespace RedScarf.UguiFriend
             if (OnKeyUp != null)
             {
                 OnKeyUp.Invoke(keyCode);
+            }
+        }
+
+        public bool Shift
+        {
+            get
+            {
+                return m_Shift;
             }
         }
 
