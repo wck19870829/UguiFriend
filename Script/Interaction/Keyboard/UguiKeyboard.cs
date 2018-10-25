@@ -19,7 +19,8 @@ namespace RedScarf.UguiFriend
 
         protected Dictionary<KeyCode, UguiKeypress> keyDict;
         protected UguiKeypress[] keypressArr;
-        protected Dictionary<KeyCode, int> keyDownStateDict;
+        protected HashSet<UguiKeypress> waitingKeyDownStateSet;
+        protected HashSet<UguiKeypress> keyDownStateSet;
         protected AudioSource audioSource;
         protected bool m_IsShiftPress;
         protected bool m_IsCtrlPress;
@@ -34,14 +35,15 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected AudioClip keyUpSound;
         [SerializeField] protected AudioClip enterSound;
 
-        public Action<KeyCode> OnKeyDown;
-        public Action<KeyCode> OnKeyUp;
-        public Action<KeyCode> OnKey;
+        public Action<KeyCode,char> OnKeyDown;
+        public Action<KeyCode,char> OnKeyUp;
+        public Action<KeyCode,char> OnKey;
 
         protected UguiKeyboard()
         {
             keyDict = new Dictionary<KeyCode, UguiKeypress>();
-            keyDownStateDict = new Dictionary<KeyCode, int>();
+            waitingKeyDownStateSet = new HashSet<UguiKeypress>();
+            keyDownStateSet = new HashSet<UguiKeypress>();
         }
 
         protected override void Awake()
@@ -69,18 +71,6 @@ namespace RedScarf.UguiFriend
                     keyDict.Add(key.KeyCode, key);
                 }
 
-                if (key.ShiftKeyCode != KeyCode.None)
-                {
-                    if (keyDict.ContainsKey(key.ShiftKeyCode))
-                    {
-                        Debug.LogErrorFormat("{0} is repeat! Key:{1}", key.KeyCode,key);
-                    }
-                    else
-                    {
-                        keyDict.Add(key.ShiftKeyCode, key);
-                    }
-                }
-
                 key.OnRealKeyDown += OnKeyDownHandle;
                 key.OnRealKeyUp += OnKeyUpHandle;
                 key.OnEnter += OnEnterHandle;
@@ -98,6 +88,14 @@ namespace RedScarf.UguiFriend
             ResetKeyboard();
         }
 
+        protected virtual void OnGUI()
+        {
+            //Debug.Log(Event.current.keyCode);
+            //Debug.Log(Input.compositionString);
+            //Debug.Log(Input.inputString);
+            //Debug.Log(Event.current.character);
+        }
+
         /// <summary>
         /// 重置键盘
         /// </summary>
@@ -108,6 +106,8 @@ namespace RedScarf.UguiFriend
             m_IsAltPress = false;
             m_IsCtrlPress = false;
             m_IsUpper = false;
+            waitingKeyDownStateSet.Clear();
+            keyDownStateSet.Clear();
             foreach (var keypress in keypressArr)
             {
                 keypress.ResetKeypress();
@@ -118,24 +118,19 @@ namespace RedScarf.UguiFriend
         {
             if (OnKey != null)
             {
-                foreach (var item in keyDownStateDict)
+                foreach (var item in keyDownStateSet)
                 {
-                    if (item.Value > 0)
-                    {
-                        OnKey.Invoke(item.Key);
-                    }
+                    OnKey.Invoke(item.KeyCode,item.Character);
                 }
             }
         }
 
-        IEnumerator BeginCheckKeyDownState(KeyCode keyCode)
+        IEnumerator BeginCheckKeyDownState(UguiKeypress keypress)
         {
             yield return new WaitForSeconds(keyIntervalDelay);
 
-            if (keyDownStateDict.ContainsKey(keyCode))
-            {
-                keyDownStateDict[keyCode] = 1;
-            }
+            waitingKeyDownStateSet.Remove(keypress);
+            keyDownStateSet.Add(keypress);
         }
 
         protected virtual void CheckStateChange(KeyCode keyCode, UguiKeypress.KeypressState keypressState)
@@ -167,7 +162,7 @@ namespace RedScarf.UguiFriend
 
             foreach (var keypress in keypressArr)
             {
-                keypress.UpdateView();
+                keypress.UpdateState();
             }
         }
 
@@ -182,7 +177,7 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        protected virtual void OnEnterHandle(KeyCode keyCode)
+        protected virtual void OnEnterHandle(UguiKeypress keypress)
         {
             if (audioSource != null && enterSound != null)
             {
@@ -190,14 +185,14 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        protected virtual void OnKeyDownHandle(KeyCode keyCode)
+        protected virtual void OnKeyDownHandle(UguiKeypress keypress)
         {
-            if (!keyDownStateDict.ContainsKey(keyCode))
+            if (!waitingKeyDownStateSet.Contains(keypress))
             {
-                keyDownStateDict.Add(keyCode, 0);
-                StartCoroutine(BeginCheckKeyDownState(keyCode));
+                waitingKeyDownStateSet.Add(keypress);
+                StartCoroutine(BeginCheckKeyDownState(keypress));
             }
-            CheckStateChange(keyCode,UguiKeypress.KeypressState.Press);
+            CheckStateChange(keypress.KeyCode, UguiKeypress.KeypressState.Press);
             if (audioSource != null && keyDownSound != null)
             {
                 audioSource.PlayOneShot(keyDownSound);
@@ -205,14 +200,14 @@ namespace RedScarf.UguiFriend
 
             if (OnKeyDown != null)
             {
-                OnKeyDown.Invoke(keyCode);
+                OnKeyDown.Invoke(keypress.KeyCode, keypress.Character);
             }
         }
 
-        protected virtual void OnKeyUpHandle(KeyCode keyCode)
+        protected virtual void OnKeyUpHandle(UguiKeypress keypress)
         {
-            keyDownStateDict.Remove(keyCode);
-            CheckStateChange(keyCode, UguiKeypress.KeypressState.Normal);
+            keyDownStateSet.Remove(keypress);
+            CheckStateChange(keypress.KeyCode, UguiKeypress.KeypressState.Normal);
             if (audioSource != null && keyUpSound != null)
             {
                 audioSource.PlayOneShot(keyUpSound);
@@ -220,7 +215,7 @@ namespace RedScarf.UguiFriend
 
             if (OnKeyUp != null)
             {
-                OnKeyUp.Invoke(keyCode);
+                OnKeyUp.Invoke(keypress.KeyCode, keypress.Character);
             }
         }
 

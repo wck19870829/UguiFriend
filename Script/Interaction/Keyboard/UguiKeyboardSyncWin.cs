@@ -17,8 +17,8 @@ namespace RedScarf.UguiFriend
         private void Awake()
         {
             keyboard = GetComponent<UguiKeyboard>();
-            keyboard.OnKeyDown += OnKeyDown;
-            keyboard.OnKeyUp += OnKeyDown;
+            //keyboard.OnKeyDown += OnKeyDown;
+            //keyboard.OnKeyUp += OnKeyDown;
         }
 
         private void Update()
