@@ -21,10 +21,16 @@ namespace RedScarf.UguiFriend
             keyboard.OnKeyUp += OnKeyDown;
         }
 
+        private void Update()
+        {
+            
+        }
+
         private void OnGUI()
         {
             if (Event.current!=null)
             {
+                Event.current.mousePosition = Vector2.zero;
                 if (Event.current.rawType == EventType.KeyDown)
                 {
 
@@ -38,7 +44,13 @@ namespace RedScarf.UguiFriend
 
         void OnKeyDown(KeyCode keyCode)
         {
-            keybd_event(vbKeyA, 0, 0, 0);
+            StartCoroutine(CallKeyDownDelay());
+        }
+
+        IEnumerator CallKeyDownDelay()
+        {
+            yield return new WaitForSeconds(1);
+            keybd_event(vbKey0, 0, 0, 0);
         }
 
         void OnKeyUp(KeyCode keyCode)

@@ -22,18 +22,17 @@ namespace RedScarf.UguiFriend
         protected Dictionary<KeyCode, int> keyDownStateDict;
         protected AudioSource audioSource;
         protected bool m_IsShiftPress;
-        protected bool m_IsCapsLockOpen;
+        protected bool m_IsCtrlPress;
+        protected bool m_IsAltPress;
+        protected bool m_IsCapsLock;
+        protected bool m_IsNumLock;
+        protected bool m_IsScrollLock;
         protected bool m_IsUpper;
-
-        protected GameObject cacheSelectObject;
-        protected InputField cacheInputField;
-        protected int cacheCaretPosition;
-        protected int cacheSelectionAnchorPosition;
-        protected int cacheSelectionFocusPosition;
 
         [Header("Sound")]
         [SerializeField] protected AudioClip keyDownSound;
         [SerializeField] protected AudioClip keyUpSound;
+        [SerializeField] protected AudioClip enterSound;
 
         public Action<KeyCode> OnKeyDown;
         public Action<KeyCode> OnKeyUp;
@@ -48,8 +47,13 @@ namespace RedScarf.UguiFriend
         protected override void Awake()
         {
             base.Awake();
-
             keypressArr = GetComponentsInChildren<UguiKeypress>();
+        }
+
+        protected override void Start()
+        {
+            base.Start();
+
             foreach (var key in keypressArr)
             {
                 if (key.KeyCode == KeyCode.None)
@@ -79,6 +83,7 @@ namespace RedScarf.UguiFriend
 
                 key.OnRealKeyDown += OnKeyDownHandle;
                 key.OnRealKeyUp += OnKeyUpHandle;
+                key.OnEnter += OnEnterHandle;
             }
             audioSource = GetComponent<AudioSource>();
             if (audioSource == null)
@@ -90,52 +95,22 @@ namespace RedScarf.UguiFriend
         protected override void OnEnable()
         {
             base.OnEnable();
-            Init();
+            ResetKeyboard();
         }
 
-        protected virtual void Update()
+        /// <summary>
+        /// 重置键盘
+        /// </summary>
+        public virtual void ResetKeyboard()
         {
-            if (cacheSelectObject!=EventSystem.current)
-            {
-                cacheSelectObject = EventSystem.current.currentSelectedGameObject;
-                if (cacheSelectObject != null)
-                {
-                    cacheInputField = cacheSelectObject.GetComponent<InputField>();
-                    if (cacheInputField!=null)
-                    {
-                        //Debug.LogFormat("{0}  {1}  {2}",
-                        //    cacheInputField.caretPosition,
-                        //    cacheInputField.selectionFocusPosition,
-                        //    cacheInputField.selectionAnchorPosition);
-                        cacheCaretPosition = cacheInputField.caretPosition;
-                        cacheSelectionAnchorPosition = cacheInputField.selectionAnchorPosition;
-                        cacheSelectionFocusPosition = cacheInputField.selectionFocusPosition;
-                    }
-                }
-            }
-        }
-
-        public virtual void Init()
-        {
-            m_IsCapsLockOpen = false;
+            m_IsCapsLock = false;
             m_IsShiftPress = false;
+            m_IsAltPress = false;
+            m_IsCtrlPress = false;
             m_IsUpper = false;
             foreach (var keypress in keypressArr)
             {
-                keypress.Init();
-            }
-        }
-
-        internal void ForcusOnInputField()
-        {
-            if (cacheSelectObject!=null&&cacheInputField != null)
-            {
-                cacheInputField.ActivateInputField();
-                cacheInputField.Select();
-                cacheInputField.selectionAnchorPosition = cacheSelectionAnchorPosition;
-                cacheInputField.selectionFocusPosition = cacheSelectionFocusPosition;
-                cacheInputField.caretPosition = cacheCaretPosition;
-                cacheInputField.ForceLabelUpdate();
+                keypress.ResetKeypress();
             }
         }
 
@@ -163,41 +138,66 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        protected virtual void CheckStateChange(KeyCode keyCode,bool isKeyDown)
+        protected virtual void CheckStateChange(KeyCode keyCode, UguiKeypress.KeypressState keypressState)
         {
             m_IsShiftPress = false;
-            if (keyDict.ContainsKey(KeyCode.LeftShift))
-            {
-                if (keyDict[KeyCode.LeftShift].IsPress)
-                {
-                    m_IsShiftPress = true;
-                }
-            }
-            if (keyDict.ContainsKey(KeyCode.RightShift))
-            {
-                if (keyDict[KeyCode.RightShift].IsPress)
-                {
-                    m_IsShiftPress = true;
-                }
-            }
+            SetKeepPressState(KeyCode.LeftShift,ref m_IsShiftPress);
+            SetKeepPressState(KeyCode.RightShift, ref m_IsShiftPress);
 
-            if (keyCode == KeyCode.CapsLock)
+            m_IsAltPress = false;
+            SetKeepPressState(KeyCode.LeftAlt, ref m_IsAltPress);
+            SetKeepPressState(KeyCode.RightAlt, ref m_IsAltPress);
+
+            m_IsCtrlPress = false;
+            SetKeepPressState(KeyCode.LeftControl, ref m_IsCtrlPress);
+            SetKeepPressState(KeyCode.RightControl, ref m_IsCtrlPress);
+
+            m_IsCapsLock = false;
+            SetKeepPressState(KeyCode.CapsLock, ref m_IsCapsLock);
+
+            m_IsScrollLock = false;
+            SetKeepPressState(KeyCode.ScrollLock, ref m_IsCapsLock);
+
+            m_IsNumLock = false;
+            SetKeepPressState(KeyCode.Numlock, ref m_IsCapsLock);
+
+            m_IsUpper = (m_IsCapsLock==m_IsShiftPress)?
+                        false:
+                        (m_IsCapsLock||m_IsShiftPress);
+
+            foreach (var keypress in keypressArr)
             {
-                if (!isKeyDown)
+                keypress.UpdateView();
+            }
+        }
+
+        protected void SetKeepPressState(KeyCode keyCode,ref bool state)
+        {
+            if (keyDict.ContainsKey(keyCode))
+            {
+                if (keyDict[keyCode].State == UguiKeypress.KeypressState.Press)
                 {
-                    m_IsCapsLockOpen = !m_IsCapsLockOpen;
+                    state = true;
                 }
             }
         }
 
-        protected void OnKeyDownHandle(KeyCode keyCode)
+        protected virtual void OnEnterHandle(KeyCode keyCode)
+        {
+            if (audioSource != null && enterSound != null)
+            {
+                audioSource.PlayOneShot(enterSound);
+            }
+        }
+
+        protected virtual void OnKeyDownHandle(KeyCode keyCode)
         {
             if (!keyDownStateDict.ContainsKey(keyCode))
             {
                 keyDownStateDict.Add(keyCode, 0);
                 StartCoroutine(BeginCheckKeyDownState(keyCode));
             }
-            CheckStateChange(keyCode,true);
+            CheckStateChange(keyCode,UguiKeypress.KeypressState.Press);
             if (audioSource != null && keyDownSound != null)
             {
                 audioSource.PlayOneShot(keyDownSound);
@@ -209,10 +209,10 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        protected void OnKeyUpHandle(KeyCode keyCode)
+        protected virtual void OnKeyUpHandle(KeyCode keyCode)
         {
             keyDownStateDict.Remove(keyCode);
-            CheckStateChange(keyCode, false);
+            CheckStateChange(keyCode, UguiKeypress.KeypressState.Normal);
             if (audioSource != null && keyUpSound != null)
             {
                 audioSource.PlayOneShot(keyUpSound);
@@ -230,9 +230,29 @@ namespace RedScarf.UguiFriend
         public bool IsShiftPress { get { return m_IsShiftPress; } }
 
         /// <summary>
+        /// Alt键是否按下
+        /// </summary>
+        public bool IsAltPress { get { return m_IsAltPress; } }
+
+        /// <summary>
+        /// Ctrl键是否按下
+        /// </summary>
+        public bool IsCtrlPress { get { return m_IsCtrlPress; } }
+
+        /// <summary>
         /// 大小写是否锁定
         /// </summary>
-        public bool IsCapsLockOpen { get { return m_IsCapsLockOpen; } }
+        public bool IsCapsLock { get { return m_IsCapsLock; } }
+
+        /// <summary>
+        /// 数字键锁定
+        /// </summary>
+        public bool IsNumLock { get { return m_IsNumLock; } }
+
+        /// <summary>
+        /// 滚动锁定
+        /// </summary>
+        public bool IsScrollLock { get { return m_IsScrollLock; } }
 
         /// <summary>
         /// 是否为大写

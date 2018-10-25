@@ -7,27 +7,26 @@ using System.Collections.Generic;
 
 namespace RedScarf.UguiFriend
 {
-    [ExecuteInEditMode]
     /// <summary>
     /// 键盘按键
     /// </summary>
     public class UguiKeypress : Selectable
     {
+        protected static readonly HashSet<KeyCode> keypadSet;                       //小键盘上的键
         protected static readonly HashSet<KeyCode> keepPressSet;                    //可以挂起的按键
         protected static readonly Dictionary<KeyCode, string> nameDict;
 
         [SerializeField] protected KeyCode m_KeyCode;
         [SerializeField] protected KeyCode m_ShiftKeyCode;
         protected Text nameText;
-        protected bool m_Press;
+        protected KeypressState m_State;
         protected UguiKeyboard keyboard;
         protected int keyDownCount;
-        protected bool isCapsLockOpen;
-        protected bool isShiftPress;
-        protected bool isUpper;
+        protected bool init;
 
         public Action<KeyCode> OnRealKeyDown;                                       //按键按下
         public Action<KeyCode> OnRealKeyUp;                                         //按键弹起
+        public Action<KeyCode> OnEnter;
 
         static UguiKeypress()
         {
@@ -42,7 +41,15 @@ namespace RedScarf.UguiFriend
                 KeyCode.CapsLock,
                 KeyCode.LeftWindows,
                 KeyCode.RightWindows,
-                KeyCode.ScrollLock
+                KeyCode.ScrollLock,
+                KeyCode.LeftAlt,
+                KeyCode.RightAlt,
+
+                //虚拟键盘特殊处理
+                KeyCode.CapsLock,
+                KeyCode.ScrollLock,
+                KeyCode.Numlock
+                
             };
             nameDict = new Dictionary<KeyCode, string>()
             {
@@ -73,35 +80,74 @@ namespace RedScarf.UguiFriend
                 { KeyCode.Semicolon,";"},
                 { KeyCode.DoubleQuote,"\"" },
                 { KeyCode.Escape,"Esc"},
+                { KeyCode.LeftControl,"Ctrl"},
+                {KeyCode.RightControl,"Ctrl" },
 
                 //小键盘
                 { KeyCode.KeypadPeriod,"."},
                 { KeyCode.KeypadDivide,"/"},
             };
+            keypadSet = new HashSet<KeyCode>();
+            var keyCodeValues = Enum.GetValues(typeof(KeyCode));
+            foreach (var value in keyCodeValues)
+            {
+                if (value.ToString().StartsWith("Keypad"))
+                {
+                    keypadSet.Add((KeyCode)value);
+                }
+            }
         }
 
         protected override void Awake()
         {
             base.Awake();
-
-            if (m_KeyCode == KeyCode.None)
-                throw new Exception("Key code is None.");
-
-            keyboard = GetComponentInParent<UguiKeyboard>();
-            if (keyboard == null)
-                throw new Exception("Keyboard is null.");
-
-            UpdateDisplayName();
+            Init();
+            ResetKeypress();
         }
 
-        public virtual void Init()
+        protected virtual void Init()
         {
+            if (!init)
+            {
+                try
+                {
+                    if (m_KeyCode == KeyCode.None)
+                    {
+                        var keyCode = (KeyCode)Enum.Parse(typeof(KeyCode), name);
+                        m_KeyCode = keyCode;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
+                }
+                if (m_KeyCode == KeyCode.None)
+                    throw new Exception("Key code is None.");
 
+                keyboard = GetComponentInParent<UguiKeyboard>();
+                if (keyboard == null)
+                    throw new Exception("Keyboard is null.");
+
+                init = true;
+            }
+        }
+
+        /// <summary>
+        /// 重置按键
+        /// </summary>
+        public virtual void ResetKeypress()
+        {
+            Init();
+
+            keyDownCount = 0;
+            m_State = KeypressState.Normal;
+            PlayKeyUpAnim(true);
+            UpdateView();
         }
 
         protected virtual KeyCode GetCurrentKeyCode()
         {
-            if (isShiftPress&&m_ShiftKeyCode!=KeyCode.None)
+            if (keyboard.IsShiftPress&&m_ShiftKeyCode!=KeyCode.None)
             {
                 return m_ShiftKeyCode;
             }
@@ -112,34 +158,46 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 更新显示
         /// </summary>
-        protected virtual void UpdateDisplayName()
+        internal virtual void UpdateView()
         {
             if (nameText == null)
                 nameText = GetComponentInChildren<Text>();
             if (nameText != null)
             {
-                var nameStr = "";
+                var shiftNameStr = "";
                 if (m_ShiftKeyCode != KeyCode.None)
                 {
                     if (nameDict.ContainsKey(m_ShiftKeyCode))
                     {
-                        nameStr += nameDict[m_ShiftKeyCode] + "\n";
+                        shiftNameStr = nameDict[m_ShiftKeyCode] + "\n";
                     }
                     else
                     {
-                        nameStr += m_ShiftKeyCode + "\n";
+                        shiftNameStr = m_ShiftKeyCode + "\n";
                     }
                 }
+                var nameStr = "";
                 if (nameDict.ContainsKey(m_KeyCode))
                 {
-                    nameStr += nameDict[m_KeyCode];
+                    nameStr = nameDict[m_KeyCode];
                 }
                 else
                 {
-                    nameStr += m_KeyCode.ToString();
+                    nameStr = m_KeyCode.ToString();
                 }
-                nameText.text = nameStr;
+                if (IsLetter(m_KeyCode))
+                {
+                    nameStr = keyboard.IsUpper ? nameStr.ToUpper() : nameStr.ToLower();
+                }
+                nameText.text = shiftNameStr+nameStr;
             }
+        }
+
+        protected bool IsLetter(KeyCode keyCode)
+        {
+            var codeStr=keyCode.ToString();
+            if (codeStr.Length > 1||codeStr.Length==0) return false;
+            return Char.IsLetter(char.Parse(codeStr));
         }
 
         protected void KeyDown()
@@ -149,8 +207,8 @@ namespace RedScarf.UguiFriend
                 keyDownCount++;
                 if (keyDownCount == 1)
                 {
-                    m_Press = true;
-                    PlayKeyDownAnim();
+                    m_State = KeypressState.Press;
+                    PlayKeyDownAnim(false);
                     if (OnRealKeyDown != null)
                     {
                         OnRealKeyDown.Invoke(GetCurrentKeyCode());
@@ -159,10 +217,10 @@ namespace RedScarf.UguiFriend
             }
             else
             {
-                if (!m_Press)
+                if (m_State==KeypressState.Normal)
                 {
-                    m_Press = true;
-                    PlayKeyDownAnim();
+                    m_State = KeypressState.Press;
+                    PlayKeyDownAnim(false);
                     if (OnRealKeyDown != null)
                     {
                         OnRealKeyDown.Invoke(GetCurrentKeyCode());
@@ -178,8 +236,8 @@ namespace RedScarf.UguiFriend
                 if (keyDownCount == 2)
                 {
                     keyDownCount = 0;
-                    m_Press = false;
-                    PlayKeyUpAnim();
+                    m_State = KeypressState.Normal;
+                    PlayKeyUpAnim(false);
                     if (OnRealKeyUp != null)
                     {
                         OnRealKeyUp.Invoke(GetCurrentKeyCode());
@@ -188,10 +246,10 @@ namespace RedScarf.UguiFriend
             }
             else
             {
-                if (m_Press)
+                if (m_State == KeypressState.Press)
                 {
-                    m_Press = false;
-                    PlayKeyUpAnim();
+                    m_State = KeypressState.Normal;
+                    PlayKeyUpAnim(false);
                     if (OnRealKeyUp != null)
                     {
                         OnRealKeyUp.Invoke(GetCurrentKeyCode());
@@ -200,14 +258,14 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        protected virtual void PlayKeyDownAnim()
+        protected virtual void PlayKeyDownAnim(bool instant)
         {
-            DoStateTransition(SelectionState.Pressed, false);
+            DoStateTransition(SelectionState.Pressed, instant);
         }
 
-        protected virtual void PlayKeyUpAnim()
+        protected virtual void PlayKeyUpAnim(bool instant)
         {
-            DoStateTransition(SelectionState.Normal, false);
+            DoStateTransition(SelectionState.Normal, instant);
         }
 
         /// <summary>
@@ -216,7 +274,7 @@ namespace RedScarf.UguiFriend
         /// <param name="duration">按下状态持续时间</param>
         public virtual void Keystroke(float duration = 1)
         {
-            if (m_Press) return;
+            if (m_State == KeypressState.Press) return;
 
             CancelInvoke("KeyUp");
             if (duration <= 0)
@@ -231,22 +289,8 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        internal virtual void SetState(bool shiftPress,bool upper,bool capsLockOpen)
-        {
-            isShiftPress = shiftPress;
-            isUpper = upper;
-            isCapsLockOpen = capsLockOpen;
-
-            UpdateDisplayName();
-        }
-
         public override void OnPointerDown(PointerEventData eventData)
         {
-            if (keyboard != null)
-            {
-                keyboard.ForcusOnInputField();
-            }
-
             KeyDown();
         }
 
@@ -257,7 +301,7 @@ namespace RedScarf.UguiFriend
 
         public override void OnPointerExit(PointerEventData eventData)
         {
-            if (m_Press)
+            if (m_State==KeypressState.Press)
             {
                 DoStateTransition(SelectionState.Pressed, false);
             }
@@ -269,14 +313,18 @@ namespace RedScarf.UguiFriend
 
         public override void OnPointerEnter(PointerEventData eventData)
         {
-            if (!m_Press)
+            if (m_State == KeypressState.Normal)
             {
                 DoStateTransition(SelectionState.Highlighted, false);
+            }
+            if (OnEnter != null)
+            {
+                OnEnter.Invoke(GetCurrentKeyCode());
             }
         }
 
         /// <summary>
-        /// 未按下Shift键对应的下档键
+        /// 下档键（必须）
         /// </summary>
         public KeyCode KeyCode
         {
@@ -287,7 +335,7 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 按下Shift键对应的上档键
+        /// 上档键
         /// </summary>
         public KeyCode ShiftKeyCode
         {
@@ -298,14 +346,23 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 是否按下
+        /// 按键状态
         /// </summary>
-        public virtual bool IsPress
+        public KeypressState State
         {
             get
             {
-                return m_Press;
+                return m_State;
             }
+        }
+
+        /// <summary>
+        /// 按键状态
+        /// </summary>
+        public enum KeypressState
+        {
+            Normal,
+            Press
         }
     }
 }
