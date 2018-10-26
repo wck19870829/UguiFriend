@@ -92,7 +92,7 @@ namespace RedScarf.UguiFriend
 
         protected virtual void OnGUI()
         {
-
+            Debug.Log(Event.current.keyCode);
         }
 
         /// <summary>
