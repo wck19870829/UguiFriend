@@ -11,7 +11,7 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 虚拟键盘
     /// </summary>
-    public class UguiKeyboard : UIBehaviour
+    public abstract class UguiKeyboard : UIBehaviour
     {
         const string keyUpdate = "CheckKeyDownState";
 
@@ -54,6 +54,12 @@ namespace RedScarf.UguiFriend
             keypressArr = GetComponentsInChildren<UguiKeypress>();
         }
 
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            ResetKeyboard();
+        }
+
         protected override void Start()
         {
             base.Start();
@@ -84,10 +90,9 @@ namespace RedScarf.UguiFriend
             InvokeRepeating(keyUpdate, keyInterval, keyInterval);
         }
 
-        protected override void OnEnable()
+        protected virtual void OnGUI()
         {
-            base.OnEnable();
-            ResetKeyboard();
+
         }
 
         /// <summary>

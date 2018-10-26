@@ -4,20 +4,25 @@ using UnityEngine.UI;
 using System;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using System.Text;
 
 namespace RedScarf.UguiFriend
 {
     /// <summary>
     /// 键盘按键
     /// </summary>
-    public class UguiKeypress : Selectable
+    public abstract class UguiKeypress : Selectable
     {
         public const char emptyCharacter = char.MinValue;                               //空字符
-        protected static HashSet<KeyCode> keepPressSet;                                 //可以挂起的按键
 
+        protected static HashSet<KeyCode> keepPressSet;                                 //可以挂起的按键
+        protected static Dictionary<KeyCode, char> inputCharacterDict;                  //可以输入的字符
+        protected static Dictionary<KeyCode, string> displayNameDict;                   //显示名称
+        protected static Dictionary<KeyCode, KeyCode> numLockDict;                      //NumLock锁定时按键映射
+
+        [SerializeField] protected bool m_AutoName=true;
         [SerializeField] protected KeyCode m_KeyCode;
         protected Text nameText;
-        protected char m_Character;
         protected KeypressState m_State;
         protected UguiKeyboard keyboard;
         protected int keyDownCount;
@@ -26,6 +31,99 @@ namespace RedScarf.UguiFriend
         public Action<UguiKeypress> OnRealKeyDown;                                      //按键按下
         public Action<UguiKeypress> OnRealKeyUp;                                        //按键弹起
         public Action<UguiKeypress> OnEnter;                                            //鼠标等进入按键
+
+        static UguiKeypress()
+        {
+            keepPressSet = new HashSet<KeyCode>()
+            {
+                KeyCode.LeftShift,
+                KeyCode.RightShift,
+                KeyCode.LeftCommand,
+                KeyCode.RightCommand,
+                KeyCode.LeftControl,
+                KeyCode.RightControl,
+                KeyCode.CapsLock,
+                KeyCode.LeftWindows,
+                KeyCode.RightWindows,
+                KeyCode.ScrollLock,
+                KeyCode.LeftAlt,
+                KeyCode.RightAlt,
+
+                //虚拟键盘特殊处理
+                KeyCode.CapsLock,
+                KeyCode.ScrollLock,
+                KeyCode.Numlock
+            };
+            numLockDict = new Dictionary<KeyCode, KeyCode>()
+            {
+                {KeyCode.Keypad0,KeyCode.Insert },
+                {KeyCode.Keypad1,KeyCode.End },
+                {KeyCode.Keypad2,KeyCode.DownArrow },
+                {KeyCode.Keypad3,KeyCode.PageDown },
+                {KeyCode.Keypad4,KeyCode.LeftArrow },
+                {KeyCode.Keypad6,KeyCode.RightArrow },
+                {KeyCode.Keypad7,KeyCode.Home },
+                {KeyCode.Keypad8,KeyCode.UpArrow },
+                {KeyCode.Keypad9,KeyCode.PageUp },
+                {KeyCode.Period,KeyCode.Delete }
+            };
+            inputCharacterDict = new Dictionary<KeyCode, char>()
+            {
+                { KeyCode.Keypad0,'0' },
+                { KeyCode.Keypad1,'1' },
+                { KeyCode.Keypad2,'2' },
+                { KeyCode.Keypad3,'3' },
+                { KeyCode.Keypad4,'4' },
+                { KeyCode.Keypad5,'5' },
+                { KeyCode.Keypad6,'6' },
+                { KeyCode.Keypad7,'7' },
+                { KeyCode.Keypad8,'8' },
+                { KeyCode.Keypad9,'9' },
+                { KeyCode.KeypadDivide,'/' },
+                { KeyCode.KeypadMinus,'-' },
+                { KeyCode.KeypadMultiply,'*' },
+                { KeyCode.KeypadPeriod,'.' },
+                { KeyCode.KeypadPlus,'+' },
+            };
+            var keyCodeValues = Enum.GetValues(typeof(KeyCode));
+            var encoding = new ASCIIEncoding();
+            foreach (KeyCode value in keyCodeValues)
+            {
+                var vInt = (int)value;
+                if (vInt >= 32 && vInt <= 122)
+                {
+                    //ASCII
+                    var str = encoding.GetString(new byte[] { (byte)vInt });
+                    char ch;
+                    if (Char.TryParse(str, out ch))
+                    {
+                        inputCharacterDict.Add(value, ch);
+                    }
+                }
+            }
+
+            displayNameDict = new Dictionary<KeyCode, string>()
+            {
+                { KeyCode.Backspace,"Backspace" },
+                { KeyCode.CapsLock,"Caps Lock" },
+                { KeyCode.LeftShift,"Shift" },
+                { KeyCode.RightShift,"Shift" },
+                { KeyCode.LeftAlt,"Alt" },
+                { KeyCode.RightAlt,"Alt" },
+                { KeyCode.Escape,"Esc"},
+                { KeyCode.LeftControl,"Ctrl"},
+                { KeyCode.RightControl,"Ctrl" },
+                { KeyCode.Return,"Enter" },
+                {KeyCode.UpArrow,"↑" },
+                {KeyCode.DownArrow,"↓" },
+                {KeyCode.LeftArrow,"←" },
+                {KeyCode.RightArrow,"→" },
+            };
+            foreach (var item in inputCharacterDict)
+            {
+                displayNameDict.Add(item.Key,item.Value.ToString());
+            }
+        }
 
         protected override void Awake()
         {
@@ -77,37 +175,14 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 更新状态
         /// </summary>
-        internal virtual void UpdateState()
-        {
+        public abstract void UpdateState();
 
-        }
-
-        protected bool IsDigit(KeyCode keyCode)
-        {
-            char c;
-            if (!char.TryParse(keyCode.ToString(), out c))
-                return false;
-
-            return Char.IsDigit(c);
-        }
-
-        protected bool IsNumber(KeyCode keyCode)
-        {
-            char c;
-            if (!char.TryParse(keyCode.ToString(), out c))
-                return false;
-
-            return Char.IsNumber(c);
-        }
-
-        protected bool IsLetter(KeyCode keyCode)
-        {
-            char c;
-            if (!char.TryParse(keyCode.ToString(), out c))
-                return false;
-
-            return Char.IsLetter(c);
-        }
+        /// <summary>
+        /// 获得输入字符,如对应的键无输入字符，返回emptyCharacter
+        /// </summary>
+        /// <param name="keyCode"></param>
+        /// <returns></returns>
+        protected abstract char GetInputCharacter(KeyCode keyCode);
 
         protected virtual void KeyDown()
         {
@@ -261,7 +336,7 @@ namespace RedScarf.UguiFriend
         {
             get
             {
-                return m_Character;
+                return GetInputCharacter(m_KeyCode);
             }
         }
 
@@ -273,5 +348,23 @@ namespace RedScarf.UguiFriend
             Normal,
             Press
         }
+
+        #region 静态方法
+
+        /// <summary>
+        /// 是否为字母
+        /// </summary>
+        /// <param name="keyCode"></param>
+        /// <returns></returns>
+        protected static bool IsLetter(KeyCode keyCode)
+        {
+            char ch;
+            if (!Char.TryParse(string.Intern(keyCode.ToString()), out ch))
+                return false;
+
+            return Char.IsLetter(ch);
+        }
+
+        #endregion
     }
 }

@@ -11,17 +11,20 @@ namespace RedScarf.UguiFriend
     public class UguiKeypressEditor : SelectableEditor
     {
         protected SerializedProperty keyCodeProp;
+        protected SerializedProperty autoNameProp;
 
         protected override void OnEnable()
         {
             base.OnEnable();
 
+            autoNameProp= serializedObject.FindProperty("m_AutoName");
             keyCodeProp = serializedObject.FindProperty("m_KeyCode");
         }
 
         public override void OnInspectorGUI()
         {
             EditorGUILayout.PropertyField(keyCodeProp);
+            EditorGUILayout.PropertyField(autoNameProp);
 
             serializedObject.ApplyModifiedProperties();
 

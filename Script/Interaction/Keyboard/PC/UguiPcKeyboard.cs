@@ -16,6 +16,16 @@ namespace RedScarf.UguiFriend
         protected bool m_IsNumLock;
         protected bool m_IsScrollLock;
         protected bool m_IsUpper;
+        protected bool m_IsWindowsPress;
+
+        protected override void Awake()
+        {
+            base.Awake();
+
+            OnKeyDown += (key,ch) => {
+                Debug.LogFormat("key:{0}  char:{1}",key,ch);
+            };
+        }
 
         public override void ResetKeyboard()
         {
@@ -59,6 +69,11 @@ namespace RedScarf.UguiFriend
         public bool IsScrollLock { get { return m_IsScrollLock; } }
 
         /// <summary>
+        /// Windows键是否按下
+        /// </summary>
+        public bool IsWindowsPress { get { return m_IsWindowsPress; } }
+
+        /// <summary>
         /// 是否为大写
         /// </summary>
         public bool IsUpper { get { return m_IsUpper; } }
@@ -81,10 +96,14 @@ namespace RedScarf.UguiFriend
             SetKeepPressState(KeyCode.CapsLock, ref m_IsCapsLock);
 
             m_IsScrollLock = false;
-            SetKeepPressState(KeyCode.ScrollLock, ref m_IsCapsLock);
+            SetKeepPressState(KeyCode.ScrollLock, ref m_IsScrollLock);
 
             m_IsNumLock = false;
-            SetKeepPressState(KeyCode.Numlock, ref m_IsCapsLock);
+            SetKeepPressState(KeyCode.Numlock, ref m_IsNumLock);
+
+            m_IsWindowsPress = false;
+            SetKeepPressState(KeyCode.LeftWindows, ref m_IsWindowsPress);
+            SetKeepPressState(KeyCode.RightWindows, ref m_IsWindowsPress);
 
             m_IsUpper = (m_IsCapsLock == m_IsShiftPress) ?
                         false :
