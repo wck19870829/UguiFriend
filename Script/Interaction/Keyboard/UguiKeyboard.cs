@@ -77,7 +77,7 @@ namespace RedScarf.UguiFriend
             }
             audioSource = GetComponent<AudioSource>();
             if (audioSource == null)
-                audioSource = gameObject.AddMissingComponent<AudioSource>();
+                audioSource = gameObject.AddComponent<AudioSource>();
 
             InvokeRepeating(keyUpdate, keyInterval, keyInterval);
         }
