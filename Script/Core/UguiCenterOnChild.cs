@@ -13,7 +13,7 @@ namespace RedScarf.UguiFriend
     public class UguiCenterOnChild : MonoBehaviour, IEndDragHandler, IBeginDragHandler,IScrollHandler
     {
         public float velocityThreshold = 300;             //速度临界值，小于此值才会开始居中操作
-        protected ScrollRect scrollRect;
+        protected ScrollRect m_ScrollRect;
         protected Mask mask;
         protected Vector3[] maskCorners = new Vector3[4];
         protected ActionPeriod actionPeriod;
@@ -36,22 +36,22 @@ namespace RedScarf.UguiFriend
 
         void Update()
         {
-            if (scrollRect == null || scrollRect.content == null) return;
+            if (m_ScrollRect == null || m_ScrollRect.content == null) return;
 
             if (actionPeriod == ActionPeriod.Checking)
             {
-                if (scrollRect.velocity.magnitude < velocityThreshold)
+                if (m_ScrollRect.velocity.magnitude < velocityThreshold)
                 {
                     CenterOn(false);
                 }
             }
             else if (actionPeriod == ActionPeriod.PositionAlignment)
             {
-                var decelerationRate = (scrollRect.decelerationRate == 0 || !scrollRect.inertia)?
+                var decelerationRate = (m_ScrollRect.decelerationRate == 0 || !m_ScrollRect.inertia)?
                                         1f:
-                                        scrollRect.decelerationRate;
-                var pos = Vector3.Lerp(scrollRect.content.position, contentPos, decelerationRate);
-                scrollRect.content.position = pos;
+                                        m_ScrollRect.decelerationRate;
+                var pos = Vector3.Lerp(m_ScrollRect.content.position, contentPos, decelerationRate);
+                m_ScrollRect.content.position = pos;
             }
 
             var closest = GetClosest();
@@ -70,23 +70,23 @@ namespace RedScarf.UguiFriend
 
         protected virtual void OnDestroy()
         {
-            scrollRect.movementType = cacheMovementType;
+            m_ScrollRect.movementType = cacheMovementType;
         }
 
         void Init()
         {
-            if (scrollRect == null)
-                scrollRect = GetComponent<ScrollRect>();
-            if (scrollRect == null)
+            if (m_ScrollRect == null)
+                m_ScrollRect = GetComponent<ScrollRect>();
+            if (m_ScrollRect == null)
                 throw new Exception("Scroll rect is null.");
-            if (scrollRect.content == null)
+            if (m_ScrollRect.content == null)
                 throw new Exception("Scroll rect content is null!");
-            mask = scrollRect.GetComponentInChildren<Mask>();
+            mask = m_ScrollRect.GetComponentInChildren<Mask>();
             if (mask == null)
                 throw new Exception("Mask is null.");
 
-            cacheMovementType = scrollRect.movementType;
-            scrollRect.movementType = ScrollRect.MovementType.Unrestricted;
+            cacheMovementType = m_ScrollRect.movementType;
+            m_ScrollRect.movementType = ScrollRect.MovementType.Unrestricted;
         }
 
         /// <summary>
@@ -102,16 +102,16 @@ namespace RedScarf.UguiFriend
 
             actionPeriod = ActionPeriod.PositionAlignment;
             if (!enabled) enabled = true;
-            scrollRect.StopMovement();
+            m_ScrollRect.StopMovement();
             mask.rectTransform.GetWorldCorners(maskCorners);
             var center = Vector3.Lerp(maskCorners[0], maskCorners[2], 0.5f);
             var offset = center - target.position;
-            contentPos = scrollRect.content.position;
+            contentPos = m_ScrollRect.content.position;
             contentPos += offset;
 
             if (isImmediate)
             {
-                scrollRect.content.position = contentPos;
+                m_ScrollRect.content.position = contentPos;
             }
         }
 
@@ -137,13 +137,13 @@ namespace RedScarf.UguiFriend
             var center = Vector3.Lerp(maskCorners[0], maskCorners[2], 0.5f);
             Transform closest = null;
             var closestDist = float.MaxValue;
-            for (var i = 0; i < scrollRect.content.childCount; i++)
+            for (var i = 0; i < m_ScrollRect.content.childCount; i++)
             {
-                var dist = Vector3.Distance(scrollRect.content.GetChild(i).position, center);
+                var dist = Vector3.Distance(m_ScrollRect.content.GetChild(i).position, center);
                 if (dist < closestDist)
                 {
                     closestDist = dist;
-                    closest = scrollRect.content.GetChild(i);
+                    closest = m_ScrollRect.content.GetChild(i);
                 }
             }
 
@@ -165,7 +165,21 @@ namespace RedScarf.UguiFriend
 
         }
 
-        public enum ActionPeriod
+        /// <summary>
+        /// 滑动区域
+        /// </summary>
+        public ScrollRect ScrollRect
+        {
+            get
+            {
+                return m_ScrollRect;
+            }
+        }
+
+        /// <summary>
+        /// 动作周期
+        /// </summary>
+        protected enum ActionPeriod
         {
             None,
             Checking,
