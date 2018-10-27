@@ -21,7 +21,8 @@ namespace RedScarf.UguiFriend
         protected static Dictionary<KeyCode, KeyCode> numLockDict;                      //NumLock锁定时按键映射
 
         [SerializeField] protected bool m_AutoName=true;
-        [SerializeField] protected KeyCode m_KeyCode;
+        [SerializeField] protected KeyCode m_RawKeyCode;                                //按键原始按键码
+        protected KeyCode m_CurrentKeyCode;                                             //当前状态的按键码
         protected Text nameText;
         protected KeypressState m_State;
         protected UguiKeyboard keyboard;
@@ -65,7 +66,7 @@ namespace RedScarf.UguiFriend
                 {KeyCode.Keypad7,KeyCode.Home },
                 {KeyCode.Keypad8,KeyCode.UpArrow },
                 {KeyCode.Keypad9,KeyCode.PageUp },
-                {KeyCode.Period,KeyCode.Delete }
+                {KeyCode.KeypadPeriod,KeyCode.Delete }
             };
             inputCharacterDict = new Dictionary<KeyCode, char>()
             {
@@ -114,10 +115,13 @@ namespace RedScarf.UguiFriend
                 { KeyCode.LeftControl,"Ctrl"},
                 { KeyCode.RightControl,"Ctrl" },
                 { KeyCode.Return,"Enter" },
-                {KeyCode.UpArrow,"↑" },
-                {KeyCode.DownArrow,"↓" },
-                {KeyCode.LeftArrow,"←" },
-                {KeyCode.RightArrow,"→" },
+                { KeyCode.UpArrow,"↑" },
+                { KeyCode.DownArrow,"↓" },
+                { KeyCode.LeftArrow,"←" },
+                { KeyCode.RightArrow,"→" },
+                { KeyCode.KeypadEnter,"Enter" },
+                { KeyCode.Numlock,"Num\r\nLock" },
+                { KeyCode.KeypadEquals,"=" }
             };
             foreach (var item in inputCharacterDict)
             {
@@ -138,24 +142,42 @@ namespace RedScarf.UguiFriend
             {
                 try
                 {
-                    if (m_KeyCode == KeyCode.None)
+                    if (m_RawKeyCode == KeyCode.None)
                     {
                         var keyCode = (KeyCode)Enum.Parse(typeof(KeyCode), name);
-                        m_KeyCode = keyCode;
+                        m_RawKeyCode = keyCode;
                     }
                 }
                 catch (Exception e)
                 {
                     Debug.LogError(e);
                 }
-                if (m_KeyCode == KeyCode.None)
+                if (m_RawKeyCode == KeyCode.None)
                     throw new Exception("Key code is None.");
+                m_CurrentKeyCode = m_RawKeyCode;
 
                 keyboard = GetComponentInParent<UguiKeyboard>();
                 if (keyboard == null)
                     throw new Exception("Keyboard is null.");
 
                 m_Init = true;
+            }
+        }
+
+        /// <summary>
+        /// 获取显示名称
+        /// </summary>
+        /// <param name="keyCode"></param>
+        /// <returns></returns>
+        protected virtual string GetKeyCodeDisplayName(KeyCode keyCode)
+        {
+            if (displayNameDict.ContainsKey(keyCode))
+            {
+                 return displayNameDict[keyCode];
+            }
+            else
+            {
+                return string.Intern(keyCode.ToString());
             }
         }
 
@@ -182,11 +204,11 @@ namespace RedScarf.UguiFriend
         /// </summary>
         /// <param name="keyCode"></param>
         /// <returns></returns>
-        protected abstract char GetInputCharacter(KeyCode keyCode);
+        protected abstract char GetInputCharacter();
 
         protected virtual void KeyDown()
         {
-            if (keepPressSet.Contains(m_KeyCode))
+            if (keepPressSet.Contains(m_RawKeyCode))
             {
                 keyDownCount++;
                 if (keyDownCount == 1)
@@ -215,7 +237,7 @@ namespace RedScarf.UguiFriend
 
         protected virtual void KeyUp()
         {
-            if (keepPressSet.Contains(m_KeyCode))
+            if (keepPressSet.Contains(m_RawKeyCode))
             {
                 if (keyDownCount == 2)
                 {
@@ -308,13 +330,24 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 按键对应的KeyCode
+        /// 当前状态对应的KeyCode
         /// </summary>
-        public KeyCode KeyCode
+        public KeyCode CurrentKeyCode
         {
             get
             {
-                return m_KeyCode;
+                return m_CurrentKeyCode;
+            }
+        }
+
+        /// <summary>
+        /// 原始KeyCode
+        /// </summary>
+        public KeyCode RawKeyCode
+        {
+            get
+            {
+                return m_RawKeyCode;
             }
         }
 
@@ -336,7 +369,7 @@ namespace RedScarf.UguiFriend
         {
             get
             {
-                return GetInputCharacter(m_KeyCode);
+                return GetInputCharacter();
             }
         }
 

@@ -18,7 +18,7 @@ namespace RedScarf.UguiFriend
             base.OnEnable();
 
             autoNameProp= serializedObject.FindProperty("m_AutoName");
-            keyCodeProp = serializedObject.FindProperty("m_KeyCode");
+            keyCodeProp = serializedObject.FindProperty("m_RawKeyCode");
         }
 
         public override void OnInspectorGUI()

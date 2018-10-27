@@ -118,7 +118,10 @@ namespace RedScarf.UguiFriend
         /// <returns></returns>
         public static Rect GetRectContainsPoints(Vector3[]points)
         {
-            if (points == null || points.Length == 0) return new Rect();
+            if (points == null)
+                throw new Exception("Points is null.");
+            if (points.Length == 0)
+                throw new Exception("Points length is zero.");
 
             var rect = new Rect(points[0], Vector3.zero);
             foreach (var point in points)

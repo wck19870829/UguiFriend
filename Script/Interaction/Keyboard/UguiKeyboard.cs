@@ -66,17 +66,17 @@ namespace RedScarf.UguiFriend
 
             foreach (var key in keypressArr)
             {
-                if (key.KeyCode == KeyCode.None)
+                if (key.RawKeyCode == KeyCode.None)
                 {
                     Debug.LogErrorFormat("Keypress's key code is None.");
                 }
-                else if (keyDict.ContainsKey(key.KeyCode))
+                else if (keyDict.ContainsKey(key.RawKeyCode))
                 {
-                    Debug.LogErrorFormat("{0} is repeat! Key:{1}", key.KeyCode, key);
+                    Debug.LogErrorFormat("{0} is repeat! Key:{1}", key.RawKeyCode, key);
                 }
                 else
                 {
-                    keyDict.Add(key.KeyCode, key);
+                    keyDict.Add(key.RawKeyCode, key);
                 }
 
                 key.OnRealKeyDown += OnKeyDownHandle;
@@ -92,7 +92,8 @@ namespace RedScarf.UguiFriend
 
         protected virtual void OnGUI()
         {
-            //Debug.Log(Event.current.keyCode);
+            if(KeyCode.None!= Event.current.keyCode)
+                Debug.Log(Event.current.keyCode);
         }
 
         /// <summary>
@@ -114,7 +115,7 @@ namespace RedScarf.UguiFriend
             {
                 foreach (var item in keyDownStateSet)
                 {
-                    OnKey.Invoke(item.KeyCode,item.Character);
+                    OnKey.Invoke(item.CurrentKeyCode,item.Character);
                 }
             }
         }
@@ -150,7 +151,7 @@ namespace RedScarf.UguiFriend
                 waitingKeyDownStateSet.Add(keypress);
                 StartCoroutine(BeginCheckKeyDownState(keypress));
             }
-            CheckStateChange(keypress.KeyCode, UguiKeypress.KeypressState.Press);
+            CheckStateChange(keypress.CurrentKeyCode, UguiKeypress.KeypressState.Press);
             if (audioSource != null && keyDownSound != null)
             {
                 audioSource.PlayOneShot(keyDownSound);
@@ -158,14 +159,14 @@ namespace RedScarf.UguiFriend
 
             if (OnKeyDown != null)
             {
-                OnKeyDown.Invoke(keypress.KeyCode, keypress.Character);
+                OnKeyDown.Invoke(keypress.CurrentKeyCode, keypress.Character);
             }
         }
 
         protected virtual void OnKeyUpHandle(UguiKeypress keypress)
         {
             keyDownStateSet.Remove(keypress);
-            CheckStateChange(keypress.KeyCode, UguiKeypress.KeypressState.Normal);
+            CheckStateChange(keypress.CurrentKeyCode, UguiKeypress.KeypressState.Normal);
             if (audioSource != null && keyUpSound != null)
             {
                 audioSource.PlayOneShot(keyUpSound);
@@ -173,7 +174,7 @@ namespace RedScarf.UguiFriend
 
             if (OnKeyUp != null)
             {
-                OnKeyUp.Invoke(keypress.KeyCode, keypress.Character);
+                OnKeyUp.Invoke(keypress.CurrentKeyCode, keypress.Character);
             }
         }
 

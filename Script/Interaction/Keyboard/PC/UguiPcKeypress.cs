@@ -63,35 +63,49 @@ namespace RedScarf.UguiFriend
                     nameText = GetComponentInChildren<Text>();
                 if (nameText != null)
                 {
-                    var shiftNameStr = "";
-                    if (shiftOnCharDict.ContainsKey(m_KeyCode))
+                    if (numLockDict.ContainsKey(m_RawKeyCode))
                     {
-                        shiftNameStr = shiftOnCharDict[m_KeyCode]+"\r\n";
-                    }
-                    var nameStr = "";
-                    if (displayNameDict.ContainsKey(m_KeyCode))
-                    {
-                        nameStr=displayNameDict[m_KeyCode];
+                        var topStr = GetKeyCodeDisplayName(m_RawKeyCode)+"\r\n";
+                        var bottomStr = GetKeyCodeDisplayName(numLockDict[m_RawKeyCode]);
+                        nameText.text = topStr + bottomStr;
                     }
                     else
                     {
-                        nameStr= string.Intern(m_KeyCode.ToString());
+                        var shiftNameStr = "";
+                        if (shiftOnCharDict.ContainsKey(m_RawKeyCode))
+                        {
+                            shiftNameStr = shiftOnCharDict[m_RawKeyCode] + "\r\n";
+                        }
+                        var nameStr = GetKeyCodeDisplayName(m_RawKeyCode);
+                        if (IsLetter(m_RawKeyCode))
+                        {
+                            nameStr = pcKeyboard.IsUpper ? nameStr.ToUpper() : nameStr.ToLower();
+                        }
+                        nameText.text = shiftNameStr + nameStr;
                     }
-                    if (IsLetter(m_KeyCode))
-                    {
-                        nameStr = pcKeyboard.IsUpper ? nameStr.ToUpper() : nameStr.ToLower();
-                    }
-                    nameText.text = shiftNameStr + nameStr;
+                }
+            }
+            m_CurrentKeyCode = m_RawKeyCode;
+            if (!pcKeyboard.IsNumLock)
+            {
+                if (numLockDict.ContainsKey(m_RawKeyCode))
+                {
+                    m_CurrentKeyCode = numLockDict[m_RawKeyCode];
                 }
             }
         }
 
-        protected override char GetInputCharacter(KeyCode keyCode)
+        protected override char GetInputCharacter()
         {
             char ch = emptyCharacter;
-            if (pcKeyboard.IsShiftPress)
+            var keyCode = m_RawKeyCode;
+            if (numLockDict.ContainsKey(keyCode) && !pcKeyboard.IsNumLock)
             {
-                if (shiftOnCharDict.ContainsKey(keyCode))
+                keyCode = m_CurrentKeyCode;
+            }
+            if (shiftOnCharDict.ContainsKey(keyCode))
+            {
+                if (pcKeyboard.IsShiftPress)
                 {
                     ch = shiftOnCharDict[keyCode];
                 }
@@ -103,7 +117,6 @@ namespace RedScarf.UguiFriend
                     ch = inputCharacterDict[keyCode];
                 }
             }
-
             return ch;
         }
     }

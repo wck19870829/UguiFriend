@@ -31,6 +31,13 @@ namespace RedScarf.UguiFriend
         {
             m_Children = new List<Transform>();
             m_ChildrenScoreDict = new Dictionary<Transform, float>();
+
+
+            var points = new Vector3[] {
+                new Vector3(100,100),
+                new Vector3(-100,-100)
+            };
+            Debug.Log(UguiTools.GetRectContainsPoints(points));
         }
 
         protected override void Awake()
@@ -107,6 +114,7 @@ namespace RedScarf.UguiFriend
                 m_ChildrenScoreDict.Add(child, score);
                 m_Children.Add(child);
             }
+
             m_Children.Sort((a,b)=> {
                 var scoreA = m_ChildrenScoreDict[a];
                 var scoreB = m_ChildrenScoreDict[b];
