@@ -172,6 +172,9 @@ namespace RedScarf.UguiFriend
         {
             get
             {
+                if (m_ScrollRect == null)
+                    m_ScrollRect = GetComponent<ScrollRect>();
+
                 return m_ScrollRect;
             }
         }

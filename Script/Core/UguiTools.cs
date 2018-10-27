@@ -23,41 +23,74 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 获取物体的边界(包含所有子物体)
+        /// 获取物体的世界坐标系边界(递归包含所有子物体)
         /// </summary>
         /// <param name="content"></param>
+        /// <param name="includeContent">true:包含content。false:不包含content</param>
         /// <returns></returns>
-        public static Rect GetRectIncludeChildren(RectTransform content,Space space)
+        public static Rect? GetGlobalRectIncludeChildren(RectTransform content,bool includeContent)
         {
+            if (content == null)
+                throw new Exception("Content is null.");
+
             var children = content.GetComponentsInChildren<RectTransform>();
+            if (children.Length == 1 && !includeContent) return null;
+
+            Rect? contentRect = null;
             var cornersArr = new Vector3[4];
-            content.GetWorldCorners(cornersArr);
-            var contentRect = GetRectContainsPoints(cornersArr);
             foreach (var child in children)
             {
-                child.GetWorldCorners(cornersArr);
-                contentRect = RectCombine(contentRect, GetRectContainsPoints(cornersArr));
-            }
-
-            if (space == Space.Self)
-            {
-                if (content.parent == null)
-                    throw new Exception("Content's parent is null.");
-
-                var localCorners = new Vector3[] {
-                    new Vector3(contentRect.xMin,contentRect.yMin),
-                    new Vector3(contentRect.xMax,contentRect.yMin),
-                    new Vector3(contentRect.xMax,contentRect.yMax),
-                    new Vector3(contentRect.xMin,contentRect.yMax)
-                };
-                for (var i=0;i< localCorners.Length;i++)
+                if (!includeContent)
                 {
-                    localCorners[i] = content.parent.worldToLocalMatrix.MultiplyPoint(localCorners[i]);
+                    if (child == content)
+                    {
+                        continue;
+                    }
                 }
-                contentRect = GetRectContainsPoints(localCorners);
+
+                if (contentRect == null)
+                {
+                    child.GetWorldCorners(cornersArr);
+                    contentRect= GetRectContainsPoints(cornersArr);
+                }
+                child.GetWorldCorners(cornersArr);
+                var childRect = GetRectContainsPoints(cornersArr);
+                contentRect = RectCombine((Rect)contentRect,childRect);
             }
 
             return contentRect;
+        }
+
+        /// <summary>
+        /// 获取相对于其他容器的局部坐标系边界(包含所有子物体)
+        /// </summary>
+        /// <param name="content">容器</param>
+        /// <param name="relative">相对于</param>
+        /// <param name="includeContent">true:包含content。false:不包含content</param>
+        /// <returns></returns>
+        public static Rect? GetLocalRectIncludeChildren(RectTransform content,RectTransform relative,bool includeContent)
+        {
+            if (relative == null)
+                throw new Exception("Relative is null.");
+
+            var contentRect = GetGlobalRectIncludeChildren(content, includeContent);
+            if (contentRect == null) return null;
+
+            var rect = (Rect)contentRect;
+            var corners = new Vector3[]
+            {
+                new Vector3(rect.xMin,rect.yMin),
+                new Vector3(rect.xMax,rect.yMin),
+                new Vector3(rect.xMax,rect.yMax),
+                new Vector3(rect.xMin,rect.yMax)
+            };
+            for (var i = 0; i < corners.Length; i++)
+            {
+                corners[i] = relative.worldToLocalMatrix.MultiplyPoint(corners[i]);
+            }
+            rect = GetRectContainsPoints(corners);
+
+            return rect;
         }
 
         /// <summary>

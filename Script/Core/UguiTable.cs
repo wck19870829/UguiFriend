@@ -40,11 +40,11 @@ namespace RedScarf.UguiFriend
             for (var i=0;i<transform.childCount;i++)
             {
                 var child = transform.GetChild(i) as RectTransform;
-                var rect = UguiTools.GetRectIncludeChildren(child,Space.Self);
+                //var rect = UguiTools.GetRectIncludeChildren(child);
 
-                child.localPosition = offset;
+                //child.localPosition = offset;
 
-                offset += rect.size + m_Spacing;
+                //offset += rect.size + m_Spacing;
             }
 
             m_Reposition = false;
