@@ -11,7 +11,7 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 图片轮播
     /// </summary>
-    public class UguiSliderShow : UIBehaviour
+    public class UguiSliderShow : UIBehaviour,IDragHandler
     {
         [Range(1f, 60f)]
         [SerializeField] protected float m_Interval = 10;
@@ -49,6 +49,7 @@ namespace RedScarf.UguiFriend
             if (current == null&&m_Content.childCount>0)
             {
                 current = m_Content.GetChild(0);
+                centerOnChild.CenterOn(current, true);
             }
         }
 
@@ -174,6 +175,9 @@ namespace RedScarf.UguiFriend
             return bestPick;
         }
 
+        /// <summary>
+        ///  尝试下一个居中
+        /// </summary>
         protected virtual void GotoNext()
         {
             m_CountDown = m_Interval;
@@ -183,6 +187,11 @@ namespace RedScarf.UguiFriend
                 current = next;
                 centerOnChild.CenterOn(current, false);
             }
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            m_CountDown = m_Interval;
         }
 
         /// <summary>
