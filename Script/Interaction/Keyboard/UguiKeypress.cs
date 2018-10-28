@@ -131,10 +131,6 @@ namespace RedScarf.UguiFriend
                 {
                     displayNameDict.Add(item.Key, item.Value.ToString());
                 }
-                else
-                {
-                    Debug.Log(item.Key);
-                }
             }
         }
 
