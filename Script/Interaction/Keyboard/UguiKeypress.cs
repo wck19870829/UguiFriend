@@ -16,7 +16,7 @@ namespace RedScarf.UguiFriend
         public const char emptyCharacter = char.MinValue;                               //空字符
 
         protected static HashSet<KeyCode> keepPressSet;                                 //可以挂起的按键
-        protected static Dictionary<KeyCode, char> inputCharacterDict;                  //可以输入的字符
+        protected static Dictionary<KeyCode, string> inputCharacterDict;                //可以输入的字符
         protected static Dictionary<KeyCode, string> displayNameDict;                   //显示名称
         protected static Dictionary<KeyCode, KeyCode> numLockDict;                      //NumLock锁定时按键映射
 
@@ -68,23 +68,25 @@ namespace RedScarf.UguiFriend
                 {KeyCode.Keypad9,KeyCode.PageUp },
                 {KeyCode.KeypadPeriod,KeyCode.Delete }
             };
-            inputCharacterDict = new Dictionary<KeyCode, char>()
+            inputCharacterDict = new Dictionary<KeyCode, string>()
             {
-                { KeyCode.Keypad0,'0' },
-                { KeyCode.Keypad1,'1' },
-                { KeyCode.Keypad2,'2' },
-                { KeyCode.Keypad3,'3' },
-                { KeyCode.Keypad4,'4' },
-                { KeyCode.Keypad5,'5' },
-                { KeyCode.Keypad6,'6' },
-                { KeyCode.Keypad7,'7' },
-                { KeyCode.Keypad8,'8' },
-                { KeyCode.Keypad9,'9' },
-                { KeyCode.KeypadDivide,'/' },
-                { KeyCode.KeypadMinus,'-' },
-                { KeyCode.KeypadMultiply,'*' },
-                { KeyCode.KeypadPeriod,'.' },
-                { KeyCode.KeypadPlus,'+' },
+                { KeyCode.Keypad0,"0" },
+                { KeyCode.Keypad1,"1" },
+                { KeyCode.Keypad2,"2" },
+                { KeyCode.Keypad3,"3" },
+                { KeyCode.Keypad4,"4" },
+                { KeyCode.Keypad5,"5" },
+                { KeyCode.Keypad6,"6" },
+                { KeyCode.Keypad7,"7" },
+                { KeyCode.Keypad8,"8" },
+                { KeyCode.Keypad9,"9" },
+                { KeyCode.KeypadDivide,"/" },
+                { KeyCode.KeypadMinus,"-" },
+                { KeyCode.KeypadMultiply,"*" },
+                { KeyCode.KeypadPeriod,"." },
+                { KeyCode.KeypadPlus,"+" },
+                { KeyCode.KeypadEnter,"\r\n" },
+                { KeyCode.Return,"\r\n"}
             };
             var keyCodeValues = Enum.GetValues(typeof(KeyCode));
             var encoding = new ASCIIEncoding();
@@ -98,7 +100,7 @@ namespace RedScarf.UguiFriend
                     char ch;
                     if (Char.TryParse(str, out ch))
                     {
-                        inputCharacterDict.Add(value, ch);
+                        inputCharacterDict.Add(value, ch.ToString());
                     }
                 }
             }
@@ -125,7 +127,14 @@ namespace RedScarf.UguiFriend
             };
             foreach (var item in inputCharacterDict)
             {
-                displayNameDict.Add(item.Key,item.Value.ToString());
+                if (!displayNameDict.ContainsKey(item.Key))
+                {
+                    displayNameDict.Add(item.Key, item.Value.ToString());
+                }
+                else
+                {
+                    Debug.Log(item.Key);
+                }
             }
         }
 
@@ -204,7 +213,7 @@ namespace RedScarf.UguiFriend
         /// </summary>
         /// <param name="keyCode"></param>
         /// <returns></returns>
-        protected abstract char GetInputCharacter();
+        protected abstract string GetInputCharacter();
 
         protected virtual void KeyDown()
         {
@@ -365,7 +374,7 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 当前字符
         /// </summary>
-        public char Character
+        public string Character
         {
             get
             {

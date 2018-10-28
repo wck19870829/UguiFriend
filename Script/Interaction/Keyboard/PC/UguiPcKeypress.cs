@@ -11,35 +11,35 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiPcKeypress : UguiKeypress
     {
-        protected static Dictionary<KeyCode, char> shiftOnCharDict;
+        protected static Dictionary<KeyCode, string> shiftOnCharDict;
 
         protected UguiPcKeyboard pcKeyboard;
 
         static UguiPcKeypress()
         {
-            shiftOnCharDict = new Dictionary<KeyCode, char>()
+            shiftOnCharDict = new Dictionary<KeyCode, string>()
             {
-                { KeyCode.BackQuote,'~'},
-                { KeyCode.Minus,'_'},
-                { KeyCode.Equals,'+' },
-                { KeyCode.Alpha0,')'},
-                { KeyCode.Alpha1,'!'},
-                { KeyCode.Alpha2,'@'},
-                { KeyCode.Alpha3,'#'},
-                { KeyCode.Alpha4,'$'},
-                { KeyCode.Alpha5,'%'},
-                { KeyCode.Alpha6,'^'},
-                { KeyCode.Alpha7,'&'},
-                { KeyCode.Alpha8,'*'},
-                { KeyCode.Alpha9,'('},
-                { KeyCode.LeftBracket,'{' },
-                { KeyCode.RightBracket,'}' },
-                { KeyCode.Backslash,'|' },
-                { KeyCode.Comma,'<' },
-                { KeyCode.Period,'>'},
-                { KeyCode.Slash,'?' },
-                { KeyCode.Semicolon,':' },
-                { KeyCode.Quote,'"' }
+                { KeyCode.BackQuote,"~"},
+                { KeyCode.Minus,"_"},
+                { KeyCode.Equals,"+" },
+                { KeyCode.Alpha0,")"},
+                { KeyCode.Alpha1,"!"},
+                { KeyCode.Alpha2,"@"},
+                { KeyCode.Alpha3,"#"},
+                { KeyCode.Alpha4,"$"},
+                { KeyCode.Alpha5,"%"},
+                { KeyCode.Alpha6,"^"},
+                { KeyCode.Alpha7,"&"},
+                { KeyCode.Alpha8,"*"},
+                { KeyCode.Alpha9,"("},
+                { KeyCode.LeftBracket,"{" },
+                { KeyCode.RightBracket,"}" },
+                { KeyCode.Backslash,"|" },
+                { KeyCode.Comma,"<" },
+                { KeyCode.Period,">"},
+                { KeyCode.Slash,"?" },
+                { KeyCode.Semicolon,":" },
+                { KeyCode.Quote,"\"" }
             };
         }
 
@@ -95,29 +95,35 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        protected override char GetInputCharacter()
+        protected override string GetInputCharacter()
         {
-            char ch = emptyCharacter;
+            var str = string.Empty;
             var keyCode = m_RawKeyCode;
+
             if (numLockDict.ContainsKey(keyCode) && !pcKeyboard.IsNumLock)
             {
                 keyCode = m_CurrentKeyCode;
             }
+
+            if (inputCharacterDict.ContainsKey(keyCode))
+            {
+                str = inputCharacterDict[keyCode];
+            }
+
             if (shiftOnCharDict.ContainsKey(keyCode))
             {
                 if (pcKeyboard.IsShiftPress)
                 {
-                    ch = shiftOnCharDict[keyCode];
+                    str = shiftOnCharDict[keyCode];
                 }
             }
-            else
+
+            if (IsLetter(keyCode))
             {
-                if (inputCharacterDict.ContainsKey(keyCode))
-                {
-                    ch = inputCharacterDict[keyCode];
-                }
+                str = pcKeyboard.IsUpper ? str.ToUpper() : str.ToLower();
             }
-            return ch;
+
+            return str;
         }
     }
 }

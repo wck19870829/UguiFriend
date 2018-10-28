@@ -32,9 +32,9 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected AudioClip keyUpSound;
         [SerializeField] protected AudioClip enterSound;
 
-        public Action<KeyCode,char> OnKeyDown;
-        public Action<KeyCode,char> OnKeyUp;
-        public Action<KeyCode,char> OnKey;
+        public Action<KeyCode,string> OnKeyDown;
+        public Action<KeyCode,string> OnKeyUp;
+        public Action<KeyCode,string> OnKey;
 
         static UguiKeyboard()
         {
@@ -79,9 +79,9 @@ namespace RedScarf.UguiFriend
                     keyDict.Add(key.RawKeyCode, key);
                 }
 
-                key.OnRealKeyDown += OnKeyDownHandle;
-                key.OnRealKeyUp += OnKeyUpHandle;
-                key.OnEnter += OnEnterHandle;
+                key.OnRealKeyDown += OnKeyDownHandler;
+                key.OnRealKeyUp += OnKeyUpHandler;
+                key.OnEnter += OnEnterHandler;
             }
             audioSource = GetComponent<AudioSource>();
             if (audioSource == null)
@@ -92,8 +92,8 @@ namespace RedScarf.UguiFriend
 
         protected virtual void OnGUI()
         {
-            if(KeyCode.None!= Event.current.keyCode)
-                Debug.Log(Event.current.keyCode);
+            //if(KeyCode.None!= Event.current.keyCode)
+            //    Debug.Log(Event.current.keyCode);
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace RedScarf.UguiFriend
             {
                 foreach (var item in keyDownStateSet)
                 {
-                    OnKey.Invoke(item.CurrentKeyCode,item.Character);
+                    OnKey.Invoke(item.CurrentKeyCode,item.Character.ToString());
                 }
             }
         }
@@ -136,7 +136,7 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        protected virtual void OnEnterHandle(UguiKeypress keypress)
+        protected virtual void OnEnterHandler(UguiKeypress keypress)
         {
             if (audioSource != null && enterSound != null)
             {
@@ -144,7 +144,7 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        protected virtual void OnKeyDownHandle(UguiKeypress keypress)
+        protected virtual void OnKeyDownHandler(UguiKeypress keypress)
         {
             if (!waitingKeyDownStateSet.Contains(keypress))
             {
@@ -163,7 +163,7 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        protected virtual void OnKeyUpHandle(UguiKeypress keypress)
+        protected virtual void OnKeyUpHandler(UguiKeypress keypress)
         {
             keyDownStateSet.Remove(keypress);
             CheckStateChange(keypress.CurrentKeyCode, UguiKeypress.KeypressState.Normal);
@@ -177,6 +177,8 @@ namespace RedScarf.UguiFriend
                 OnKeyUp.Invoke(keypress.CurrentKeyCode, keypress.Character);
             }
         }
+
+        protected abstract string ProcessCharacter(UguiKeypress keypress);
 
         /// <summary>
         /// 按下按键

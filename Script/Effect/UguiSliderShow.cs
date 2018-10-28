@@ -37,7 +37,8 @@ namespace RedScarf.UguiFriend
                 new Vector3(100,100),
                 new Vector3(-100,-100)
             };
-            Debug.Log(UguiTools.GetRectContainsPoints(points));
+
+            //Debug.Log(UguiTools.GetRectContainsPoints(points));
         }
 
         protected override void Awake()

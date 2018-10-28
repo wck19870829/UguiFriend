@@ -22,9 +22,9 @@ namespace RedScarf.UguiFriend
         {
             base.Awake();
 
-            OnKeyDown += (key,ch) => {
-                Debug.LogFormat("key:{0}  char:{1}",key,ch);
-            };
+            //OnKeyDown += (key,ch) => {
+            //    //Debug.LogFormat("key:{0}  char:{1}",key,ch);
+            //};
         }
 
         public override void ResetKeyboard()
@@ -121,6 +121,11 @@ namespace RedScarf.UguiFriend
                     state = true;
                 }
             }
+        }
+
+        protected override string ProcessCharacter(UguiKeypress keypress)
+        {
+            return string.Empty;
         }
     }
 }
