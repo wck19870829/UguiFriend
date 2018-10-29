@@ -56,9 +56,28 @@ namespace RedScarf.UguiFriend
             }
         }
 
+        public override void OnDeselect(BaseEventData eventData)
+        {
+            var pe = eventData as PointerEventData;
+            if (pe!=null)
+            {
+                var keyboard=pe.pointerPressRaycast.gameObject.GetComponentInParent<UguiKeyboard>();
+                if (keyboard!=null)
+                {
+                    //拦截点击键盘丢失焦点
+                    return;
+                }
+            }
+
+            base.OnDeselect(eventData);
+        }
+
         protected virtual void OnKeyboardInputHandler(KeyCode keyCode,string inputStr)
         {
-            this.text += inputStr;
+
+
+            Append(inputStr);
+            UpdateLabel();
         }
 
         /// <summary>
