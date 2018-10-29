@@ -43,7 +43,7 @@ namespace RedScarf.UguiFriend
                 m_UguiKeyboard.OnKeyDown -= OnKeyboardInputHandler;
                 m_UguiKeyboard.OnKey -= OnKeyboardInputHandler;
                 m_UguiKeyboard.OnKeyDown += OnKeyboardInputHandler;
-                //m_UguiKeyboard.OnKey += OnKeyboardInputHandler;
+                m_UguiKeyboard.OnKey += OnKeyboardInputHandler;
             }
         }
 
@@ -61,22 +61,23 @@ namespace RedScarf.UguiFriend
             var pe = eventData as PointerEventData;
             if (pe!=null)
             {
-                var keyboard=pe.pointerPressRaycast.gameObject.GetComponentInParent<UguiKeyboard>();
-                if (keyboard!=null)
+                if (pe.pointerPressRaycast.gameObject)
                 {
-                    //拦截点击键盘丢失焦点
-                    return;
+                    var keyboard = pe.pointerPressRaycast.gameObject.GetComponentInParent<UguiKeyboard>();
+                    if (keyboard != null)
+                    {
+                        //拦截点击键盘丢失焦点
+                        return;
+                    }
                 }
             }
 
             base.OnDeselect(eventData);
         }
 
-        protected virtual void OnKeyboardInputHandler(KeyCode keyCode,string inputStr)
+        protected virtual void OnKeyboardInputHandler(Event processingEvent)
         {
-
-
-            Append(inputStr);
+            ProcessEvent(processingEvent);
             UpdateLabel();
         }
 

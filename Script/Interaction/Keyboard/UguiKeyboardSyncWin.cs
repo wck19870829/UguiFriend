@@ -6,47 +6,29 @@ using UnityEngine.EventSystems;
 
 namespace RedScarf.UguiFriend
 {
-    [RequireComponent(typeof(UguiPcKeyboard))]
+    [RequireComponent(typeof(UguiKeyboard))]
     /// <summary>
     /// Windows系统下键盘同步
     /// </summary>
     public sealed class UguiKeyboardSyncWin : MonoBehaviour
     {
-        UguiPcKeyboard keyboard;
+        UguiKeyboard keyboard;
 
         private void Awake()
         {
-            keyboard = GetComponent<UguiPcKeyboard>();
-            keyboard.OnKeyDown += OnKeyDown;
-            keyboard.OnKeyUp += OnKeyUp;
-        }
-
-        private void OnGUI()
-        {
-            if (Event.current!=null)
-            {
-                Event.current.mousePosition = Vector2.zero;
-                if (Event.current.rawType == EventType.KeyDown)
-                {
-
-                }
-                else if (Event.current.rawType == EventType.KeyUp)
-                {
-                    
-                }
-            }
+            keyboard = GetComponent<UguiKeyboard>();
         }
 
         void OnKeyDown(KeyCode keyCode, string inputStr)
         {
-            if (keyboard.IsCtrlPress && keyboard.IsAltPress)
-            {
-                if (keyCode == KeyCode.A)
-                {
-                    Debug.Log("A");
-                    Input.imeCompositionMode = IMECompositionMode.On;
-                }
-            }
+            //if (keyboard.IsCtrlPress && keyboard.IsAltPress)
+            //{
+            //    if (keyCode == KeyCode.A)
+            //    {
+            //        Debug.Log("A");
+            //        Input.imeCompositionMode = IMECompositionMode.On;
+            //    }
+            //}
 
             //StartCoroutine(CallKeyDownDelay());
         }

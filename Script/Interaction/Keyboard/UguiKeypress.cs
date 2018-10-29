@@ -15,8 +15,9 @@ namespace RedScarf.UguiFriend
     {
         public const char emptyCharacter = char.MinValue;                               //空字符
 
+        protected static Dictionary<KeyCode, char> shiftOnCharDict;
         protected static HashSet<KeyCode> keepPressSet;                                 //可以挂起的按键
-        protected static Dictionary<KeyCode, string> inputCharacterDict;                //可以输入的字符
+        protected static Dictionary<KeyCode, char> inputCharacterDict;                  //可以输入的字符
         protected static Dictionary<KeyCode, string> displayNameDict;                   //显示名称
         protected static Dictionary<KeyCode, KeyCode> numLockDict;                      //NumLock锁定时按键映射
 
@@ -68,25 +69,25 @@ namespace RedScarf.UguiFriend
                 {KeyCode.Keypad9,KeyCode.PageUp },
                 {KeyCode.KeypadPeriod,KeyCode.Delete }
             };
-            inputCharacterDict = new Dictionary<KeyCode, string>()
+            inputCharacterDict = new Dictionary<KeyCode, char>()
             {
-                { KeyCode.Keypad0,"0" },
-                { KeyCode.Keypad1,"1" },
-                { KeyCode.Keypad2,"2" },
-                { KeyCode.Keypad3,"3" },
-                { KeyCode.Keypad4,"4" },
-                { KeyCode.Keypad5,"5" },
-                { KeyCode.Keypad6,"6" },
-                { KeyCode.Keypad7,"7" },
-                { KeyCode.Keypad8,"8" },
-                { KeyCode.Keypad9,"9" },
-                { KeyCode.KeypadDivide,"/" },
-                { KeyCode.KeypadMinus,"-" },
-                { KeyCode.KeypadMultiply,"*" },
-                { KeyCode.KeypadPeriod,"." },
-                { KeyCode.KeypadPlus,"+" },
-                { KeyCode.KeypadEnter,"\r\n" },
-                { KeyCode.Return,"\r\n"}
+                { KeyCode.Keypad0,'0' },
+                { KeyCode.Keypad1,'1' },
+                { KeyCode.Keypad2,'2' },
+                { KeyCode.Keypad3,'3' },
+                { KeyCode.Keypad4,'4' },
+                { KeyCode.Keypad5,'5' },
+                { KeyCode.Keypad6,'6' },
+                { KeyCode.Keypad7,'7' },
+                { KeyCode.Keypad8,'8' },
+                { KeyCode.Keypad9,'9' },
+                { KeyCode.KeypadDivide,'/' },
+                { KeyCode.KeypadMinus,'-' },
+                { KeyCode.KeypadMultiply,'*' },
+                { KeyCode.KeypadPeriod,'.' },
+                { KeyCode.KeypadPlus,'+' },
+                { KeyCode.KeypadEnter,'\r' },
+                { KeyCode.Return,'\r'}
             };
             var keyCodeValues = Enum.GetValues(typeof(KeyCode));
             var encoding = new ASCIIEncoding();
@@ -100,11 +101,35 @@ namespace RedScarf.UguiFriend
                     char ch;
                     if (Char.TryParse(str, out ch))
                     {
-                        inputCharacterDict.Add(value, ch.ToString());
+                        inputCharacterDict.Add(value, ch);
                     }
                 }
             }
 
+            shiftOnCharDict = new Dictionary<KeyCode, char>()
+            {
+                { KeyCode.BackQuote,'~'},
+                { KeyCode.Minus,'_'},
+                { KeyCode.Equals,'+' },
+                { KeyCode.Alpha0,')'},
+                { KeyCode.Alpha1,'!'},
+                { KeyCode.Alpha2,'@'},
+                { KeyCode.Alpha3,'#'},
+                { KeyCode.Alpha4,'$'},
+                { KeyCode.Alpha5,'%'},
+                { KeyCode.Alpha6,'^'},
+                { KeyCode.Alpha7,'&'},
+                { KeyCode.Alpha8,'*'},
+                { KeyCode.Alpha9,'('},
+                { KeyCode.LeftBracket,'{' },
+                { KeyCode.RightBracket,'}' },
+                { KeyCode.Backslash,'|' },
+                { KeyCode.Comma,'<' },
+                { KeyCode.Period,'>'},
+                { KeyCode.Slash,'?' },
+                { KeyCode.Semicolon,':' },
+                { KeyCode.Quote,'\\'}
+            };
             displayNameDict = new Dictionary<KeyCode, string>()
             {
                 { KeyCode.Backspace,"Backspace" },
@@ -202,14 +227,81 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 更新状态
         /// </summary>
-        public abstract void UpdateState();
+        public virtual void UpdateState()
+        {
+            if (m_AutoName)
+            {
+                if (nameText == null)
+                    nameText = GetComponentInChildren<Text>();
+                if (nameText != null)
+                {
+                    if (numLockDict.ContainsKey(m_RawKeyCode))
+                    {
+                        var topStr = GetKeyCodeDisplayName(m_RawKeyCode) + "\r\n";
+                        var bottomStr = GetKeyCodeDisplayName(numLockDict[m_RawKeyCode]);
+                        nameText.text = topStr + bottomStr;
+                    }
+                    else
+                    {
+                        var shiftNameStr = "";
+                        if (shiftOnCharDict.ContainsKey(m_RawKeyCode))
+                        {
+                            shiftNameStr = shiftOnCharDict[m_RawKeyCode] + "\r\n";
+                        }
+                        var nameStr = GetKeyCodeDisplayName(m_RawKeyCode);
+                        if (IsLetter(m_RawKeyCode))
+                        {
+                            nameStr = keyboard.IsUpper ? nameStr.ToUpper() : nameStr.ToLower();
+                        }
+                        nameText.text = shiftNameStr + nameStr;
+                    }
+                }
+            }
+            m_CurrentKeyCode = m_RawKeyCode;
+            if (!keyboard.ProcessingEvent.numeric)
+            {
+                if (numLockDict.ContainsKey(m_RawKeyCode))
+                {
+                    m_CurrentKeyCode = numLockDict[m_RawKeyCode];
+                }
+            }
+        }
 
         /// <summary>
         /// 获得输入字符,如对应的键无输入字符，返回emptyCharacter
         /// </summary>
         /// <param name="keyCode"></param>
         /// <returns></returns>
-        protected abstract string GetInputCharacter();
+        protected virtual char GetInputCharacter()
+        {
+            var ch = emptyCharacter;
+            var keyCode = m_RawKeyCode;
+
+            if (numLockDict.ContainsKey(keyCode) && !keyboard.ProcessingEvent.numeric)
+            {
+                keyCode = m_CurrentKeyCode;
+            }
+
+            if (inputCharacterDict.ContainsKey(keyCode))
+            {
+                ch = inputCharacterDict[keyCode];
+            }
+
+            if (shiftOnCharDict.ContainsKey(keyCode))
+            {
+                if (keyboard.ProcessingEvent.shift)
+                {
+                    ch = shiftOnCharDict[keyCode];
+                }
+            }
+
+            if (IsLetter(keyCode))
+            {
+                ch = keyboard.IsUpper ? Char.ToUpper(ch) : Char.ToLower(ch);
+            }
+
+            return ch;
+        }
 
         protected virtual void KeyDown()
         {
@@ -370,7 +462,7 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 当前字符
         /// </summary>
-        public string Character
+        public char Character
         {
             get
             {
