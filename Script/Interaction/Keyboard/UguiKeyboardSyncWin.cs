@@ -3,6 +3,7 @@ using System.Collections;
 using System.Runtime.InteropServices;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using System;
 
 namespace RedScarf.UguiFriend
 {
@@ -17,48 +18,108 @@ namespace RedScarf.UguiFriend
         private void Awake()
         {
             keyboard = GetComponent<UguiKeyboard>();
+            keyboard.OnKey += OnKeyDown;
+            keyboard.OnKeyDown += OnKeyDown;
+            keyboard.OnKeyUp += OnKeyUp;
         }
 
-        void OnKeyDown(KeyCode keyCode, string inputStr)
+        private void OnGUI()
         {
-            //if (keyboard.IsCtrlPress && keyboard.IsAltPress)
-            //{
-            //    if (keyCode == KeyCode.A)
-            //    {
-            //        Debug.Log("A");
-            //        Input.imeCompositionMode = IMECompositionMode.On;
-            //    }
-            //}
-
-            //StartCoroutine(CallKeyDownDelay());
+            //Debug.LogFormat("{0}  {1}", Event.current.keyCode, Event.current.type);
         }
 
-        IEnumerator CallKeyDownDelay()
+        void OnKeyDown(Event e)
         {
-            yield return new WaitForSeconds(1);
-            keybd_event(vbKey0, 0, 0, 0);
+            var ki = new tagKEYBDINPUT();
+            ki.wVk = VK_LWIN;
+            ki.dwFlags = 0;
+            var input = new Input();
+            input.type = (int)InputType.Keyboard;
+            SendInput(1, ref input, Marshal.SizeOf(input.GetType()));
         }
 
-        void OnKeyUp(KeyCode keyCode, string inputStr)
+        void OnKeyUp(Event e)
         {
-
+            var ki = new tagKEYBDINPUT();
+            ki.wVk = VK_LWIN;
+            ki.dwFlags = KeyEvenTfKeyUp;
+            var input = new Input();
+            input.type = (int)InputType.Keyboard;
+            SendInput(1,ref input,Marshal.SizeOf(input));
         }
 
         #region 引用win32api方法
 
-        /// <summary>
-        /// 导入模拟键盘的方法
-        /// </summary>
-        /// <param name="bVk" >按键的虚拟键值</param>
-        /// <param name= "bScan" >扫描码，一般不用设置，用0代替就行</param>
-        /// <param name= "dwFlags" >选项标志：0：表示按下，2：表示松开</param>
-        /// <param name= "dwExtraInfo">一般设置为0</param>
         [DllImport("user32.dll")]
-        public static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
+        static extern int SendInput(UInt32 nInputs,ref Input pInput, int cbSize);
+
+        //[DllImport("user32.dll")]
+        //static extern int SendInput(UInt32 nInputs, Input[] pInputs, int cbSize);
+
+        [StructLayout(LayoutKind.Explicit)]
+        struct Input
+        {
+            [FieldOffset(0)] public Int32 type;
+            [FieldOffset(4)] public MouseInput mi;
+            [FieldOffset(4)] public tagKEYBDINPUT ki;
+            [FieldOffset(4)] public tagHARDWAREINPUT hi;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct MouseInput
+        {
+            public Int32 dx;
+            public Int32 dy;
+            public Int32 Mousedata;
+            public Int32 dwFlag;
+            public Int32 time;
+            public IntPtr dwExtraInfo;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct tagKEYBDINPUT
+        {
+            public Int16 wVk;
+            public Int16 wScan;
+            public Int32 dwFlags;
+            public Int32 time;
+            public IntPtr dwExtraInfo;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct tagHARDWAREINPUT
+        {
+            public Int32 uMsg;
+            public Int16 wParamL;
+            public Int16 wParamH;
+        }
+
+        enum InputType
+        {
+            Mouse = 0,
+            Keyboard = 1,
+            Hardware = 2,
+        }
+
+        [Flags()]
+        enum KeyEventTF
+        {
+            ExtendedKey = 0x0001,
+            KeyUp = 0x0002,
+            Unicode = 0x0004,
+            ScanCode = 0x0008,
+        }
 
         #endregion
 
-        #region bVk参数 常量定义
+        #region 常量定义
+
+        public const int KeyEvenTfExtendedKey = 0x0001;
+        public const int KeyEvenTfKeyUp = 0x0002;
+        public const int KeyEvenTfScanCode = 0x0008;
+        public const int KeyEvenTfUnicode = 0x0004;
+
+        public const byte VK_LWIN = 0x5B;
 
         public const byte vbKeyLButton = 0x1;    // 鼠标左键
         public const byte vbKeyRButton = 0x2;    // 鼠标右键

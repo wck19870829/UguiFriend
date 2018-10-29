@@ -11,14 +11,14 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 虚拟键盘
     /// </summary>
-    public abstract class UguiKeyboard : UIBehaviour
+    public class UguiKeyboard : UIBehaviour
     {
         const string keyUpdate = "CheckKeyDownState";
 
-        [Range(0.1f, 1f)]
-        [SerializeField] protected float keyInterval = 0.1f;
+        [Range(0.05f, 1f)]
+        [SerializeField] protected float keyInterval = 0.08f;
 
-        [Range(0f, 1f)]
+        [Range(0.1f, 1f)]
         [SerializeField] protected float keyIntervalDelay = 0.2f;
 
         protected Dictionary<KeyCode, UguiKeypress> keyDict;
@@ -97,7 +97,7 @@ namespace RedScarf.UguiFriend
         /// </summary>
         public virtual void ResetKeyboard()
         {
-
+            m_ProcessingEvent = new Event();
 
             waitingKeyDownStateSet.Clear();
             keyDownStateSet.Clear();
@@ -122,8 +122,11 @@ namespace RedScarf.UguiFriend
         {
             yield return new WaitForSeconds(keyIntervalDelay);
 
-            waitingKeyDownStateSet.Remove(keypress);
-            keyDownStateSet.Add(keypress);
+            if (waitingKeyDownStateSet.Contains(keypress))
+            {
+                waitingKeyDownStateSet.Remove(keypress);
+                keyDownStateSet.Add(keypress);
+            }
         }
 
         protected virtual void CheckStateChange(UguiKeypress keypress)
@@ -169,8 +172,9 @@ namespace RedScarf.UguiFriend
             if (ctrlPress) modifiers = modifiers | EventModifiers.Control;
             if (capsLock) modifiers = modifiers | EventModifiers.CapsLock;
             if (shiftPress) modifiers = modifiers | EventModifiers.Shift;
-            if (windowsPress) modifiers = modifiers | EventModifiers.Command;
+            if (m_ProcessingEvent.command) modifiers = modifiers | EventModifiers.Command;
             if (numLock) modifiers = modifiers | EventModifiers.Numeric;
+            if (m_ProcessingEvent.functionKey) modifiers = modifiers | EventModifiers.FunctionKey;
             m_ProcessingEvent.modifiers = modifiers;
 
             m_ProcessingEvent.character = keypress.Character;
@@ -206,12 +210,17 @@ namespace RedScarf.UguiFriend
 
         protected virtual void OnKeyDownHandler(UguiKeypress keypress)
         {
-            if (!waitingKeyDownStateSet.Contains(keypress))
+            if (!UguiKeypress.IsKeepPressKey(keypress.RawKeyCode))
             {
-                waitingKeyDownStateSet.Add(keypress);
-                StartCoroutine(BeginCheckKeyDownState(keypress));
+                if (!waitingKeyDownStateSet.Contains(keypress))
+                {
+                    waitingKeyDownStateSet.Add(keypress);
+                    StartCoroutine(BeginCheckKeyDownState(keypress));
+                }
             }
+
             CheckStateChange(keypress);
+
             if (audioSource != null && keyDownSound != null)
             {
                 audioSource.PlayOneShot(keyDownSound);
@@ -226,7 +235,10 @@ namespace RedScarf.UguiFriend
         protected virtual void OnKeyUpHandler(UguiKeypress keypress)
         {
             keyDownStateSet.Remove(keypress);
+            waitingKeyDownStateSet.Remove(keypress);
+
             CheckStateChange(keypress);
+
             if (audioSource != null && keyUpSound != null)
             {
                 audioSource.PlayOneShot(keyUpSound);

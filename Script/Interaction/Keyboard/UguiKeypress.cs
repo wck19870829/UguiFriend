@@ -11,11 +11,11 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 键盘按键
     /// </summary>
-    public abstract class UguiKeypress : Selectable
+    public class UguiKeypress : Selectable
     {
         public const char emptyCharacter = char.MinValue;                               //空字符
 
-        protected static Dictionary<KeyCode, char> shiftOnCharDict;
+        protected static Dictionary<KeyCode, char> shiftOnCharDict;                     //shift键按下时映射的字符
         protected static HashSet<KeyCode> keepPressSet;                                 //可以挂起的按键
         protected static Dictionary<KeyCode, char> inputCharacterDict;                  //可以输入的字符
         protected static Dictionary<KeyCode, string> displayNameDict;                   //显示名称
@@ -486,13 +486,23 @@ namespace RedScarf.UguiFriend
         /// </summary>
         /// <param name="keyCode"></param>
         /// <returns></returns>
-        protected static bool IsLetter(KeyCode keyCode)
+        public static bool IsLetter(KeyCode keyCode)
         {
             char ch;
             if (!Char.TryParse(string.Intern(keyCode.ToString()), out ch))
                 return false;
 
             return Char.IsLetter(ch);
+        }
+
+        /// <summary>
+        /// 是否为保持按下的键
+        /// </summary>
+        /// <param name="keyCode"></param>
+        /// <returns></returns>
+        public static bool IsKeepPressKey(KeyCode keyCode)
+        {
+            return keepPressSet.Contains(keyCode);
         }
 
         #endregion
