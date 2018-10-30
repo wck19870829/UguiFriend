@@ -136,6 +136,50 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 点从局部坐标转换为世界坐标
+        /// </summary>
+        /// <param name="localPoints"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public static Vector3[] LocalPoints2GlobalPoints(Vector3[] localPoints, Transform content)
+        {
+            if (content == null)
+                throw new Exception("Content is null.");
+            if (localPoints == null)
+                throw new Exception("Local points is null.");
+
+            var globalPoints = new Vector3[localPoints.Length];
+            for (var i = 0; i < localPoints.Length; i++)
+            {
+                globalPoints[i] = content.TransformPoint(localPoints[i]);
+            }
+
+            return globalPoints;
+        }
+
+        /// <summary>
+        /// 点从世界坐标转换为局部坐标
+        /// </summary>
+        /// <param name="globalPoints"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public static Vector3[] GlobalPoints2LocalPoints(Vector3[] globalPoints, Transform content)
+        {
+            if(content==null)
+                throw new Exception("Content is null.");
+            if (globalPoints == null)
+                throw new Exception("Global points is null.");
+
+            var localPoints = new Vector3[globalPoints.Length];
+            for (var i=0;i<localPoints.Length;i++)
+            {
+                localPoints[i] = content.InverseTransformPoint(globalPoints[i]);
+            }
+
+            return localPoints;
+        }
+
+        /// <summary>
         /// 投射点到线上
         /// </summary>
         /// <param name="point"></param>

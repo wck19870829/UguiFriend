@@ -31,14 +31,6 @@ namespace RedScarf.UguiFriend
         {
             m_Children = new List<Transform>();
             m_ChildrenScoreDict = new Dictionary<Transform, float>();
-
-
-            var points = new Vector3[] {
-                new Vector3(100,100),
-                new Vector3(-100,-100)
-            };
-
-            //Debug.Log(UguiTools.GetRectContainsPoints(points));
         }
 
         protected override void Awake()
@@ -109,7 +101,7 @@ namespace RedScarf.UguiFriend
             {
                 var localPos = m_Content.InverseTransformPoint(child.position);
                 var dir = (Vector2)localPos - origin;
-                var dot = Mathf.Max(Vector2.Dot(dir, findVector),0.01f);
+                var dot = Mathf.Max(Vector2.Dot(dir, findVector),0.0001f);
                 var score = dot / dir.sqrMagnitude;
 
                 m_ChildrenScoreDict.Add(child, score);
