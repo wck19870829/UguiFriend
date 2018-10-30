@@ -19,6 +19,14 @@ namespace RedScarf.UguiFriend
             base.Awake();
         }
 
+        private void OnGUI()
+        {
+            if (Event.current.keyCode != KeyCode.None)
+            {
+                Debug.Log(Event.current.keyCode);
+            }
+        }
+
         protected override void OnDestroy()
         {
             UnbindKeyboard();
@@ -77,6 +85,8 @@ namespace RedScarf.UguiFriend
 
         protected virtual void OnKeyboardInputHandler(Event processingEvent)
         {
+            if (m_UguiKeyboard.callNativeKeyboard) return;
+
             ProcessEvent(processingEvent);
             UpdateLabel();
         }

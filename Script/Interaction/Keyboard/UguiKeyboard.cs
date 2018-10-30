@@ -21,6 +21,7 @@ namespace RedScarf.UguiFriend
         [Range(0.1f, 1f)]
         [SerializeField] protected float keyIntervalDelay = 0.2f;
 
+        internal bool callNativeKeyboard;                                   //调用原生键盘事件
         protected Dictionary<KeyCode, UguiKeypress> keyDict;
         protected UguiKeypress[] keypressArr;
         protected HashSet<UguiKeypress> waitingKeyDownStateSet;
