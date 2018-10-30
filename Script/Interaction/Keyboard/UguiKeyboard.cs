@@ -40,7 +40,7 @@ namespace RedScarf.UguiFriend
 
         static UguiKeyboard()
         {
-
+            
         }
 
         protected UguiKeyboard()
@@ -227,6 +227,8 @@ namespace RedScarf.UguiFriend
                 audioSource.PlayOneShot(keyDownSound);
             }
 
+            Debug.LogFormat("Key down:{0}", keypress.CurrentKeyCode);
+
             if (OnKeyDown != null)
             {
                 OnKeyDown.Invoke(m_ProcessingEvent);
@@ -244,6 +246,8 @@ namespace RedScarf.UguiFriend
             {
                 audioSource.PlayOneShot(keyUpSound);
             }
+
+            Debug.LogFormat("Key up:{0}", keypress.CurrentKeyCode);
 
             if (OnKeyUp != null)
             {

@@ -304,7 +304,7 @@ namespace RedScarf.UguiFriend
             return ch;
         }
 
-        protected virtual void KeyDown()
+        public virtual void KeyDown()
         {
             if (keepPressSet.Contains(m_RawKeyCode))
             {
@@ -333,7 +333,7 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        protected virtual void KeyUp()
+        public virtual void KeyUp()
         {
             if (keepPressSet.Contains(m_RawKeyCode))
             {
@@ -395,11 +395,22 @@ namespace RedScarf.UguiFriend
 
         public override void OnPointerDown(PointerEventData eventData)
         {
+            eventData.Use();
+            if (Event.current != null)
+            {
+                Event.current.Use();
+            }
             KeyDown();
         }
 
         public override void OnPointerUp(PointerEventData eventData)
         {
+            eventData.Use();
+            if (Event.current != null)
+            {
+                Event.current.Use();
+            }
+
             KeyUp();
         }
 

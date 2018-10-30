@@ -12,14 +12,34 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiKeyboardVirtualFinger : MonoBehaviour
     {
+        protected Collider m_Coll;
+        protected Rigidbody m_Rigidbody;
+
+        protected virtual void Awake()
+        {
+            m_Coll = GetComponent<Collider>();
+            m_Coll.isTrigger = true;
+            m_Rigidbody = GetComponent<Rigidbody>();
+            m_Rigidbody.useGravity = false;
+            m_Rigidbody.isKinematic = true;
+        }
+
         private void OnTriggerEnter(Collider other)
         {
-            Debug.LogFormat("Enter:{0}",other);
+            var keypress=other.gameObject.GetComponent<UguiKeypress>();
+            if (keypress!=null)
+            {
+                keypress.KeyDown();
+            }
         }
 
         private void OnTriggerExit(Collider other)
         {
-            Debug.LogFormat("Exit:{0}",other);
+            var keypress = other.gameObject.GetComponent<UguiKeypress>();
+            if (keypress != null)
+            {
+                keypress.KeyUp();
+            }
         }
     }
 }
