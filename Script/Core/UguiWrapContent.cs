@@ -24,7 +24,7 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected float spacing = 100;                                                 //元素间距
         [SerializeField] protected Axis m_StartAxis;
 
-        protected Comparison<RectTransform> m_DepthSortComparison;
+        protected Comparison<RectTransform> m_SortComparison;
         protected ScrollRect scrollRect;
         protected Mask mask;
         protected RectTransform content;
@@ -83,6 +83,10 @@ namespace RedScarf.UguiFriend
             for (var i = 0; i < content.childCount; i++)
             {
                 items.Add(content.GetChild(i) as RectTransform);
+            }
+            if (m_SortComparison != null)
+            {
+                items.Sort(m_SortComparison);
             }
 
             WrapContent();
@@ -276,18 +280,19 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 深度层级排序规则
+        /// 自定义排序规则
         /// 设置此值按自定义排序
         /// </summary>
-        public Comparison<RectTransform> DepthSortComparison
+        public Comparison<RectTransform> SortComparison
         {
             get
             {
-                return m_DepthSortComparison;
+                return m_SortComparison;
             }
             set
             {
-                m_DepthSortComparison = value;
+                m_SortComparison = value;
+                Realign();
             }
         }
 

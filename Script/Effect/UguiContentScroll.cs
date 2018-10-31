@@ -68,19 +68,17 @@ namespace RedScarf.UguiFriend
                 var maskRect = UguiTools.GetRectContainsPoints(localMask);
                 if (!contentRect.Overlaps(maskRect))
                 {
-                    var restPosition = contentRect.position;
+                    var restPosition = new Vector2(contentRect.xMin,contentRect.yMax);
                     switch (m_Direction)
                     {
                         case Direction.Horizontal:
                             if (m_Invert)
                             {
                                 restPosition.x = maskRect.xMax;
-                                restPosition.y += contentRect.height;
                             }
                             else
                             {
                                 restPosition.x = maskRect.xMin-contentRect.width;
-                                restPosition.y += contentRect.height;
                             }
                             break;
 

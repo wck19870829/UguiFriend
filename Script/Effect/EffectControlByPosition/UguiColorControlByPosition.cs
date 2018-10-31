@@ -16,7 +16,7 @@ namespace RedScarf.UguiFriend
 
         protected override void UpdateItem(UguiColorTint item, float weight)
         {
-            item.color = Color.Lerp(valueFrom,valueTo,weight);
+            item.Color = Color.Lerp(valueFrom,valueTo,weight);
         }
     }
 }
