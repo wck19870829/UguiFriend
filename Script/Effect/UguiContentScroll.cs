@@ -10,13 +10,16 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 滚动
     /// </summary>
-    public class UguiContentScroll : UIBehaviour
+    public class UguiContentScroll : UIBehaviour,IBeginDragHandler,IEndDragHandler
     {
         public float speed = 1;
+        public bool stopScrollWhenDrag=true;
+        [SerializeField] protected float repeatInterval=5;
         [SerializeField] protected Direction m_Direction;
         [SerializeField] protected bool m_Invert;
         protected ScrollRect scrollRect;
         protected Mask m_Mask;
+        protected bool isMoving;
         Vector3[] maskCorners;
         Vector3[] contentCorners;
 
@@ -33,8 +36,16 @@ namespace RedScarf.UguiFriend
             scrollRect = GetComponent<ScrollRect>();
             if (scrollRect == null)
                 throw new Exception("Scroll rect is null.");
-            scrollRect.movementType = ScrollRect.MovementType.Unrestricted;
-            m_Mask = scrollRect.GetComponentInChildren<Mask>();
+            m_Mask = scrollRect.viewport.GetComponent<Mask>();
+            if(m_Mask==null)
+                throw new Exception("Mask is null.");
+            isMoving = true;
+        }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            isMoving = true;
         }
 
         protected virtual void Update()
@@ -45,12 +56,7 @@ namespace RedScarf.UguiFriend
         protected virtual void Scroll()
         {
             if (scrollRect == null|| scrollRect.content==null) return;
-
-            var direction = (m_Direction == Direction.Horizontal)?
-                            Vector2.right :
-                            Vector2.up;
-            if (m_Invert) direction *= -1;
-            scrollRect.content.Translate(direction* speed, Space.Self);
+            if (!isMoving) return;
 
             if (m_Mask != null)
             {
@@ -90,7 +96,35 @@ namespace RedScarf.UguiFriend
                             break;
                     }
                     scrollRect.content.position = transform.TransformPoint(restPosition);
+                    isMoving = false;
+                    Invoke("Play", repeatInterval);
                 }
+            }
+
+            var direction = (m_Direction == Direction.Horizontal) ?
+                Vector2.right :
+                Vector2.up;
+            if (m_Invert) direction *= -1;
+            scrollRect.content.Translate(direction * speed, Space.Self);
+        }
+
+        public virtual void Play()
+        {
+            isMoving = true;
+        }
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            CancelInvoke("Play");
+            isMoving = false;
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            CancelInvoke("Play");
+            if (!stopScrollWhenDrag)
+            {
+                isMoving = true;
             }
         }
 

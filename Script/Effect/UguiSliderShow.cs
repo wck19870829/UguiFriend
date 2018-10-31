@@ -256,7 +256,7 @@ namespace RedScarf.UguiFriend
         {
             Loop,
             PingPong,
-            Once,
+            Once
         }
     }
 }
