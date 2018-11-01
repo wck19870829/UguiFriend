@@ -12,16 +12,20 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiCrossfadeEffect:UIBehaviour
     {
-        [SerializeField] protected float interval=5;                //每张图片显示时间
+        [SerializeField] protected Color displayColor = Color.white;    //显示颜色
+        [SerializeField] protected Color hiddenColor = Color.clear;     //隐藏颜色
+        [SerializeField] protected float interval=5;                    //每张图片显示时间
+        [SerializeField] protected float fadeTime = 0.2f;               //淡入淡出切换时间
+        [SerializeField] protected float delay;
         [SerializeField] protected RectTransform content;
-        [SerializeField] protected WrapMode wrapMode;
+        [SerializeField] protected WrapMode m_WrapMode;
         protected int m_Index;
-        protected List<UguiColorTint> colorTintList;
-        protected Comparison<UguiColorTint> m_SortComparison;
+        protected List<UguiTweenColorTint> tweenColorTintList;
+        protected Comparison<UguiTweenColorTint> m_SortComparison;
 
         protected UguiCrossfadeEffect()
         {
-            colorTintList = new List<UguiColorTint>();
+            tweenColorTintList = new List<UguiTweenColorTint>();
         }
 
         protected override void Awake()
@@ -32,47 +36,97 @@ namespace RedScarf.UguiFriend
                 throw new Exception("Content is null.");
         }
 
+        protected override void OnValidate()
+        {
+            interval = Mathf.Max(interval,0.01f);
+            fadeTime = interval * 0.5f;
+            delay = Mathf.Max(delay,0);
+        }
+
         public virtual void Rebuild()
         {
             if (content == null) return;
 
-            colorTintList.Clear();
+            tweenColorTintList.Clear();
             foreach(Transform child in content)
             {
-                var colorTint=child.GetComponent<UguiColorTint>();
+                var colorTint=child.GetComponent<UguiTweenColorTint>();
                 if (colorTint!=null)
                 {
-                    colorTintList.Add(colorTint);
+                    tweenColorTintList.Add(colorTint);
                 }
             }
             if (m_SortComparison != null)
             {
-                colorTintList.Sort(m_SortComparison);
+                tweenColorTintList.Sort(m_SortComparison);
+            }
+            foreach (var item in tweenColorTintList)
+            {
+                item.transform.SetAsFirstSibling();
             }
         }
 
-        public virtual void Show(int index)
+        protected virtual void Show(int index)
         {
-            m_Index = Mathf.Clamp(index,0, colorTintList.Count-1);
-            colorTintList[m_Index].transform.SetAsFirstSibling();
-            colorTintList[m_Index].Color = Color.white;
+            if (m_Index == index) return;
+            if (index < 0 || index >= tweenColorTintList.Count) return;
+
+            tweenColorTintList[m_Index].Play(displayColor, hiddenColor, UguiTween.Direction.Forward, 0, fadeTime);
+            tweenColorTintList[m_Index].CurrentPlayStyle = UguiTween.PlayStyle.Once;
+            m_Index = index;
+
+            CancelInvoke();
+            Invoke("ShowNew", delay);
+        }
+
+        protected virtual void ShowNew()
+        {
+            tweenColorTintList[m_Index].transform.SetAsFirstSibling();
+            tweenColorTintList[m_Index].Play(hiddenColor, displayColor, UguiTween.Direction.Forward, 0, fadeTime);
+            tweenColorTintList[m_Index].CurrentPlayStyle = UguiTween.PlayStyle.Once;
         }
 
         public virtual void Next()
         {
-            Show(m_Index+1);
+            switch (m_WrapMode)
+            {
+                case WrapMode.Loop:
+
+                    break;
+
+                case WrapMode.Once:
+
+                    break;
+
+                case WrapMode.Random:
+
+                    break;
+            }
         }
 
         public virtual void Prev()
         {
-            Show(m_Index - 1);
+            switch (m_WrapMode)
+            {
+                case WrapMode.Loop:
+
+                    break;
+
+                case WrapMode.Once:
+
+                    break;
+
+                case WrapMode.Random:
+
+                    break;
+            }
         }
 
         /// <summary>
         /// 自定义排序规则
         /// 设置此值按自定义排序
         /// </summary>
-        public Comparison<UguiColorTint> SortComparison
+        public Comparison<UguiTweenColorTint> SortComparison
         {
             get
             {

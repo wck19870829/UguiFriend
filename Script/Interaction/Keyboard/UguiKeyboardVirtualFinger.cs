@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using System;
 
 namespace RedScarf.UguiFriend
 {
@@ -14,6 +15,9 @@ namespace RedScarf.UguiFriend
     {
         protected Collider m_Coll;
         protected Rigidbody m_Rigidbody;
+
+        public Action<UguiKeypress> OnEnterKeypress;
+        public Action<UguiKeypress> OnExitKeypress;
 
         protected virtual void Awake()
         {
@@ -29,6 +33,11 @@ namespace RedScarf.UguiFriend
             var keypress=other.gameObject.GetComponent<UguiKeypress>();
             if (keypress!=null)
             {
+                if (OnEnterKeypress != null)
+                {
+                    OnEnterKeypress.Invoke(keypress);
+                }
+
                 keypress.KeyDown();
             }
         }
@@ -38,6 +47,11 @@ namespace RedScarf.UguiFriend
             var keypress = other.gameObject.GetComponent<UguiKeypress>();
             if (keypress != null)
             {
+                if (OnExitKeypress != null)
+                {
+                    OnExitKeypress.Invoke(keypress);
+                }
+
                 keypress.KeyUp();
             }
         }

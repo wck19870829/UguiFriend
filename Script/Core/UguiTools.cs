@@ -180,6 +180,27 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 获取不相等的随机数
+        /// </summary>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <param name="current"></param>
+        public static void Random(int min, int max, ref int current)
+        {
+            if (min == max && max == current) return;
+
+            var value = UnityEngine.Random.Range(min, max);
+            if (value == current)
+            {
+                current = value;
+            }
+            else
+            {
+                Random(min, max, ref current);
+            }
+        }
+
+        /// <summary>
         /// 投射点到线上
         /// </summary>
         /// <param name="point"></param>
