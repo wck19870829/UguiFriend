@@ -8,14 +8,15 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiTweenScale : UguiTween<Vector3,Transform>
     {
-        protected override Vector3 Lerp(Vector3 from, Vector3 to, float t)
+        protected override Vector3 RefrashView(Vector3 from, Vector3 to, float t)
         {
-            return Vector3.Lerp(from,to,t);
-        }
+            var value = Vector3.Lerp(from, to, t);
+            if (m_Component != null)
+            {
+                m_Component.localScale = value;
+            }
 
-        protected override void RefrashView(Vector3 value)
-        {
-
+            return value;
         }
     }
 }

@@ -10,18 +10,30 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public abstract class UguiTween: UIBehaviour
     {
+        [SerializeField] protected bool playOnEnable=true;
         [SerializeField] protected PlayStyle m_PlayStyle;
         [SerializeField] protected AnimationCurve curve = AnimationCurve.EaseInOut(0, 0, 1, 1);
         [SerializeField] protected float m_Duration=0.2f;
-        protected Direction m_Direction;
+        [SerializeField] protected bool m_IsPlaying;
+        protected Direction m_Direction=Direction.Forward;
         protected float m_Progress;
 
         public Action<UguiTween> OnStepFinished;
 
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+
+            if (playOnEnable)
+                Play(Direction.Forward, 0, m_Duration);
+        }
+
         protected virtual void Update()
         {
+            if (!m_IsPlaying) return;
+
             m_Duration = (m_Duration <= 0) ? 0.001f : m_Duration;
-            m_Progress +=Time.deltaTime/ m_Duration * Mathf.Sin((int)m_Direction);
+            m_Progress +=Time.deltaTime/m_Duration* Mathf.Sign((int)m_Direction);
             var t = curve.Evaluate(Mathf.Clamp(m_Progress,0,1));
             UpdateValue(t);
 
@@ -33,14 +45,14 @@ namespace RedScarf.UguiFriend
                         CallStepFinished();
                     }
                     if (m_Progress <= 0) m_Progress = 1;
-                    if (m_Progress >= 1) m_Progress = 0;
+                    else if (m_Progress >= 1) m_Progress = 0;
                     break;
 
                 case PlayStyle.Once:
                     if (m_Progress < 0 || m_Progress > 1)
                     {
                         CallStepFinished();
-                        enabled = false;
+                        m_IsPlaying = false;
                     }
                     break;
 
@@ -48,10 +60,10 @@ namespace RedScarf.UguiFriend
                     if (m_Progress <= 0 || m_Progress >= 1)
                     {
                         CallStepFinished();
+                        m_Direction = (m_Direction == Direction.Forward) ?
+                                        Direction.Reverse :
+                                        Direction.Forward;
                     }
-                    m_Direction = (m_Direction==Direction.Forward) ?
-                                    Direction.Reverse :
-                                    Direction.Forward;
                     break;
             }
             m_Progress = Mathf.Clamp(m_Progress, 0, 1);
@@ -81,12 +93,12 @@ namespace RedScarf.UguiFriend
                 m_Duration = duration;
             }
             m_Direction = direction;
-            if (!enabled) enabled = true;
+            m_IsPlaying = true;
         }
 
         public virtual void Pause()
         {
-            if (enabled) enabled = false;
+            m_IsPlaying = false;
         }
 
         protected void CallStepFinished()
@@ -198,13 +210,10 @@ namespace RedScarf.UguiFriend
 
         protected override void UpdateValue(float t)
         {
-            m_Value = Lerp(m_From, m_To, t);
-            RefrashView(m_Value);
+            m_Value = RefrashView(m_From, m_To, t);
         }
 
-        protected abstract TValue Lerp(TValue from, TValue to, float t);
-
-        protected abstract void RefrashView(TValue value);
+        protected abstract TValue RefrashView(TValue from, TValue to, float t);
 
         /// <summary>
         /// 播放

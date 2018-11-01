@@ -9,17 +9,15 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiTweenColor : UguiTween<Color,Graphic>
     {
-        protected override Color Lerp(Color from, Color to, float t)
+        protected override Color RefrashView(Color from, Color to, float t)
         {
-            return Color.Lerp(from, to, t);
-        }
-
-        protected override void RefrashView(Color value)
-        {
+            var value = Color.Lerp(from, to, t);
             if (m_Component != null)
             {
                 m_Component.color = value;
             }
+
+            return value;
         }
     }
 }
