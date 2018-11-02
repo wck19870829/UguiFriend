@@ -2,6 +2,8 @@
 using System.Collections;
 using System;
 using UnityEngine.EventSystems;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace RedScarf.UguiFriend
 {
