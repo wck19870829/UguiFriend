@@ -222,12 +222,20 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiTweenDriveInfo: ScriptableObject
     {
+        public Type type;
         public string fieldName;
         public object from;
         public object to;
 
-        public UguiTweenDriveInfo(string fieldName)
+        public UguiTweenDriveInfo()
         {
+            from = new object();
+            to = new object();
+        }
+
+        public UguiTweenDriveInfo(Type type,string fieldName)
+        {
+            this.type = type;
             this.fieldName = fieldName;
             from = new object();
             to = new object();
