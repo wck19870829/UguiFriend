@@ -36,7 +36,9 @@ namespace RedScarf.UguiFriend
 
             m_Duration = (m_Duration <= 0) ? 0.001f : m_Duration;
             m_Progress +=Time.deltaTime/m_Duration* Mathf.Sign((int)m_Direction);
-            var t = m_AnimationCurve.Evaluate(Mathf.Clamp(m_Progress,0,1));
+            var newProgress = Mathf.Clamp(m_Progress, 0, 1);
+            UpdateProgress(newProgress);
+            var t = m_AnimationCurve.Evaluate(newProgress);
             UpdateValue(t);
 
             switch (m_PlayStyle)
@@ -68,10 +70,15 @@ namespace RedScarf.UguiFriend
                     }
                     break;
             }
-            m_Progress = Mathf.Clamp(m_Progress, 0, 1);
+            m_Progress = newProgress;
         }
 
         protected abstract void UpdateValue(float t);
+
+        public virtual void UpdateProgress(float progress)
+        {
+
+        }
 
         public virtual void Play()
         {
@@ -183,6 +190,11 @@ namespace RedScarf.UguiFriend
             Once,
             Loop,
             PingPong
+        }
+
+        public abstract class PropDrive
+        {
+            public AnimationCurve animationCurve;
         }
     }
 
