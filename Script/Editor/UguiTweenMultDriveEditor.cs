@@ -8,78 +8,47 @@ using System.Collections.Generic;
 namespace RedScarf.UguiFriend
 {
     [CustomEditor(typeof(UguiTweenMultDrive),true)]
-    public class UguiTweenMultDriveEditor : Editor
+    public class UguiTweenMultDriveEditor : UguiTweenEditor
     {
-        protected SerializedProperty driveListProp;
-        protected SerializedProperty componentProp;
-        protected Object cacheTarget;
-        protected SerializedProperty drawAllProp;
-
-        protected virtual void OnEnable()
-        {
-            driveListProp = serializedObject.FindProperty("driveList");
-            componentProp = serializedObject.FindProperty("m_Component");
-        }
-
         public override void OnInspectorGUI()
         {
+            var driveListProp = serializedObject.FindProperty("driveList");
+            var componentProp = serializedObject.FindProperty("m_Component");
+
             base.OnInspectorGUI();
 
-            var component = target as UguiTweenMultDrive;
-            if(cacheTarget != componentProp.objectReferenceValue)
-            {
-                cacheTarget = componentProp.objectReferenceValue;
-
-                var driveList = new List<UguiTweenDriveInfo>();
-                if (componentProp.objectReferenceValue != null)
-                {
-                    var bindingAttr = BindingFlags.Instance |
-                        BindingFlags.Public;
-                    var propArr = componentProp.objectReferenceValue.GetType().GetProperties(bindingAttr);
-                    foreach (var prop in propArr)
-                    {
-                        //绘制可驱动属性
-                        if (prop.CanRead && prop.CanWrite)
-                        {
-                            if (UguiTweenMultDrive.CanDrive(prop.PropertyType))
-                            {
-                                var driveInfo = new UguiTweenDriveInfo(typeof(Transform),prop.Name);
-                                driveList.Add(driveInfo);
-                            }
-                        }
-                    }
-                }
-                var obj = new SerializedObject(driveList.ToArray());
-                drawAllProp = obj.FindProperty("Array");
-            }
-
-            if (drawAllProp != null)
-            {
-                Debug.Log("draw");
-
-                //using (var scope = new EditorGUILayout.ScrollViewScope(Vector2.zero))
-                //{
-
-                //}
-                //var driveInfoListProp = drawWrapObj.FindProperty("driveInfoList");
-                //for (var i = 0; i < driveInfoListProp.arraySize; i++)
-                //{
-                //    EditorGUILayout.PropertyField(driveInfoListProp.GetArrayElementAtIndex(i),new GUIContent("xx??"));
-                //}
-                //drawWrapObj.DrawArray("driveInfoList", "title");
-            }
-
-            //for (var i=0;i< driveListProp.arraySize;i++)
+            //if (cacheTarget != componentProp.objectReferenceValue)
             //{
-            //    var itemProp=driveListProp.GetArrayElementAtIndex(i);
-            //    if (itemProp.objectReferenceValue!=null)
+            //    cacheTarget = componentProp.objectReferenceValue;
+            //    drawAllInfoProp = null;
+
+            //    if (cacheTarget != null)
             //    {
-            //        var driveInfo = itemProp.objectReferenceValue as UguiTweenDriveInfo;
-            //        if (!drawObjectDict.ContainsKey(driveInfo.fieldName))
+            //        drawAllInfo.Clear();
+
+            //        var bindingAttr = BindingFlags.Instance |
+            //                            BindingFlags.Public;
+            //        var propArr = cacheTarget.GetType().GetProperties(bindingAttr);
+            //        foreach (var prop in propArr)
             //        {
-            //            drawObjectDict.Add(driveInfo.fieldName, driveInfo);
+            //            //绘制可驱动属性
+            //            if (prop.CanRead && prop.CanWrite)
+            //            {
+            //                if (UguiTweenMultDrive.CanDrive(prop.PropertyType))
+            //                {
+            //                    var from = prop.GetValue(cacheTarget, new object[0]);
+            //                    var to = from;
+            //                    var driveInfo = new UguiTweenDriveInfo(prop.Name, from, to);
+            //                    drawAllInfo.Add(driveInfo);
+            //                }
+            //            }
             //        }
             //    }
+            //}
+
+            //if (drawAllInfoProp!=null)
+            //{
+            //    EditorGUILayout.PropertyField(drawAllInfoProp,true);
             //}
 
             serializedObject.ApplyModifiedProperties();
@@ -91,12 +60,16 @@ namespace RedScarf.UguiFriend
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            var driveInfo = property.serializedObject.targetObject as UguiTweenDriveInfo;
+            using (var scope=new EditorGUI.PropertyScope(position,new GUIContent("??"), property))
+            {
+                //EditorGUI.PropertyField(position,property.FindPropertyRelative("animationCurve"));
+                //Debug.Log(driveInfo);
 
-            var fromProp = property.FindPropertyRelative("from");
-            //var toProp= property.serializedObject.FindProperty("to");
-            //EditorGUILayout.PropertyField(fromProp);
-            //EditorGUILayout.LabelField("????");
+                EditorGUI.LabelField(position, "???");
+            }
+            //    EditorGUI.PrefixLabel(position, new GUIContent("??"));
+            ////EditorGUI.DrawRect(position, Color.red);
+            //EditorGUI.ToggleLeft(position, " ", false);
         }
     }
 }

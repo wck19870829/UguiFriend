@@ -14,11 +14,11 @@ namespace RedScarf.UguiFriend
     {
         [SerializeField] protected bool playOnEnable=true;
         [SerializeField] protected PlayStyle m_PlayStyle;
-        [SerializeField] protected AnimationCurve curve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+        [SerializeField] protected AnimationCurve m_AnimationCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
         [SerializeField] protected float m_Duration=0.2f;
         [SerializeField] protected bool m_IsPlaying;
-        protected Direction m_Direction=Direction.Forward;
-        protected float m_Progress;
+        [SerializeField] protected Direction m_Direction=Direction.Forward;
+        [SerializeField] protected float m_Progress;
 
         public Action<UguiTween> OnStepFinished;
 
@@ -36,7 +36,7 @@ namespace RedScarf.UguiFriend
 
             m_Duration = (m_Duration <= 0) ? 0.001f : m_Duration;
             m_Progress +=Time.deltaTime/m_Duration* Mathf.Sign((int)m_Direction);
-            var t = curve.Evaluate(Mathf.Clamp(m_Progress,0,1));
+            var t = m_AnimationCurve.Evaluate(Mathf.Clamp(m_Progress,0,1));
             UpdateValue(t);
 
             switch (m_PlayStyle)
@@ -196,7 +196,7 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected TValue m_From;
         [SerializeField] protected TValue m_To;
         [SerializeField] protected TComponent m_Component;
-        protected TValue m_Value;
+        [SerializeField] protected TValue m_Value;
 
         protected override void Awake()
         {

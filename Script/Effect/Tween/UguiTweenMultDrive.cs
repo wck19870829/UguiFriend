@@ -64,7 +64,7 @@ namespace RedScarf.UguiFriend
         {
             foreach (var item in driveList)
             {
-                var propInfo=m_Component.GetType().GetProperty(item.fieldName);
+                var propInfo=m_Component.GetType().GetProperty(item.driveName);
                 if (propInfo != null)
                 {
                     object value=null;
@@ -220,29 +220,15 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 驱动的字段
     /// </summary>
-    public class UguiTweenDriveInfo: ScriptableObject
+    public class UguiTweenDriveInfo
     {
-        public Type type;
-        public string fieldName;
+        public string driveName;
         public object from;
         public object to;
 
-        public UguiTweenDriveInfo()
+        public UguiTweenDriveInfo(string driveName, object from,object to)
         {
-            from = new object();
-            to = new object();
-        }
-
-        public UguiTweenDriveInfo(Type type,string fieldName)
-        {
-            this.type = type;
-            this.fieldName = fieldName;
-            from = new object();
-            to = new object();
-        }
-
-        public void Set(object from, object to)
-        {
+            this.driveName = driveName;
             this.from = from;
             this.to = to;
         }
