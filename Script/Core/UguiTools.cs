@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 using UnityEngine;
 
 namespace RedScarf.UguiFriend
@@ -386,6 +389,77 @@ namespace RedScarf.UguiFriend
 
             return clone;
         }
+
+        #region 其他
+
+        /// <summary>
+        /// byte[]转string
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
+        public static string Bytes2String(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length == 0)
+                return string.Empty;
+
+            return Encoding.UTF8.GetString(bytes);
+        }
+
+        /// <summary>
+        /// string转byte[]
+        /// </summary>
+        /// <param name="str"></param>
+        public static byte[] String2Bytes(string str)
+        {
+            if (string.IsNullOrEmpty(str))
+                return null;
+
+            return Encoding.UTF8.GetBytes(str);
+        }
+
+        /// <summary>
+        /// 二进制序列化对象
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static byte[] SerializeObject(object obj)
+        {
+            if (obj == null)
+                return null;
+
+            using (var ms = new MemoryStream())
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+                formatter.Serialize(ms, obj);
+                byte[] bytes = ms.GetBuffer();
+                ms.Close();
+
+                return bytes;
+            }
+        }
+
+        /// <summary>
+        /// 二进制反序列化对象
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
+        public static object DeserializeObject(byte[] bytes)
+        {
+            if (bytes == null||bytes.Length==0)
+                return null;
+
+            using (var ms = new MemoryStream())
+            {
+                ms.Position = 0;
+                var formatter = new BinaryFormatter();
+                var obj = formatter.Deserialize(ms);
+                ms.Close();
+
+                return obj;
+            }
+        }
+
+        #endregion
     }
 
     /// <summary>
