@@ -14,7 +14,7 @@ namespace RedScarf.UguiFriend
         static readonly Dictionary<Type, DriveLink> driveLinkDict;
 
         [SerializeField] protected Component m_Component;
-        [SerializeField] public List<UguiTweenMasterDrive> driveList;
+        [SerializeField] protected List<UguiTweenMasterDrive> driveList;
 
         protected class DriveLink
         {

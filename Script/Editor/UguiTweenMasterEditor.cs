@@ -9,22 +9,18 @@ namespace RedScarf.UguiFriend
     [CustomEditor(typeof(UguiTweenMaster))]
     public class UguiTweenMasterEditor : UguiTweenEditor
     {
-        protected SerializedProperty driveAllProp;
-        protected HashSet<string> driveActiveSet;
         protected Object cacheTarget;
+        protected Vector2 driveScrollPos;
 
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
-
-            if (driveActiveSet == null) driveActiveSet = new HashSet<string>();
 
             var master = target as UguiTweenMaster;
             var component = serializedObject.FindProperty("m_Component");
             if (cacheTarget!=component.objectReferenceValue)
             {
                 cacheTarget = component.objectReferenceValue;
-                driveAllProp = null;
 
                 if (cacheTarget!=null)
                 {
@@ -33,7 +29,6 @@ namespace RedScarf.UguiFriend
                     var propArr = cacheTarget.GetType().GetProperties(bindingAttr);
                     foreach (var prop in propArr)
                     {
-                        //绘制可驱动属性
                         if (prop.CanRead && prop.CanWrite)
                         {
                             if (UguiTweenMultDrive.CanDrive(prop.PropertyType))
@@ -44,21 +39,40 @@ namespace RedScarf.UguiFriend
                                 var driveInfo = ScriptableObject.CreateInstance(UguiTweenMaster.GetDriveType(from.GetType())) as UguiTweenMasterDrive;
                                 driveInfo.from = from;
                                 driveInfo.to = to;
-                                driveInfo.animationCurve = AnimationCurve.EaseInOut(0,0,1,1);
+                                driveInfo.animationCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
                                 driveInfo.active = false;
                                 driveInfo.propName = prop.Name;
                                 driveAll.Add(driveInfo);
                             }
                         }
                     }
-
-                    master.driveList = driveAll;
-                    serializedObject.Update();
                 }
             }
 
-            var driveListProp = serializedObject.FindProperty("driveList");
-            EditorGUILayout.PropertyField(driveListProp, true);
+            if (component.objectReferenceValue != null)
+            {
+                //绘制激活属性
+                var driveProp = serializedObject.FindProperty("driveList");
+                if(driveProp.arraySize==0)driveProp.InsertArrayElementAtIndex(0);
+                for (var i = 0; i < driveProp.arraySize; i++)
+                {
+                    EditorGUILayout.PropertyField(driveProp.GetArrayElementAtIndex(i));
+                }
+
+                using (var scrollViewScope = new EditorGUILayout.ScrollViewScope(driveScrollPos, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight*5)))
+                {
+                    //绘制未激活属性
+
+                    driveScrollPos = scrollViewScope.scrollPosition;
+                }
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("选择组件!", MessageType.Warning);
+            }
+
+            //var driveListProp = serializedObject.FindProperty("driveList");
+            //EditorGUILayout.PropertyField(driveListProp, true);
 
             //var driveList = serializedObject.FindProperty("driveList");
             ////EditorGUILayout.PropertyField(driveList,true);
@@ -105,15 +119,18 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
-        {
-            SetDrawProps(property);
+        //public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        //{
+        //    SetDrawProps(property);
 
-            return UguiEditorTools.GetPropsHeight(props);
-        }
+        //    return UguiEditorTools.GetPropsHeight(props);
+        //}
 
         protected virtual void SetDrawProps(SerializedProperty property)
         {
+            if (property.objectReferenceValue == null)
+                return;
+
             if (props == null)
                 props = new List<SerializedProperty>();
             if (so == null)
