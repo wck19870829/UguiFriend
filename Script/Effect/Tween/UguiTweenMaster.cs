@@ -11,30 +11,42 @@ namespace RedScarf.UguiFriend
     [Serializable]
     public class UguiTweenMaster : UguiTween
     {
-        static readonly Dictionary<Type, Func<object, object, float, object>> internalTypeLerpDict;
+        static readonly Dictionary<Type, DriveLink> driveLinkDict;
 
         [SerializeField] protected Component m_Component;
         [SerializeField] public List<UguiTweenMasterDrive> driveList;
 
+        protected class DriveLink
+        {
+            public Func<object, object, float, object> lerpFunc;
+            public Type driveType;
+
+            public DriveLink(Func<object, object, float, object> lerpFunc,Type driveType)
+            {
+                this.lerpFunc = lerpFunc;
+                this.driveType = driveType;
+            }
+        }
+
         static UguiTweenMaster()
         {
-            internalTypeLerpDict = new Dictionary<Type, Func<object, object, float, object>>()
+            driveLinkDict = new Dictionary<Type,DriveLink>()
             {
-                {typeof(Color),ColorLerp},
-                {typeof(Color32),Color32Lerp},
-                {typeof(Bounds),BoundsLerp},
-                {typeof(Vector2),Vector2Lerp},
-                {typeof(Vector3),Vector3Lerp },
-                {typeof(Vector4),Vector4Lerp },
-                {typeof(Quaternion),QuaternionLerp },
-                {typeof(Rect),RectLerp },
+                {typeof(Color),new DriveLink(ColorLerp,typeof(UguiTweenMasterDriveColor))},
+                {typeof(Color32),new DriveLink(Color32Lerp,typeof(UguiTweenMasterDriveColor32))},
+                {typeof(Bounds),new DriveLink(BoundsLerp,typeof(UguiTweenMasterDriveBounds))},
+                {typeof(Vector2),new DriveLink(Vector2Lerp,typeof(UguiTweenMasterDriveVector2))},
+                {typeof(Vector3),new DriveLink(Vector3Lerp,typeof(UguiTweenMasterDriveVector3)) },
+                {typeof(Vector4),new DriveLink(Vector4Lerp,typeof(UguiTweenMasterDriveVector4)) },
+                {typeof(Quaternion),new DriveLink(QuaternionLerp,typeof(UguiTweenMasterDriveQuaternion))},
+                {typeof(Rect),new DriveLink(RectLerp,typeof(UguiTweenMasterDriveRect)) },
 
-                {typeof(float),FloatLerp },
-                {typeof(int),IntLerp },
-                {typeof(uint),UintLerp },
-                {typeof(long),LongLerp },
-                {typeof(char),CharLerp },
-                {typeof(string),StringLerp }
+                {typeof(float),new DriveLink(FloatLerp,typeof(UguiTweenMasterDriveFloat)) },
+                {typeof(int),new DriveLink(IntLerp,typeof(UguiTweenMasterDriveInt)) },
+                {typeof(uint),new DriveLink(UintLerp,typeof(UguiTweenMasterDriveUint)) },
+                {typeof(long),new DriveLink(LongLerp,typeof(UguiTweenMasterDriveLong)) },
+                {typeof(char),new DriveLink(CharLerp,typeof(UguiTweenMasterDriveChar)) },
+                {typeof(string),new DriveLink(StringLerp,typeof(UguiTweenMasterDriveString)) }
             };
         }
 
@@ -49,6 +61,16 @@ namespace RedScarf.UguiFriend
         protected override void UpdateValue(float t)
         {
 
+        }
+
+        public static Type GetDriveType(Type valueType)
+        {
+            if (driveLinkDict.ContainsKey(valueType))
+            {
+                return driveLinkDict[valueType].driveType;
+            }
+
+            return null;
         }
 
         #region 常用类型插值计算
@@ -155,52 +177,115 @@ namespace RedScarf.UguiFriend
     }
 
     [Serializable]
-    public class UguiTweenMasterDrive//,ISerializationCallbackReceiver
+    public abstract class UguiTweenMasterDrive:ScriptableObject
     {
         public bool active;
         public string propName;
-        public Type valueType;
+        public AnimationCurve animationCurve;
         public object from;
         public object to;
-        public AnimationCurve animationCurve;
+    }
 
-        public string rawDataValueType;
-        public string rawDataFrom;
-        public string rawDataTo;
-
-        public UguiTweenMasterDrive()
-        {
-            
-        }
-
-        public UguiTweenMasterDrive(object from, object to, Type valueType, string propName, AnimationCurve animationCurve)
-        {
-            this.from = from;
-            this.to = to;
-            this.propName = propName;
-            this.valueType = valueType;
-            this.animationCurve = animationCurve;
-        }
+    [Serializable]
+    public class UguiTweenMasterDrive<T>: UguiTweenMasterDrive,ISerializationCallbackReceiver
+    {
+        public T fromValue;
+        public T toValue;
 
         public void OnAfterDeserialize()
         {
-            valueType = Type.GetType(rawDataValueType);
-            from = null;
-            to = null;
-            if (valueType != null)
-            {
-                from = UguiTools.DeserializeObject(UguiTools.String2Bytes(rawDataFrom));
-                to = UguiTools.DeserializeObject(UguiTools.String2Bytes(rawDataTo));
-            }
+            from = fromValue;
+            to = toValue;
         }
 
         public void OnBeforeSerialize()
         {
-            rawDataFrom = UguiTools.Bytes2String(UguiTools.SerializeObject(from));
-            rawDataTo = UguiTools.Bytes2String(UguiTools.SerializeObject(to));
-            rawDataValueType = (valueType == null) ?
-                                string.Empty :
-                                valueType.FullName;
+            fromValue = (from==null)?default(T):(T)from;
+            toValue = (to==null)?default(T):(T)to;
         }
+    }
+
+    [Serializable]
+    public class UguiTweenMasterDriveVector2 : UguiTweenMasterDrive<Vector2>
+    {
+
+    }
+
+    [Serializable]
+    public class UguiTweenMasterDriveVector3 : UguiTweenMasterDrive<Vector3>
+    {
+
+    }
+
+    [Serializable]
+    public class UguiTweenMasterDriveVector4 : UguiTweenMasterDrive<Vector4>
+    {
+
+    }
+
+    [Serializable]
+    public class UguiTweenMasterDriveColor : UguiTweenMasterDrive<Color>
+    {
+
+    }
+
+    [Serializable]
+    public class UguiTweenMasterDriveColor32 : UguiTweenMasterDrive<Color32>
+    {
+
+    }
+
+    [Serializable]
+    public class UguiTweenMasterDriveBounds : UguiTweenMasterDrive<Bounds>
+    {
+
+    }
+
+    [Serializable]
+    public class UguiTweenMasterDriveQuaternion : UguiTweenMasterDrive<Quaternion>
+    {
+
+    }
+
+    [Serializable]
+    public class UguiTweenMasterDriveRect : UguiTweenMasterDrive<Rect>
+    {
+
+    }
+
+    [Serializable]
+    public class UguiTweenMasterDriveFloat : UguiTweenMasterDrive<float>
+    {
+
+    }
+
+    [Serializable]
+    public class UguiTweenMasterDriveInt : UguiTweenMasterDrive<int>
+    {
+
+    }
+
+    [Serializable]
+    public class UguiTweenMasterDriveUint : UguiTweenMasterDrive<uint>
+    {
+
+    }
+
+    [Serializable]
+    public class UguiTweenMasterDriveLong : UguiTweenMasterDrive<long>
+    {
+
+    }
+
+    [Serializable]
+    public class UguiTweenMasterDriveChar : UguiTweenMasterDrive<char>
+    {
+
+    }
+
+    [Serializable]
+    public class UguiTweenMasterDriveString : UguiTweenMasterDrive<string>
+    {
+
     }
 }

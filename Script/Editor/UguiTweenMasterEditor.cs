@@ -40,20 +40,20 @@ namespace RedScarf.UguiFriend
                             {
                                 var from = prop.GetValue(cacheTarget, new object[0]);
                                 var to = from;
-                                var driveInfo = new UguiTweenMasterDrive(
-                                    from,
-                                    to,
-                                    from.GetType(),
-                                    prop.Name,
-                                    AnimationCurve.EaseInOut(0,0,1,1)
-                                );
+
+                                var driveInfo = ScriptableObject.CreateInstance(UguiTweenMaster.GetDriveType(from.GetType())) as UguiTweenMasterDrive;
+                                driveInfo.from = from;
+                                driveInfo.to = to;
+                                driveInfo.animationCurve = AnimationCurve.EaseInOut(0,0,1,1);
+                                driveInfo.active = false;
+                                driveInfo.propName = prop.Name;
                                 driveAll.Add(driveInfo);
                             }
                         }
                     }
+
                     master.driveList = driveAll;
                     serializedObject.Update();
-                    Debug.Log("Dirty");
                 }
             }
 
@@ -80,17 +80,63 @@ namespace RedScarf.UguiFriend
         }
     }
 
-    [CustomPropertyDrawer(typeof(UguiTweenMasterDrive),true)]
+    [CustomPropertyDrawer(typeof(UguiTweenMasterDrive), true)]
     public class UguiTweenMasterDriveEditor : PropertyDrawer
     {
+        protected SerializedObject so;
+        protected List<SerializedProperty> props;
+
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            var activeRect = new Rect(position.position,new Vector2(position.height, position.height));
-            EditorGUI.PropertyField(activeRect,property.FindPropertyRelative("active"),new GUIContent(""));
-            //EditorGUILayout.PropertyField(property.FindPropertyRelative("propName"));
-            //EditorGUILayout.PropertyField(property.FindPropertyRelative("animationCurve"));
-            //var rawDataFrom=property.FindPropertyRelative("rawDataFrom").stringValue;
-            //var rawDataTo = property.FindPropertyRelative("rawDataTo").stringValue;
+            using (var scope=new EditorGUI.PropertyScope(position, label, property))
+            {
+                if (property.objectReferenceValue == null)
+                {
+                    EditorGUI.LabelField(position, new GUIContent("null"));
+                }
+                else
+                {
+                    SetDrawProps(property);
+
+                    UguiEditorTools.DrawProps(position, props);
+
+                    so.ApplyModifiedProperties();
+                }
+            }
+        }
+
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            SetDrawProps(property);
+
+            return UguiEditorTools.GetPropsHeight(props);
+        }
+
+        protected virtual void SetDrawProps(SerializedProperty property)
+        {
+            if (props == null)
+                props = new List<SerializedProperty>();
+            if (so == null)
+                so = new SerializedObject(property.objectReferenceValue);
+
+            props.Clear();
+
+            var active = so.FindProperty("active");
+            props.Add(active);
+
+            var animationCurve = so.FindProperty("animationCurve");
+            props.Add(animationCurve);
+
+            var fromValue = so.FindProperty("fromValue");
+            if (fromValue != null)
+            {
+                props.Add(fromValue);
+            }
+            var toValue = so.FindProperty("toValue");
+            if (toValue != null)
+            {
+                props.Add(toValue);
+            }
         }
     }
 }
