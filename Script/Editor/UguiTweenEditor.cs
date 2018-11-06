@@ -62,32 +62,7 @@ namespace RedScarf.UguiFriend
                 EditorGUILayout.PropertyField(playStyle);
             }
 
-            DrawState();
-
             serializedObject.ApplyModifiedProperties();
-        }
-
-        protected virtual void DrawState()
-        {
-            UguiEditorTools.DrawFadeGroup(
-                stateFoldout,
-                new GUIContent("State"),
-                () =>
-                {
-                    var isPlaying = serializedObject.FindProperty("m_IsPlaying");
-                    if (isPlaying != null)
-                    {
-                        EditorGUILayout.PropertyField(isPlaying);
-                    }
-
-                    var value = serializedObject.FindProperty("m_Value");
-                    if (value != null)
-                    {
-                        EditorGUILayout.PropertyField(value);
-                    }
-                },
-                Repaint
-            );
         }
     }
 }

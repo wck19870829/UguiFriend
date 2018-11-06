@@ -56,6 +56,8 @@ namespace RedScarf.UguiFriend
             {
                 foreach (var drive in m_DriveList)
                 {
+                    if (drive == null) continue;
+
                     var value=drive.animationCurve.Evaluate(progress);
                     switch (drive.driveType)
                     {
