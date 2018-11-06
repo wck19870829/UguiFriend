@@ -14,7 +14,7 @@ namespace RedScarf.UguiFriend
         static readonly Dictionary<Type, DriveLink> driveLinkDict;
 
         [SerializeField] protected Component m_Component;
-        [SerializeField] protected List<UguiTweenMasterDrive> driveList;
+        [SerializeField] protected List<UguiTweenMasterDrive> m_DriveList;
 
         protected class DriveLink
         {
@@ -52,9 +52,32 @@ namespace RedScarf.UguiFriend
 
         public override void UpdateProgress(float progress)
         {
-            foreach (var drive in driveList)
+            if (m_Component != null)
             {
+                foreach (var drive in m_DriveList)
+                {
+                    var value=drive.animationCurve.Evaluate(progress);
+                    switch (drive.driveType)
+                    {
+                        case UguiTweenMasterDrive.DriveType.Field:
+                            if (drive.fInfo == null)
+                                drive.fInfo = m_Component.GetType().GetField(drive.driveName);
+                            if (drive.fInfo != null)
+                            {
+                                drive.fInfo.SetValue(m_Component, value);
+                            }
+                            break;
 
+                        case UguiTweenMasterDrive.DriveType.Property:
+                            if (drive.pInfo == null)
+                                drive.pInfo = m_Component.GetType().GetProperty(drive.driveName);
+                            if (drive.pInfo != null)
+                            {
+                                drive.pInfo.SetValue(m_Component, value, new object[0]);
+                            }
+                            break;
+                    }
+                }
             }
         }
 
@@ -63,6 +86,19 @@ namespace RedScarf.UguiFriend
 
         }
 
+        public List<UguiTweenMasterDrive> DriveList
+        {
+            get
+            {
+                return m_DriveList;
+            }
+        }
+
+        /// <summary>
+        /// 获取驱动属性绑定的类型
+        /// </summary>
+        /// <param name="valueType"></param>
+        /// <returns></returns>
         public static Type GetDriveType(Type valueType)
         {
             if (driveLinkDict.ContainsKey(valueType))
@@ -176,18 +212,29 @@ namespace RedScarf.UguiFriend
         #endregion
     }
 
+
+    #region 驱动类,用于运行时修改字段或属性
+
     [Serializable]
     public abstract class UguiTweenMasterDrive:ScriptableObject
     {
-        public bool active;
-        public string propName;
+        public string driveName;
         public AnimationCurve animationCurve;
         public object from;
         public object to;
+        public DriveType driveType;
+        public FieldInfo fInfo;
+        public PropertyInfo pInfo;
+
+        public enum DriveType
+        {
+            Property=0,
+            Field=1
+        }
     }
 
     [Serializable]
-    public class UguiTweenMasterDrive<T>: UguiTweenMasterDrive,ISerializationCallbackReceiver
+    public abstract class UguiTweenMasterDrive<T>: UguiTweenMasterDrive,ISerializationCallbackReceiver
     {
         public T fromValue;
         public T toValue;
@@ -288,4 +335,6 @@ namespace RedScarf.UguiFriend
     {
 
     }
+
+    #endregion
 }

@@ -13,7 +13,6 @@ namespace RedScarf.UguiFriend
         protected virtual void OnEnable()
         {
             stateFoldout = new AnimBool();
-            stateFoldout.valueChanged.AddListener(Repaint);
         }
 
         public override void OnInspectorGUI()
@@ -23,7 +22,7 @@ namespace RedScarf.UguiFriend
             var comp = serializedObject.FindProperty("m_Component");
             if (comp != null)
             {
-                EditorGUILayout.PropertyField(comp,new GUIContent("Target"));
+                EditorGUILayout.PropertyField(comp, new GUIContent("Target"));
             }
 
             var from = serializedObject.FindProperty("m_From");
@@ -32,14 +31,14 @@ namespace RedScarf.UguiFriend
                 EditorGUILayout.PropertyField(from);
             }
 
-            var to= serializedObject.FindProperty("m_To");
+            var to = serializedObject.FindProperty("m_To");
             if (to != null)
             {
                 EditorGUILayout.PropertyField(to);
             }
 
             var duration = serializedObject.FindProperty("m_Duration");
-            if (duration!=null)
+            if (duration != null)
             {
                 EditorGUILayout.PropertyField(duration);
                 duration.floatValue = Mathf.Max(0, duration.floatValue);
@@ -70,11 +69,10 @@ namespace RedScarf.UguiFriend
 
         protected virtual void DrawState()
         {
-            stateFoldout.target = EditorGUILayout.Foldout(stateFoldout.target, "State");
-
-            using (var fadeScope=new EditorGUILayout.FadeGroupScope(stateFoldout.faded))
-            {
-                if (fadeScope.visible)
+            UguiEditorTools.DrawFadeGroup(
+                stateFoldout,
+                new GUIContent("State"),
+                () =>
                 {
                     var isPlaying = serializedObject.FindProperty("m_IsPlaying");
                     if (isPlaying != null)
@@ -87,8 +85,9 @@ namespace RedScarf.UguiFriend
                     {
                         EditorGUILayout.PropertyField(value);
                     }
-                }
-            }
+                },
+                Repaint
+            );
         }
     }
 }

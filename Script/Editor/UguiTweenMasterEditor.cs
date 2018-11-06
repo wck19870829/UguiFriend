@@ -3,29 +3,45 @@ using System.Collections;
 using UnityEditor;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEditor.AnimatedValues;
 
 namespace RedScarf.UguiFriend
 {
     [CustomEditor(typeof(UguiTweenMaster))]
     public class UguiTweenMasterEditor : UguiTweenEditor
     {
-        protected Object cacheTarget;
+        protected AnimBool selectAnimBool;
+        protected AnimBool unselectAnimBool;
         protected Vector2 driveScrollPos;
+        protected Dictionary<string, UguiTweenMasterDrive> unselectDriveDict;
 
         public override void OnInspectorGUI()
         {
+            var master = target as UguiTweenMaster;
+            if (selectAnimBool == null)
+                selectAnimBool = new AnimBool();
+            if (unselectAnimBool == null)
+                unselectAnimBool = new AnimBool();
+            if (unselectDriveDict == null)
+                unselectDriveDict = new Dictionary<string, UguiTweenMasterDrive>();
+            var component = serializedObject.FindProperty("m_Component");
+            var selectList = serializedObject.FindProperty("m_DriveList");
+            var cacheTarget = component.objectReferenceValue;
+
             base.OnInspectorGUI();
 
-            var master = target as UguiTweenMaster;
-            var component = serializedObject.FindProperty("m_Component");
-            if (cacheTarget!=component.objectReferenceValue)
+            if (cacheTarget != component.objectReferenceValue)
             {
                 cacheTarget = component.objectReferenceValue;
+                selectList.ClearArray();
+                unselectDriveDict.Clear();
+                master.DriveList.Clear();
 
-                if (cacheTarget!=null)
+                if (cacheTarget != null)
                 {
-                    var driveAll = new List<UguiTweenMasterDrive>();
                     var bindingAttr = BindingFlags.Instance | BindingFlags.Public;
+
+                    //属性
                     var propArr = cacheTarget.GetType().GetProperties(bindingAttr);
                     foreach (var prop in propArr)
                     {
@@ -40,55 +56,93 @@ namespace RedScarf.UguiFriend
                                 driveInfo.from = from;
                                 driveInfo.to = to;
                                 driveInfo.animationCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-                                driveInfo.active = false;
-                                driveInfo.propName = prop.Name;
-                                driveAll.Add(driveInfo);
+                                driveInfo.driveName = prop.Name;
+                                driveInfo.driveType = UguiTweenMasterDrive.DriveType.Property;
+
+                                unselectDriveDict.Add(driveInfo.driveName, driveInfo);
                             }
+                        }
+                    }
+
+                    //字段
+                    var fieldArr = cacheTarget.GetType().GetFields(bindingAttr);
+                    foreach (var field in fieldArr)
+                    {
+                        if (UguiTweenMultDrive.CanDrive(field.FieldType))
+                        {
+                            var from = field.GetValue(cacheTarget);
+                            var to = from;
+
+                            var driveInfo = ScriptableObject.CreateInstance(UguiTweenMaster.GetDriveType(from.GetType())) as UguiTweenMasterDrive;
+                            driveInfo.from = from;
+                            driveInfo.to = to;
+                            driveInfo.animationCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+                            driveInfo.driveName = field.Name;
+                            driveInfo.driveType = UguiTweenMasterDrive.DriveType.Field;
+
+                            unselectDriveDict.Add(driveInfo.driveName, driveInfo);
                         }
                     }
                 }
             }
 
-            if (component.objectReferenceValue != null)
+            if (cacheTarget != null)
             {
-                //绘制激活属性
-                var driveProp = serializedObject.FindProperty("driveList");
-                if(driveProp.arraySize==0)driveProp.InsertArrayElementAtIndex(0);
-                for (var i = 0; i < driveProp.arraySize; i++)
-                {
-                    EditorGUILayout.PropertyField(driveProp.GetArrayElementAtIndex(i));
-                }
+                //绘制需要驱动的属性和字段
+                var removeList = new List<int>();
+                UguiEditorTools.DrawFadeGroup(
+                    selectAnimBool,
+                    new GUIContent("激活"),
+                    () =>
+                    {
+                        for (var i = 0; i < selectList.arraySize; i++)
+                        {
+                            using (var horizontalScope = new EditorGUILayout.HorizontalScope())
+                            {
+                                var isSelect = EditorGUILayout.Toggle(true);
+                                if (!isSelect)
+                                {
+                                    removeList.Add(i);
+                                }
+                                EditorGUILayout.PropertyField(selectList.GetArrayElementAtIndex(i));
+                            }
+                        }
+                        for (var i = removeList.Count - 1; i >= 0; i--)
+                        {
+                            selectList.DeleteArrayElementAtIndex(i);
+                        }
+                    },
+                    Repaint
+                );
 
-                using (var scrollViewScope = new EditorGUILayout.ScrollViewScope(driveScrollPos, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight*5)))
-                {
-                    //绘制未激活属性
+                EditorGUILayout.Space();
 
-                    driveScrollPos = scrollViewScope.scrollPosition;
-                }
+                //绘制不需要驱动的属性和字段
+                UguiEditorTools.DrawFadeGroup(
+                    unselectAnimBool,
+                    new GUIContent("Property&Field"),
+                    () =>
+                    {
+                        foreach (var item in unselectDriveDict.Values)
+                        {
+                            var isSelect = EditorGUILayout.ToggleLeft(item.driveName, false);
+                            if (isSelect)
+                            {
+                                master.DriveList.Add(item);
+                            }
+                        }
+                        foreach (var drive in master.DriveList)
+                        {
+                            unselectDriveDict.Remove(drive.driveName);
+                        }
+                    },
+                    Repaint
+                );
             }
             else
             {
                 EditorGUILayout.HelpBox("选择组件!", MessageType.Warning);
             }
-
-            //var driveListProp = serializedObject.FindProperty("driveList");
-            //EditorGUILayout.PropertyField(driveListProp, true);
-
-            //var driveList = serializedObject.FindProperty("driveList");
-            ////EditorGUILayout.PropertyField(driveList,true);
-            //for (var i=0;i<driveList.arraySize;i++)
-            //{
-            //    var itemProp=(driveList.GetArrayElementAtIndex(i));
-            //    itemProp.FindPropertyRelative("propName").stringValue="xxxx";
-            //}
-
-            //if (driveAllListProp != null)
-            //{
-            //    for (var i=0;i< driveAllListProp.arraySize;i++)
-            //    {
-            //        var item = driveAllListProp.GetArrayElementAtIndex(i);
-            //    }
-            //}
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -102,7 +156,7 @@ namespace RedScarf.UguiFriend
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            using (var scope=new EditorGUI.PropertyScope(position, label, property))
+            using (var scope = new EditorGUI.PropertyScope(position, label, property))
             {
                 if (property.objectReferenceValue == null)
                 {
@@ -119,12 +173,12 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        //public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
-        //{
-        //    SetDrawProps(property);
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            SetDrawProps(property);
 
-        //    return UguiEditorTools.GetPropsHeight(props);
-        //}
+            return UguiEditorTools.GetPropsHeight(props);
+        }
 
         protected virtual void SetDrawProps(SerializedProperty property)
         {
@@ -137,9 +191,6 @@ namespace RedScarf.UguiFriend
                 so = new SerializedObject(property.objectReferenceValue);
 
             props.Clear();
-
-            var active = so.FindProperty("active");
-            props.Add(active);
 
             var animationCurve = so.FindProperty("animationCurve");
             props.Add(animationCurve);

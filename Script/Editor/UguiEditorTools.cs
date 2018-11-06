@@ -4,6 +4,8 @@ using UnityEditor;
 using System;
 using System.Reflection;
 using System.Collections.Generic;
+using UnityEditor.AnimatedValues;
+using UnityEngine.Events;
 
 namespace RedScarf.UguiFriend
 {
@@ -15,6 +17,30 @@ namespace RedScarf.UguiFriend
         static UguiEditorTools()
         {
 
+        }
+
+        public static void DrawFadeGroup(AnimBool stateFoldout,GUIContent guiContent,Action drawContentAction,UnityAction onValueChanged)
+        {
+            if (stateFoldout == null)
+                return;
+            if (onValueChanged!=null)
+            {
+                stateFoldout.valueChanged.RemoveListener(onValueChanged);
+                stateFoldout.valueChanged.AddListener(onValueChanged);
+            }
+
+            stateFoldout.target = EditorGUILayout.Foldout(stateFoldout.target, guiContent);
+
+            using (var fadeScope = new EditorGUILayout.FadeGroupScope(stateFoldout.faded))
+            {
+                if (fadeScope.visible)
+                {
+                    if (drawContentAction != null)
+                    {
+                        drawContentAction.Invoke();
+                    }
+                }
+            }
         }
 
         public static float DrawProps(Rect position,List<SerializedProperty> props)
