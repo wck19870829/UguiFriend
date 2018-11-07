@@ -390,6 +390,20 @@ namespace RedScarf.UguiFriend
             return clone;
         }
 
+        #region 运算
+
+        public static int Lerp(int a,int b,float t)
+        {
+            return Convert.ToInt32(Lerp((double)a,(double)b,t));
+        }
+
+        public static double Lerp(double a,double b,float t)
+        {
+            return (b - a) *t+a;
+        }
+
+        #endregion
+
         #region 其他
 
         /// <summary>

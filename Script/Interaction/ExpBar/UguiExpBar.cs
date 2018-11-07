@@ -53,14 +53,14 @@ namespace RedScarf.UguiFriend
             var list = new List<int>();
             for (var i=0;i<=maxLevel-minLevel;i++)
             {
-                list.Add(UnityEngine.Random.Range(1,1000));
+                list.Add((i+1)*1000);
             }
             Init(1, 0, list, minLevel, maxLevel);
         }
 
         protected virtual void Update()
         {
-            if (Input.GetKey(KeyCode.Space))
+            if (Input.GetKeyDown(KeyCode.Space))
             {
                 AddExp(addExp);
             }
@@ -72,10 +72,12 @@ namespace RedScarf.UguiFriend
         {
             if (!m_Init) return;
 
-            var cahceAnimTotalExp = m_AnimCurrentTotalExp;
+            var cacheAnimTotalExp = m_AnimCurrentTotalExp;
             m_AnimCurrentTotalExp = (int)Mathf.Lerp(m_AnimCurrentTotalExp, m_CurrentTotalExp,m_Speed);
+            if (cacheAnimTotalExp == m_AnimCurrentTotalExp)
+                m_AnimCurrentTotalExp = m_CurrentTotalExp;
 
-            if(cahceAnimTotalExp!= m_AnimCurrentTotalExp)
+            if (cacheAnimTotalExp != m_AnimCurrentTotalExp)
             {
                 var animLevel = -1;
                 var animCurrentExp = -1;
@@ -84,6 +86,8 @@ namespace RedScarf.UguiFriend
                 {
                     m_AnimCurrentLevel = m_MaxLevel;
                     animLevel = m_AnimCurrentLevel;
+                    currentLevelTotalExp = rangeList[rangeList.Count-1].exp;
+                    animCurrentExp = currentLevelTotalExp;
                 }
                 else
                 {
@@ -106,7 +110,7 @@ namespace RedScarf.UguiFriend
 
                 if (m_ProgressBar != null)
                 {
-                    m_ProgressBar.fillAmount = (float)(animCurrentExp / (double)currentLevelTotalExp);
+                    m_ProgressBar.fillAmount = animCurrentExp / (float)currentLevelTotalExp;
                 }
                 if (m_LevelText != null)
                 {
@@ -207,7 +211,7 @@ namespace RedScarf.UguiFriend
             m_AnimCurrentLevel = currentLevel;
             if (m_ProgressBar != null)
             {
-                m_ProgressBar.fillAmount = (float)(currentExp / (double)currentLevelExp);
+                m_ProgressBar.fillAmount = currentExp / (float)currentLevelExp;
             }
             if (m_LevelText != null)
             {
