@@ -12,8 +12,6 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiExpBar : UIBehaviour
     {
-        public int addExp;
-
         [SerializeField] protected Image m_ProgressBar;
         [SerializeField] protected Text m_LevelText;
         [SerializeField] protected Text m_CurrentLevelExpText;
@@ -47,24 +45,10 @@ namespace RedScarf.UguiFriend
             if (m_ProgressBar == null)
                 throw new Exception("进度条不能为null.");
             m_ProgressBar.type = Image.Type.Filled;
-
-            var maxLevel = 10;
-            var minLevel = 0;
-            var list = new List<int>();
-            for (var i=0;i<=maxLevel-minLevel;i++)
-            {
-                list.Add((i+1)*1000);
-            }
-            Init(1, 0, list, minLevel, maxLevel);
         }
 
         protected virtual void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                AddExp(addExp);
-            }
-
             UpdateState();
         }
 

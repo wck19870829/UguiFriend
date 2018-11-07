@@ -12,11 +12,16 @@ namespace RedScarf.UguiFriend
     public class UguiProgressBar : UIBehaviour
     {
         [Range(0.01f,1f)]
-        [SerializeField] protected float m_Speed;
+        [SerializeField] protected float m_Speed=0.1f;
         [SerializeField] protected Image m_Bar;
         [SerializeField] protected Text m_DetailText;
         protected ProgressStyle m_ProgressStyle;
+        protected float m_CurrentValue;
+        protected float m_TotalValue;
+        protected float m_AnimCurrentValue;
         protected string unitStr;
+
+        public Action OnComplete;
 
         protected override void Awake()
         {
@@ -29,15 +34,38 @@ namespace RedScarf.UguiFriend
 
         protected virtual void Update()
         {
-            switch (m_ProgressStyle)
+            var cacheValue = m_AnimCurrentValue;
+            m_AnimCurrentValue = Mathf.Lerp(m_AnimCurrentValue, m_CurrentValue, m_Speed);
+            if (m_CurrentValue - m_AnimCurrentValue < 0.1f) m_AnimCurrentValue = m_CurrentValue;
+
+            if (cacheValue!= m_AnimCurrentValue)
             {
-                case ProgressStyle.Step:
+                switch (m_ProgressStyle)
+                {
+                    case ProgressStyle.Step:
+                        UpdateBar(m_AnimCurrentValue / m_TotalValue);
+                        UpdateText(m_AnimCurrentValue.ToString("0") + unitStr + "/" + m_TotalValue + unitStr);
+                        if (m_AnimCurrentValue == m_TotalValue)
+                        {
+                            if (OnComplete != null)
+                            {
+                                OnComplete.Invoke();
+                            }
+                        }
+                        break;
 
-                    break;
-
-                case ProgressStyle.Percent:
-
-                    break;
+                    case ProgressStyle.Percent:
+                        UpdateBar(m_AnimCurrentValue / 100);
+                        UpdateText(m_AnimCurrentValue.ToString("0.0"));
+                        if (m_AnimCurrentValue == 100)
+                        {
+                            if (OnComplete != null)
+                            {
+                                OnComplete.Invoke();
+                            }
+                        }
+                        break;
+                }
             }
         }
 
@@ -65,19 +93,21 @@ namespace RedScarf.UguiFriend
         {
             m_ProgressStyle = ProgressStyle.Percent;
             unitStr = "%";
+            m_CurrentValue = percent;
         }
 
         /// <summary>
         /// 按步骤更新
         /// </summary>
-        /// <param name="current"></param>
-        /// <param name="total"></param>
+        /// <param name="currentValue"></param>
+        /// <param name="totalValue"></param>
         /// <param name="unit">单位字符</param>
-        public virtual void UpdateInfo(int current,int total,string unit="")
+        public virtual void UpdateInfo(int currentValue,int totalValue,string unit="")
         {
             m_ProgressStyle = ProgressStyle.Step;
             unitStr = unit;
-
+            m_CurrentValue = currentValue;
+            m_TotalValue = totalValue;
         }
 
         /// <summary>
