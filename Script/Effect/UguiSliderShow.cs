@@ -22,7 +22,7 @@ namespace RedScarf.UguiFriend
         protected RectTransform m_Content;
         protected UguiCenterOnChild centerOnChild;
         protected float m_CountDown;
-        protected Transform current;
+        protected Transform m_CurrentCenter;
         protected List<Transform> m_Children;
         protected Dictionary<Transform, float> m_ChildrenScoreDict;
         protected bool m_Init;
@@ -46,10 +46,10 @@ namespace RedScarf.UguiFriend
 
             Init();
             m_CountDown = m_Interval;
-            if (current == null&&m_Content.childCount>0)
+            if (m_CurrentCenter == null&&m_Content.childCount>0)
             {
-                current = m_Content.GetChild(0);
-                centerOnChild.CenterOn(current, true);
+                m_CurrentCenter = m_Content.GetChild(0);
+                centerOnChild.CenterOn(m_CurrentCenter, true);
             }
         }
 
@@ -182,11 +182,11 @@ namespace RedScarf.UguiFriend
         protected virtual void GotoNext()
         {
             m_CountDown = m_Interval;
-            Transform next = FindNext(current,m_StartWrapMode,m_StartFindDirection,m_Invert);
+            Transform next = FindNext(m_CurrentCenter,m_StartWrapMode,m_StartFindDirection,m_Invert);
             if (next != null)
             {
-                current = next;
-                centerOnChild.CenterOn(current, false);
+                m_CurrentCenter = next;
+                centerOnChild.CenterOn(m_CurrentCenter, false);
             }
         }
 
