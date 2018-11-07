@@ -12,8 +12,16 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiExpBar : UIBehaviour
     {
-        [SerializeField] protected Image m_Bar;
-        [SerializeField] protected float m_Duration = 0.2f;
+        public int addExp;
+
+        [SerializeField] protected Image m_ProgressBar;
+        [SerializeField] protected Text m_LevelText;
+        [SerializeField] protected Text m_CurrentLevelExpText;
+        [SerializeField] protected Text m_CurrentLevelTotalExpText;
+
+        [Range(0.01f,1f)]
+        [SerializeField] protected float m_Speed = 0.1f;
+        protected bool m_Init;
 
         protected int m_MaxLevel;
         protected int m_MinLevel;
@@ -22,10 +30,10 @@ namespace RedScarf.UguiFriend
         protected int m_CurrentTotalExp;
         protected int m_TotalExp;
         protected float m_FillAmount;
-        protected bool m_IsUp;
         protected List<ExpRange> rangeList;
 
         protected int m_AnimCurrentTotalExp;
+        protected int m_AnimCurrentLevel;
 
         public Action<UguiExpBar> OnReachMaxLevel;              //达到等级上限
         public Action<UguiExpBar> OnReachMinLevel;              //达到等级下限
@@ -36,19 +44,112 @@ namespace RedScarf.UguiFriend
         {
             base.Awake();
 
+            if (m_ProgressBar == null)
+                throw new Exception("进度条不能为null.");
+            m_ProgressBar.type = Image.Type.Filled;
 
+            var maxLevel = 10;
+            var minLevel = 0;
+            var list = new List<int>();
+            for (var i=0;i<=maxLevel-minLevel;i++)
+            {
+                list.Add(UnityEngine.Random.Range(1,1000));
+            }
+            Init(1, 0, list, minLevel, maxLevel);
         }
 
         protected virtual void Update()
         {
-            var level = -1;
-            foreach (var range in rangeList)
+            if (Input.GetKey(KeyCode.Space))
             {
-                if(range.from<= m_AnimCurrentTotalExp && range.to>= m_AnimCurrentTotalExp)
+                AddExp(addExp);
+            }
+
+            UpdateState();
+        }
+
+        protected virtual void UpdateState()
+        {
+            if (!m_Init) return;
+
+            var cahceAnimTotalExp = m_AnimCurrentTotalExp;
+            m_AnimCurrentTotalExp = (int)Mathf.Lerp(m_AnimCurrentTotalExp, m_CurrentTotalExp,m_Speed);
+
+            if(cahceAnimTotalExp!= m_AnimCurrentTotalExp)
+            {
+                var animLevel = -1;
+                var animCurrentExp = -1;
+                var currentLevelTotalExp = -1;
+                if (m_AnimCurrentTotalExp == m_TotalExp)
                 {
-                    level = range.level;
-                    break;
+                    m_AnimCurrentLevel = m_MaxLevel;
+                    animLevel = m_AnimCurrentLevel;
                 }
+                else
+                {
+                    foreach (var range in rangeList)
+                    {
+                        if (range.from <= m_AnimCurrentTotalExp && m_AnimCurrentTotalExp < range.to)
+                        {
+                            animLevel = range.level;
+                            animCurrentExp = m_AnimCurrentTotalExp - range.from;
+                            currentLevelTotalExp = range.exp;
+                            break;
+                        }
+                    }
+                }
+                if (animLevel < m_MinLevel || currentLevelTotalExp <= 0)
+                {
+                    Debug.LogError("数据错误");
+                    return;
+                }
+
+                if (m_ProgressBar != null)
+                {
+                    m_ProgressBar.fillAmount = (float)(animCurrentExp / (double)currentLevelTotalExp);
+                }
+                if (m_LevelText != null)
+                {
+                    m_LevelText.text = animLevel.ToString();
+                }
+                if (m_CurrentLevelExpText != null)
+                {
+                    m_CurrentLevelExpText.text = animCurrentExp.ToString();
+                }
+                if (m_CurrentLevelTotalExpText != null)
+                {
+                    m_CurrentLevelTotalExpText.text = currentLevelTotalExp.ToString();
+                }
+
+                if (m_AnimCurrentTotalExp >= m_TotalExp)
+                {
+                    if (OnReachMaxLevel != null)
+                    {
+                        OnReachMaxLevel.Invoke(this);
+                    }
+                }
+                else if (m_AnimCurrentTotalExp <= 0)
+                {
+                    if (OnReachMinLevel != null)
+                    {
+                        OnReachMinLevel.Invoke(this);
+                    }
+                }
+                else if (m_AnimCurrentLevel < animLevel)
+                {
+                    if (OnLevelUp != null)
+                    {
+                        OnLevelUp.Invoke(this);
+                    }
+                }
+                else if (m_AnimCurrentLevel > animLevel)
+                {
+                    if (OnLevelDown != null)
+                    {
+                        OnLevelDown.Invoke(this);
+                    }
+                }
+                m_AnimCurrentLevel = animLevel;
             }
         }
 
@@ -66,13 +167,16 @@ namespace RedScarf.UguiFriend
                 throw new Exception("数组为空.");
             var step = maxLevel - minLevel+1;
             if (levelStepExpList.Count != step)
-                throw new Exception("数组长度应等于："+step);
+                throw new Exception("数组长度应为："+step);
+            if (minLevel < 0||maxLevel<0)
+                throw new Exception("等级需大于等于0");
 
             m_CurrentLevel = currentLevel;
             m_CurrentExp = currentExp;
             m_MinLevel = minLevel;
             m_MaxLevel = maxLevel;
             m_TotalExp = 0;
+            m_CurrentTotalExp = 0;
 
             if (rangeList == null)
                 rangeList = new List<ExpRange>();
@@ -88,19 +192,75 @@ namespace RedScarf.UguiFriend
                 m_TotalExp = to;
                 level++;
             }
+            var currentLevelExp = 0;
+            foreach (var range in rangeList)
+            {
+                if (range.level == currentLevel)
+                {
+                    currentLevelExp = range.exp;
+                    m_CurrentTotalExp = range.from + currentExp;
+                    break;
+                }
+            }
+
+            m_AnimCurrentTotalExp = m_CurrentTotalExp;
+            m_AnimCurrentLevel = currentLevel;
+            if (m_ProgressBar != null)
+            {
+                m_ProgressBar.fillAmount = (float)(currentExp / (double)currentLevelExp);
+            }
+            if (m_LevelText != null)
+            {
+                m_LevelText.text = currentLevel.ToString();
+            }
+            if (m_CurrentLevelExpText != null)
+            {
+                m_CurrentLevelExpText.text = currentExp.ToString();
+            }
+            if (m_CurrentLevelTotalExpText != null)
+            {
+                m_CurrentLevelTotalExpText.text = currentLevelExp.ToString();
+            }
+
+            m_Init = true;
         }
 
         /// <summary>
-        /// 增加经验，支持负数
+        /// 增加经验
+        /// 正数增加,负数减少
         /// </summary>
         /// <param name="exp"></param>
         public virtual void AddExp(int exp)
         {
+            CheckInit();
+
             if (exp == 0) return;
 
-            m_IsUp = exp > 0 ? true : false;
             m_CurrentTotalExp += exp;
             m_CurrentTotalExp = Mathf.Clamp(m_CurrentTotalExp, 0, m_TotalExp);
+            if (m_CurrentTotalExp == m_TotalExp)
+            {
+                m_CurrentLevel = m_MaxLevel;
+            }
+            else
+            {
+                foreach (var range in rangeList)
+                {
+                    if (m_CurrentTotalExp >= range.from && m_CurrentTotalExp < range.to)
+                    {
+                        m_CurrentLevel = range.level;
+                        break;
+                    }
+                }
+            }
+        }
+
+        protected virtual void CheckInit()
+        {
+            if (!m_Init)
+            {
+                throw new Exception("需先执行初始化Init()方法");
+            }
         }
 
         /// <summary>
@@ -138,12 +298,14 @@ namespace RedScarf.UguiFriend
             public int level;
             public int from;
             public int to;
+            public int exp;
 
             public ExpRange(int level,int from,int to)
             {
                 this.level = level;
                 this.from = from;
                 this.to = to;
+                this.exp = to - from;
             }
         }
     }
