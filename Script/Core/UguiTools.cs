@@ -25,6 +25,45 @@ namespace RedScarf.UguiFriend
             }
         }
 
+        static readonly Quaternion rotation90 = Quaternion.FromToRotation(Vector2.up, Vector2.right);
+
+        /// <summary>
+        /// 创建直线的网格
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <param name="color"></param>
+        /// <param name="thickness"></param>
+        /// <returns></returns>
+        public static UIVertex[] CreateQuad(Vector2 start,Vector2 end,Color color,float thickness=1)
+        {
+            var dir = end - start;
+            var offset = (Vector2)(rotation90*dir).normalized*thickness;
+
+            var p1 = new UIVertex();
+            p1.position = start + offset;
+            p1.color = color;
+
+            var p2 = new UIVertex();
+            p2.position = end + offset;
+            p2.color = color;
+
+            var p3 = new UIVertex();
+            p3.position = end - offset;
+            p3.color = color;
+
+            var p4 = new UIVertex();
+            p4.position = start - offset;
+            p4.color = color;
+
+            var vertexes = new UIVertex[]
+            {
+                p1,p2,p3,p4
+            };
+
+            return vertexes;
+        }
+
         /// <summary>
         /// 获取物体的世界坐标系边界(递归包含所有子物体)
         /// </summary>
