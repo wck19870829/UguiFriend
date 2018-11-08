@@ -13,40 +13,31 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiLine : MaskableGraphic
     {
-        [SerializeField] protected List<Vector3> m_Points;
+        [SerializeField] protected List<Vector2> m_Points;
         [SerializeField] protected LineStyle m_LineStyle;
         [SerializeField] protected float m_Thickness = 1;
+        protected List<Vector2> pointsTemp;
+
+        protected UguiLine()
+        {
+            pointsTemp = new List<Vector2>();
+        }
 
         protected override void OnPopulateMesh(VertexHelper vh)
         {
             base.OnPopulateMesh(vh);
 
+            vh.Clear();
             if (m_Points != null && m_Points.Count >= 2)
             {
-                vh.Clear();
-                if (m_LineStyle==LineStyle.Straight)
+                if (m_LineStyle == LineStyle.Straight)
                 {
-                    if (m_Points.Count==2)
-                    {
-                        var quad = UguiTools.CreateQuad(m_Points[0], m_Points[1], color, m_Thickness);
-                        vh.AddUIVertexQuad(quad);
-                    }
-                    else if(m_Points.Count>2)
-                    {
-                        for (var i = 0; i < m_Points.Count - 1; i++)
-                        {
-                            var verts = new UIVertex[4];
-                            var quad = UguiTools.CreateQuad(m_Points[i], m_Points[i + 1], color, m_Thickness);
-                            vh.AddUIVertexQuad(quad);
-                        }
-                    }
+                    UguiTools.CreateLineMesh(ref vh, m_Points, color, m_Thickness);
                 }
                 else if (m_LineStyle == LineStyle.Bezier)
                 {
-                    for (var i = 0; i < m_Points.Count; i++)
-                    {
-
-                    }
+                    pointsTemp.Clear();
+                    UguiTools.CreateLineMesh(ref vh, pointsTemp, color, m_Thickness);
                 }
             }
         }
@@ -67,7 +58,7 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        public virtual List<Vector3> Points
+        public virtual List<Vector2> Points
         {
             get
             {

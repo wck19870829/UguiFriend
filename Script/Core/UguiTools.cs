@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace RedScarf.UguiFriend
 {
@@ -28,6 +29,77 @@ namespace RedScarf.UguiFriend
         static readonly Quaternion rotation90 = Quaternion.FromToRotation(Vector2.up, Vector2.right);
 
         /// <summary>
+        /// 由点创建网格
+        /// </summary>
+        /// <param name="vh"></param>
+        /// <param name="points"></param>
+        /// <param name="color"></param>
+        /// <param name="thickness"></param>
+        public static void CreateLineMesh(ref VertexHelper vh,List<Vector2>points,Color color,float thickness = 1)
+        {
+            vh.Clear();
+            if (points != null && points.Count >= 2)
+            {
+                if (points.Count == 2)
+                {
+                    var quad = CreateQuad(points[0], points[1], color, thickness);
+                    vh.AddUIVertexQuad(quad);
+                }
+                else
+                {
+                    var startPoint = points[0];
+                    var currentPoint = points[1];
+                    var lastOffset = GetVertical(startPoint, currentPoint) * thickness;
+                    var startPoint1 = new UIVertex();
+                    startPoint1.color = color;
+                    startPoint1.position = startPoint + lastOffset;
+                    var startPoint2 = new UIVertex();
+                    startPoint2.color = color;
+                    startPoint2.position = startPoint - lastOffset;
+                    var lastInfo = new UIVertex[] 
+                    {
+                        startPoint1,startPoint2
+                    };
+
+                    for (var i=1;i<points.Count-1;i++)
+                    {
+                        var current = points[i];
+                        var next = points[i + 1];
+                        var nextOffset = GetVertical(current,next)*thickness;
+                        var currentOffset = Vector2.Lerp(lastOffset,nextOffset,0.5f);
+
+                        var currentPoint1 = new UIVertex();
+                        currentPoint1.color = color;
+                        currentPoint1.position = current + currentOffset;
+                        var currentPoint2 = new UIVertex();
+                        currentPoint2.color = color;
+                        currentPoint2.position = current - currentOffset;
+
+                        var quad = new UIVertex[] 
+                        {
+                            lastInfo[0],lastInfo[1],currentPoint2,currentPoint1
+                        };
+                        vh.AddUIVertexQuad(quad);
+
+                        lastOffset = currentOffset;
+                        lastInfo[0] = currentPoint1;
+                        lastInfo[1] = currentPoint2;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 获取垂线
+        /// </summary>
+        /// <returns></returns>
+        public static Vector2 GetVertical(Vector2 start,Vector2 end)
+        {
+            var dir = (end - start).normalized;
+            return (Vector2)(rotation90 * dir);
+        }
+
+        /// <summary>
         /// 创建直线的网格
         /// </summary>
         /// <param name="start"></param>
@@ -37,8 +109,7 @@ namespace RedScarf.UguiFriend
         /// <returns></returns>
         public static UIVertex[] CreateQuad(Vector2 start,Vector2 end,Color color,float thickness=1)
         {
-            var dir = end - start;
-            var offset = (Vector2)(rotation90*dir).normalized*thickness;
+            var offset = GetVertical (start,end)* thickness;
 
             var p1 = new UIVertex();
             p1.position = start + offset;
