@@ -11,11 +11,12 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 线段
     /// </summary>
-    public class UguiLine : MaskableGraphic
+    public class UguiLine : RawImage
     {
         [SerializeField] protected List<Vector2> m_Points;
         [SerializeField] protected LineStyle m_LineStyle;
         [SerializeField] protected float m_Thickness = 1;
+        [SerializeField] protected int m_Subdivide=UguiMathf.Bezier.defaultSubdivide;
         protected UguiMathf.Bezier m_Bezier;
 
         protected override void OnPopulateMesh(VertexHelper vh)
@@ -36,32 +37,13 @@ namespace RedScarf.UguiFriend
                     {
                         bezierPoints.Add(m_Points[i]);
                     }
-                    m_Bezier = new UguiMathf.Bezier(bezierPoints);
+                    m_Bezier = new UguiMathf.Bezier(bezierPoints, m_Subdivide);
                     var throughPoints = new List<Vector2>(m_Bezier.ThroughPoints.Count);
                     for (var i=0;i< m_Bezier.ThroughPoints.Count;i++)
                     {
                         throughPoints.Add(m_Bezier.ThroughPoints[i]);
                     }
                     UguiTools.CreateLineMesh(ref vh, throughPoints, color, m_Thickness);
-                }
-            }
-        }
-
-        private void OnDrawGizmos()
-        {
-            if (m_Bezier!=null)
-            {
-                foreach (var segment in m_Bezier.Segments)
-                {
-                    UnityEditor.Handles.color = Color.red;
-                    UnityEditor.Handles.DrawLine(segment.StartPosition, segment.StartTangent);
-                    UnityEditor.Handles.DrawSphere(0, segment.StartPosition, Quaternion.identity, 10);
-
-                    UnityEditor.Handles.color = Color.yellow;
-                    UnityEditor.Handles.DrawLine(segment.EndPosition,segment.EndTangent);
-
-                    UnityEditor.Handles.color = Color.yellow;
-                    UnityEditor.Handles.DrawBezier(segment.StartPosition, segment.EndPosition, segment.StartTangent, segment.EndTangent, Color.white,null, 5);
                 }
             }
         }
@@ -82,6 +64,9 @@ namespace RedScarf.UguiFriend
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public virtual List<Vector2> Points
         {
             get

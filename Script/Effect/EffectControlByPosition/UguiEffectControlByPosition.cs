@@ -58,7 +58,7 @@ namespace RedScarf.UguiFriend
         {
             if (startPoint == null || endPoint == null || item == null) return 0;
 
-            var projectPoint = UguiTools.ProjectPointLine(item.position, startPoint.position, endPoint.position);
+            var projectPoint = UguiMathf.ProjectPointLine(item.position, startPoint.position, endPoint.position);
             if (isCenterMirror)
             {
                 var center = Vector3.Lerp(startPoint.position, endPoint.position, 0.5f);
@@ -85,7 +85,7 @@ namespace RedScarf.UguiFriend
         {
             if (startPoint == null || endPoint == null || item == null) return 0;
 
-            var projectPoint = UguiTools.ProjectPointLine(item.position, startPoint.position, endPoint.position);
+            var projectPoint = UguiMathf.ProjectPointLine(item.position, startPoint.position, endPoint.position);
             var startDist = Vector3.Distance(projectPoint, startPoint.position);
             var endDist = Vector3.Distance(projectPoint, endPoint.position);
 
