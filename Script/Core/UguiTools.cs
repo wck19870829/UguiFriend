@@ -10,10 +10,13 @@ using UnityEngine.UI;
 namespace RedScarf.UguiFriend
 {
     /// <summary>
-    /// UI工具类
+    /// 工具类
     /// </summary>
     public static class UguiTools
     {
+        static readonly Quaternion rotation90 = Quaternion.FromToRotation(Vector2.up, Vector2.right);
+        static readonly List<UIVertex[]> vertexexTemp = new List<UIVertex[]>(2048);
+
         /// <summary>
         /// 销毁所有子元素
         /// </summary>
@@ -26,8 +29,6 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        static readonly Quaternion rotation90 = Quaternion.FromToRotation(Vector2.up, Vector2.right);
-
         /// <summary>
         /// 由点创建网格
         /// </summary>
@@ -38,53 +39,99 @@ namespace RedScarf.UguiFriend
         public static void CreateLineMesh(ref VertexHelper vh,List<Vector2>points,Color color,float thickness = 1)
         {
             vh.Clear();
+            vertexexTemp.Clear();
+
             if (points != null && points.Count >= 2)
             {
                 if (points.Count == 2)
                 {
                     var quad = CreateQuad(points[0], points[1], color, thickness);
-                    vh.AddUIVertexQuad(quad);
+                    vertexexTemp.Add(quad);
                 }
                 else
                 {
-                    var startPoint = points[0];
-                    var currentPoint = points[1];
-                    var lastOffset = GetVertical(startPoint, currentPoint) * thickness;
-                    var startPoint1 = new UIVertex();
-                    startPoint1.color = color;
-                    startPoint1.position = startPoint + lastOffset;
-                    var startPoint2 = new UIVertex();
-                    startPoint2.color = color;
-                    startPoint2.position = startPoint - lastOffset;
-                    var lastInfo = new UIVertex[] 
+                    for (var i=1;i<points.Count;i++)
                     {
-                        startPoint1,startPoint2
-                    };
-
-                    for (var i=1;i<points.Count-1;i++)
-                    {
-                        var current = points[i];
-                        var next = points[i + 1];
-                        var nextOffset = GetVertical(current,next)*thickness;
-                        var currentOffset = Vector2.Lerp(lastOffset,nextOffset,0.5f);
-
-                        var currentPoint1 = new UIVertex();
-                        currentPoint1.color = color;
-                        currentPoint1.position = current + currentOffset;
-                        var currentPoint2 = new UIVertex();
-                        currentPoint2.color = color;
-                        currentPoint2.position = current - currentOffset;
-
-                        var quad = new UIVertex[] 
-                        {
-                            lastInfo[0],lastInfo[1],currentPoint2,currentPoint1
-                        };
-                        vh.AddUIVertexQuad(quad);
-
-                        lastOffset = currentOffset;
-                        lastInfo[0] = currentPoint1;
-                        lastInfo[1] = currentPoint2;
+                        var quad = CreateQuad(points[i - 1], points[i], color, thickness);
+                        vertexexTemp.Add(quad);
                     }
+                    //UIVertex[] lastQuad=null;
+                    //var lastOffset = Vector2.zero;
+                    //for (var i=1;i<points.Count-1;i++)
+                    //{
+                    //    var current = points[i];
+                    //    var prev = points[i - 1];
+                    //    var next = points[i + 1];
+                    //    var offset = Vector2.Lerp(prev - current, next - current, 0.5f).normalized;
+                    //    offset *= thickness/Mathf.Sin(Mathf.Deg2Rad*0.5f * Vector2.Angle(prev - current, next - current));
+                    //    var vertical = GetVertical(prev, current);
+                    //    offset *= Mathf.Sign(Vector2.Dot(offset, vertical));
+                    //    lastOffset=offset;
+
+                    //    var currentPointUp = new UIVertex();
+                    //    currentPointUp.position = current + offset;
+                    //    var currentPointDown = new UIVertex();
+                    //    currentPointDown.position = current - offset;
+
+                    //    if (lastQuad == null)
+                    //    {
+                    //        //添加第一段
+                    //        var startPoint = points[0];
+                    //        var startPointVertical = GetVertical(startPoint, current)*thickness;
+                    //        startPointVertical*= Mathf.Sign(Vector2.Dot(lastOffset, startPointVertical));
+                    //        var startQuadPointUp = new UIVertex();
+                    //        startQuadPointUp.position = startPoint + lastOffset;
+                    //        var startQuadPointDown = new UIVertex();
+                    //        startQuadPointDown.position = startPoint - lastOffset;
+                    //        lastQuad = new UIVertex[] {
+                    //            startQuadPointUp,
+                    //            startQuadPointDown,
+                    //            currentPointDown,
+                    //            currentPointUp
+                    //        };
+                    //        vertexexTemp.Add(lastQuad);
+                    //    }
+                    //    else
+                    //    {
+                    //        var quad = new UIVertex[] 
+                    //        {
+                    //            lastQuad[3],
+                    //            lastQuad[2],
+                    //            currentPointDown,
+                    //            currentPointUp
+                    //        };
+                    //        vertexexTemp.Add(quad);
+                    //        lastQuad = quad;
+                    //    }
+                    //}
+
+                    ////添加最后一段
+                    //var lastPoint = points[points.Count-1];
+                    //var lastPointVertical = GetVertical(points[points.Count - 2], lastPoint)*thickness;
+                    //lastPointVertical *= Mathf.Sign(Vector2.Dot(lastOffset,lastPointVertical));
+                    //var lastQuadPointUp = new UIVertex();
+                    //lastQuadPointUp.position = lastPoint + lastPointVertical;
+                    //var lastQuadPointDown = new UIVertex();
+                    //lastQuadPointDown.position = lastPoint - lastPointVertical;
+                    //lastQuad = new UIVertex[] {
+                    //    lastQuad[3],
+                    //    lastQuad[2],
+                    //    lastQuadPointDown,
+                    //    lastQuadPointUp
+                    //};
+                    //vertexexTemp.Add(lastQuad);
+                }
+                UIVertex[] quadItem=null;
+                for (var i=0;i<vertexexTemp.Count;i++)
+                {
+                    quadItem = vertexexTemp[i];
+                    for (var j=0;j< quadItem.Length;j++)
+                    {
+                        var v = quadItem[j];
+                        v.color = color;
+                        quadItem[j] = v;
+                    }
+                    vh.AddUIVertexQuad(quadItem);
                 }
             }
         }

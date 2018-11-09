@@ -16,12 +16,7 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected List<Vector2> m_Points;
         [SerializeField] protected LineStyle m_LineStyle;
         [SerializeField] protected float m_Thickness = 1;
-        protected List<Vector2> pointsTemp;
-
-        protected UguiLine()
-        {
-            pointsTemp = new List<Vector2>();
-        }
+        protected UguiMathf.Bezier m_Bezier;
 
         protected override void OnPopulateMesh(VertexHelper vh)
         {
@@ -36,8 +31,37 @@ namespace RedScarf.UguiFriend
                 }
                 else if (m_LineStyle == LineStyle.Bezier)
                 {
-                    pointsTemp.Clear();
-                    UguiTools.CreateLineMesh(ref vh, pointsTemp, color, m_Thickness);
+                    var bezierPoints = new List<Vector3>(m_Points.Count);
+                    for (var i=0;i< m_Points.Count;i++)
+                    {
+                        bezierPoints.Add(m_Points[i]);
+                    }
+                    m_Bezier = new UguiMathf.Bezier(bezierPoints);
+                    var throughPoints = new List<Vector2>(m_Bezier.ThroughPoints.Count);
+                    for (var i=0;i< m_Bezier.ThroughPoints.Count;i++)
+                    {
+                        throughPoints.Add(m_Bezier.ThroughPoints[i]);
+                    }
+                    UguiTools.CreateLineMesh(ref vh, throughPoints, color, m_Thickness);
+                }
+            }
+        }
+
+        private void OnDrawGizmos()
+        {
+            if (m_Bezier!=null)
+            {
+                foreach (var segment in m_Bezier.Segments)
+                {
+                    UnityEditor.Handles.color = Color.red;
+                    UnityEditor.Handles.DrawLine(segment.StartPosition, segment.StartTangent);
+                    UnityEditor.Handles.DrawSphere(0, segment.StartPosition, Quaternion.identity, 10);
+
+                    UnityEditor.Handles.color = Color.yellow;
+                    UnityEditor.Handles.DrawLine(segment.EndPosition,segment.EndTangent);
+
+                    UnityEditor.Handles.color = Color.yellow;
+                    UnityEditor.Handles.DrawBezier(segment.StartPosition, segment.EndPosition, segment.StartTangent, segment.EndTangent, Color.white,null, 5);
                 }
             }
         }
