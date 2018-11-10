@@ -13,6 +13,30 @@ namespace RedScarf.UguiFriend
         static readonly Quaternion rotation90 = Quaternion.FromToRotation(Vector2.up, Vector2.right);
 
         /// <summary>
+        /// 获取包含所有点的矩形
+        /// </summary>
+        /// <param name="points"></param>
+        /// <returns></returns>
+        public static Rect GetRect(Vector2[] points)
+        {
+            if (points == null)
+                throw new Exception("Points is null.");
+            if (points.Length == 0)
+                throw new Exception("Points length is zero.");
+
+            var rect = new Rect(points[0], Vector3.zero);
+            foreach (var point in points)
+            {
+                rect.xMax = Mathf.Max(rect.xMax, point.x);
+                rect.xMin = Mathf.Min(rect.xMin, point.x);
+                rect.yMax = Mathf.Max(rect.yMax, point.y);
+                rect.yMin = Math.Min(rect.yMin, point.y);
+            }
+
+            return rect;
+        }
+
+        /// <summary>
         /// 投射点到线上
         /// </summary>
         /// <param name="point"></param>
@@ -72,13 +96,17 @@ namespace RedScarf.UguiFriend
         #region 结构
 
         /// <summary>
-        /// 
+        /// 线段
         /// </summary>
         public struct Line
         {
+            Vector2 m_Start;
+            Vector2 m_End;
+
             public Line(Vector2 start,Vector2 end)
             {
-
+                m_Start = start;
+                m_End = end;
             }
         }
 
@@ -89,31 +117,36 @@ namespace RedScarf.UguiFriend
         public sealed class Bezier
         {
             const float tangentPercent = 0.3f;                  //切线百分比
-            public const int defaultSubdivide = 10;             //
+            public const int defaultSimpleDistance = 5;         //采样距离
+            public const int minSimpleDistance = 1;
+            public const int maxSimpleDistance = 20;
 
             List<Segment> m_Segments;
             List<Vector3> m_ThroughPoints;
+            Dictionary<Vector2, Segment> m_SegmentPercentDict;
             float m_Length;
-            int m_Subdivide;
+            int m_SimpleDistance;
 
             public Bezier()
             {
                 m_Segments = new List<Segment>();
                 m_ThroughPoints = new List<Vector3>();
+                m_SegmentPercentDict = new Dictionary<Vector2, Segment>();
             }
 
-            public Bezier(List<Vector3> keyPoints, int subdivide = defaultSubdivide)
+            public Bezier(List<Vector3> keyPoints, int simpleDistance = defaultSimpleDistance)
                 :this()
             {
-                Set(keyPoints, subdivide);
+                Set(keyPoints, simpleDistance);
             }
 
-            public void Set(List<Vector3> keyPoints,int subdivide)
+            public void Set(List<Vector3> keyPoints,int simpleDistance)
             {
-                m_Subdivide = Mathf.Max(subdivide, defaultSubdivide);
+                m_SimpleDistance = Mathf.Clamp(simpleDistance, minSimpleDistance,maxSimpleDistance);
                 m_Length = 0;
                 m_Segments.Clear();
                 m_ThroughPoints.Clear();
+                m_SegmentPercentDict.Clear();
 
                 if (keyPoints.Count>=2)
                 {
@@ -127,7 +160,7 @@ namespace RedScarf.UguiFriend
                             (end-start).normalized* dist* tangentPercent,
                             end,
                             (start-end).normalized * dist * tangentPercent,
-                            m_Subdivide
+                            m_SimpleDistance
                         );
                         m_Segments.Add(segment);
                     }
@@ -151,7 +184,7 @@ namespace RedScarf.UguiFriend
                                 current,
                                 lastTangent.normalized* dist * tangentPercent+left,
                                 tangent+current,
-                                m_Subdivide
+                                m_SimpleDistance
                             );
                             m_Segments.Add(segment);
                             lastTangent = -tangent;
@@ -166,7 +199,7 @@ namespace RedScarf.UguiFriend
                             lastPoint,
                             lastTangent.normalized* lastDist* tangentPercent+ lastSegment.EndPosition,
                             lastPoint,
-                            m_Subdivide
+                            m_SimpleDistance
                         );
                         m_Segments.Add(lastSegment);
                     }
@@ -175,6 +208,13 @@ namespace RedScarf.UguiFriend
                     {
                         m_Length += segment.Length;
                         m_ThroughPoints.AddRange(segment.KeyPoints);
+                    }
+                    var lastPercent = 0f;
+                    foreach (var segment in m_Segments)
+                    {
+                        var percent = segment.Length / m_Length;
+                        m_SegmentPercentDict.Add(new Vector2(lastPercent, percent),segment);
+                        lastPercent = percent;
                     }
                 }
             }
@@ -201,7 +241,17 @@ namespace RedScarf.UguiFriend
             /// <returns></returns>
             public Vector3 GetPositionByT(float t)
             {
-                return Vector3.zero;
+                foreach (var item in m_SegmentPercentDict)
+                {
+                    var range = item.Key;
+                    if (range.x <= t && t <= range.y)
+                    {
+                        var percent = (t- range.x)/(range.y - range.x);
+                        return item.Value.GetPositionByT(percent);
+                    }
+                }
+
+                throw new Exception("查找错误.");
             }
 
             /// <summary>
@@ -211,14 +261,17 @@ namespace RedScarf.UguiFriend
             /// <returns></returns>
             public Vector3 GetTangentByT(float t)
             {
-                return Vector3.zero;
-            }
+                foreach (var item in m_SegmentPercentDict)
+                {
+                    var range = item.Key;
+                    if (range.x <= t && t <= range.y)
+                    {
+                        var percent = (t - range.x) / (range.y - range.x);
+                        return item.Value.GetTangentByT(percent);
+                    }
+                }
 
-            Segment GetSegmentByT(float t)
-            {
-
-
-                return null;
+                throw new Exception("查找错误.");
             }
 
             [Serializable]
@@ -233,11 +286,11 @@ namespace RedScarf.UguiFriend
                 Vector3 m_EndTangent;
                 float m_Length;
                 Vector3[] m_KeyPoints;
-                int m_Subdivide;
+                int m_SimpleDistance;
 
-                public Segment(Vector3 startPosition, Vector3 endPosition, Vector3 startTangent,  Vector3 endTangent,int subdivide)
+                public Segment(Vector3 startPosition, Vector3 endPosition, Vector3 startTangent,  Vector3 endTangent,int simpleDistance)
                 {
-                    Set(startPosition, endPosition, startTangent, endTangent, subdivide);
+                    Set(startPosition, endPosition, startTangent, endTangent,simpleDistance);
                 }
 
                 /// <summary>
@@ -248,16 +301,16 @@ namespace RedScarf.UguiFriend
                 /// <param name="startTangent"></param>
                 /// <param name="endTangent"></param>
                 /// <param name="subdivide"></param>
-                public void Set(Vector3 startPosition, Vector3 endPosition, Vector3 startTangent, Vector3 endTangent,int subdivide)
+                public void Set(Vector3 startPosition, Vector3 endPosition, Vector3 startTangent, Vector3 endTangent, int simpleDistance)
                 {
                     m_StartPosition = startPosition;
                     m_EndPosition = endPosition;
                     m_StartTangent = startTangent;
                     m_EndTangent = endTangent;
-                    m_Subdivide = subdivide;
+                    m_SimpleDistance = Mathf.Clamp(simpleDistance,minSimpleDistance,maxSimpleDistance);
 
                     m_KeyPoints = GetKeyPoints();
-                    m_Length = GetLength();
+                    m_Length = GetLength(m_KeyPoints);
                 }
 
                 /// <summary>
@@ -325,7 +378,18 @@ namespace RedScarf.UguiFriend
 
                 Vector3[] GetKeyPoints()
                 {
-                    var points = new Vector3[m_Subdivide];
+                    //预采样计算长度
+                    var simplePoints = new Vector3[10];
+                    var simpleInterval = 1f / (simplePoints.Length - 1);
+                    for (var i = 0; i < simplePoints.Length; i++)
+                    {
+                        simplePoints[i] = GetPositionByT(simpleInterval * i);
+                    }
+                    var simpleLength = GetLength(simplePoints);
+
+                    var count = (int)(simpleLength/m_SimpleDistance);
+                    count = Mathf.Max(2,count);
+                    var points = new Vector3[count];
                     var interval = 1f / (points.Length - 1);
                     for (var i = 0; i < points.Length; i++)
                     {
@@ -335,12 +399,12 @@ namespace RedScarf.UguiFriend
                     return points;
                 }
 
-                float GetLength()
+                float GetLength(Vector3[] points)
                 {
                     var len = 0f;
-                    for (var i = 0; i < m_KeyPoints.Length - 1; i++)
+                    for (var i = 0; i < points.Length - 1; i++)
                     {
-                        len += Vector3.Distance(m_KeyPoints[i], m_KeyPoints[i + 1]);
+                        len += Vector3.Distance(points[i], points[i + 1]);
                     }
 
                     return len;
