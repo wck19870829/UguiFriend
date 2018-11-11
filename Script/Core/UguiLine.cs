@@ -20,12 +20,27 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected Gradient m_Gradient;
         protected UguiMathf.Bezier m_Bezier;
         protected List<Quad> m_Quads;
+        protected DrivenRectTransformTracker m_DrivenRectTransformTracker;
+
+        protected override void Awake()
+        {
+            base.Awake();
+
+            m_DrivenRectTransformTracker = new DrivenRectTransformTracker();
+            rectTransform.pivot = Vector2.zero;
+            m_DrivenRectTransformTracker.Add(
+                gameObject,
+                rectTransform,
+                DrivenTransformProperties.Pivot | DrivenTransformProperties.SizeDelta
+            );
+        }
 
         protected override void OnPopulateMesh(VertexHelper vh)
         {
             base.OnPopulateMesh(vh);
 
             vh.Clear();
+            var size = Vector2.zero;
             if (m_Points != null && m_Points.Count >= 2)
             {
                 if (m_Quads == null)
@@ -122,11 +137,13 @@ namespace RedScarf.UguiFriend
 
             if (points != null && points.Count >= 2)
             {
+                var forwardDir = new Vector2(-1,1);
                 var pointsLength = 0f;
                 for (var i=1;i<points.Count;i++)
                 {
                     pointsLength+=Vector2.Distance(points[i], points[i - 1]);
                 }
+
                 if (points.Count == 2)
                 {
                     var quad = CreateQuad(points[0], points[1], thickness);
@@ -136,88 +153,95 @@ namespace RedScarf.UguiFriend
                 }
                 else
                 {
+                    var lastMedianDir = Vector2.zero;
+                    var lastIndex = points.Count - 1;
+                    var lastPointForward=Vector2.zero;
+                    var lastPointBack = Vector2.zero;
+                    var lastDirOffset = Vector2.zero;
                     var lastValue = 0f;
-                    for (var i = 1; i < points.Count; i++)
+                    for (var i = 0; i < points.Count; i++)
                     {
-                        var start = points[i - 1];
-                        var end = points[i];
-                        var dist = Vector2.Distance(start,end);
-                        var value = dist / pointsLength;
-                        var quad = CreateQuad(start, end, thickness);
-                        quad.startValue = lastValue;
-                        quad.endValue = lastValue + value;
-                        quads.Add(quad);
+                        var current = points[i];
+                        if (i == 0)
+                        {
+                            //第一个点
+                            var firstPointVertical = UguiMathf.GetVertical(current, points[i + 1]).normalized*thickness;
+                            firstPointVertical *= Mathf.Sign(Vector2.Dot(firstPointVertical,forwardDir));
+                            lastPointForward = current + firstPointVertical;
+                            lastPointBack = current - firstPointVertical;
+                            lastDirOffset = firstPointVertical;
+                        }
+                        else if (i==lastIndex)
+                        {
+                            //最后一个点
+                            var prev = points[i - 1];
+                            var lastPointVertical = UguiMathf.GetVertical(current, prev).normalized * thickness;
+                            lastPointVertical *= Mathf.Sign(Vector2.Dot(lastPointVertical, lastDirOffset));
+                            var forwardPoint = current + lastPointVertical;
+                            var backPoint = current - lastPointVertical;
 
-                        lastValue += value;
+                            var quad = new Quad();
+                            quad.start = prev;
+                            quad.end = current;
+                            var startUp = new UIVertex();
+                            startUp.position = lastPointForward;
+                            var startDown = new UIVertex();
+                            startDown.position = lastPointBack;
+                            var endUp = new UIVertex();
+                            endUp.position = forwardPoint;
+                            var endDown = new UIVertex();
+                            endDown.position = backPoint;
+                            quad.startUp = startUp;
+                            quad.startDown = startDown;
+                            quad.endUp = endUp;
+                            quad.endDown = endDown;
+                            quad.startValue = lastValue;
+                            quad.endValue = 1;
+                            quads.Add(quad);
+                        }
+                        else
+                        {
+                            //创建网格
+                            var prev = points[i - 1];
+                            var next = points[i + 1];
+                            var prevDir = prev - current;
+                            var nextDir = next - current;
+                            var dist = Vector2.Distance(prev,current);
+                            var value = dist / pointsLength;
+                            var medianDir = (Vector2)(Vector3.Slerp(prevDir, nextDir, 0.5f).normalized);
+                            var currentThickness = thickness / Mathf.Sin(Mathf.Deg2Rad * 0.5f * Vector2.Angle(prevDir, nextDir));
+                            currentThickness = Mathf.Clamp(currentThickness,thickness,thickness*5);
+                            medianDir *= currentThickness;
+                            medianDir *= Mathf.Sign(Vector2.Dot(medianDir, lastDirOffset));
+                            var forwardPoint = current + medianDir;
+                            var backPoint = current - medianDir;
+
+                            var quad = new Quad();
+                            quad.start = prev;
+                            quad.end = current;
+                            var startUp = new UIVertex();
+                            startUp.position = lastPointForward;
+                            var startDown = new UIVertex();
+                            startDown.position = lastPointBack;
+                            var endUp = new UIVertex();
+                            endUp.position = forwardPoint;
+                            var endDown = new UIVertex();
+                            endDown.position = backPoint;
+                            quad.startUp = startUp;
+                            quad.startDown = startDown;
+                            quad.endUp = endUp;
+                            quad.endDown = endDown;
+                            quad.startValue = lastValue;
+                            quad.endValue = lastValue + value;
+                            quads.Add(quad);
+
+                            lastPointForward = forwardPoint;
+                            lastPointBack = backPoint;
+                            lastValue += value;
+                            lastDirOffset = medianDir;
+                        }
                     }
 
-                    #region 旧代码
-                    //UIVertex[] lastQuad=null;
-                    //var lastOffset = Vector2.zero;
-                    //for (var i=1;i<points.Count-1;i++)
-                    //{
-                    //    var current = points[i];
-                    //    var prev = points[i - 1];
-                    //    var next = points[i + 1];
-                    //    var offset = Vector2.Lerp(prev - current, next - current, 0.5f).normalized;
-                    //    offset *= thickness/Mathf.Sin(Mathf.Deg2Rad*0.5f * Vector2.Angle(prev - current, next - current));
-                    //    var vertical = GetVertical(prev, current);
-                    //    offset *= Mathf.Sign(Vector2.Dot(offset, vertical));
-                    //    lastOffset=offset;
-
-                    //    var currentPointUp = new UIVertex();
-                    //    currentPointUp.position = current + offset;
-                    //    var currentPointDown = new UIVertex();
-                    //    currentPointDown.position = current - offset;
-
-                    //    if (lastQuad == null)
-                    //    {
-                    //        //添加第一段
-                    //        var startPoint = points[0];
-                    //        var startPointVertical = GetVertical(startPoint, current)*thickness;
-                    //        startPointVertical*= Mathf.Sign(Vector2.Dot(lastOffset, startPointVertical));
-                    //        var startQuadPointUp = new UIVertex();
-                    //        startQuadPointUp.position = startPoint + lastOffset;
-                    //        var startQuadPointDown = new UIVertex();
-                    //        startQuadPointDown.position = startPoint - lastOffset;
-                    //        lastQuad = new UIVertex[] {
-                    //            startQuadPointUp,
-                    //            startQuadPointDown,
-                    //            currentPointDown,
-                    //            currentPointUp
-                    //        };
-                    //        vertexexTemp.Add(lastQuad);
-                    //    }
-                    //    else
-                    //    {
-                    //        var quad = new UIVertex[] 
-                    //        {
-                    //            lastQuad[3],
-                    //            lastQuad[2],
-                    //            currentPointDown,
-                    //            currentPointUp
-                    //        };
-                    //        vertexexTemp.Add(quad);
-                    //        lastQuad = quad;
-                    //    }
-                    //}
-
-                    ////添加最后一段
-                    //var lastPoint = points[points.Count-1];
-                    //var lastPointVertical = GetVertical(points[points.Count - 2], lastPoint)*thickness;
-                    //lastPointVertical *= Mathf.Sign(Vector2.Dot(lastOffset,lastPointVertical));
-                    //var lastQuadPointUp = new UIVertex();
-                    //lastQuadPointUp.position = lastPoint + lastPointVertical;
-                    //var lastQuadPointDown = new UIVertex();
-                    //lastQuadPointDown.position = lastPoint - lastPointVertical;
-                    //lastQuad = new UIVertex[] {
-                    //    lastQuad[3],
-                    //    lastQuad[2],
-                    //    lastQuadPointDown,
-                    //    lastQuadPointUp
-                    //};
-                    //vertexexTemp.Add(lastQuad);
-                    #endregion
                 }
                 for (var i = 0; i < quads.Count; i++)
                 {
@@ -225,12 +249,11 @@ namespace RedScarf.UguiFriend
                     var startColor=gradient.Evaluate(quad.startValue)*color;
                     var endColor = gradient.Evaluate(quad.endValue)*color;
                     quad.SetColor(startColor, startColor, endColor, endColor);
-                    quad.SetUV0(
-                        new Vector2(quad.startValue,0),
-                        new Vector2(quad.startValue,1),
-                        new Vector2(quad.endValue, 0),
-                        new Vector2(quad.endValue, 1)
-                    );
+                    var startUpUV0 = UguiMathf.UVOffset(new Vector2(quad.startValue, 0),uvRect);
+                    var startDownUV0 = UguiMathf.UVOffset(new Vector2(quad.startValue, 1), uvRect);
+                    var endUpUV0 = UguiMathf.UVOffset(new Vector2(quad.endValue, 0), uvRect);
+                    var endDownUV0 = UguiMathf.UVOffset(new Vector2(quad.endValue, 1), uvRect);
+                    quad.SetUV0(startUpUV0,startDownUV0,endUpUV0,endDownUV0);
                     vh.AddUIVertexQuad(quad.GetVertexes());
                 }
             }

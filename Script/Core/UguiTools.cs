@@ -16,7 +16,6 @@ namespace RedScarf.UguiFriend
     {
         static readonly Quaternion rotation90 = Quaternion.FromToRotation(Vector2.up, Vector2.right);
 
-
         /// <summary>
         /// 销毁所有子元素
         /// </summary>

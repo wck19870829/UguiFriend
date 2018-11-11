@@ -13,6 +13,19 @@ namespace RedScarf.UguiFriend
         static readonly Quaternion rotation90 = Quaternion.FromToRotation(Vector2.up, Vector2.right);
 
         /// <summary>
+        /// UV偏移
+        /// </summary>
+        /// <param name="uv"></param>
+        /// <param name="uvRect"></param>
+        /// <returns></returns>
+        public static Vector2 UVOffset(Vector2 uv,Rect uvRect)
+        {
+            uv.x = uvRect.x + uvRect.width * uv.x;
+            uv.y = uvRect.y + uvRect.height * uv.y;
+            return uv;
+        }
+
+        /// <summary>
         /// 获取包含所有点的矩形
         /// </summary>
         /// <param name="points"></param>
