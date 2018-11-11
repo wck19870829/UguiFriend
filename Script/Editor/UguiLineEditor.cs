@@ -15,9 +15,11 @@ namespace RedScarf.UguiFriend
             var thickness = serializedObject.FindProperty("m_Thickness");
             var simpleDistance = serializedObject.FindProperty("m_SimpleDistance");
             var gradient = serializedObject.FindProperty("m_Gradient");
+            var thicknessCurve = serializedObject.FindProperty("m_ThicknessCurve");
 
             EditorGUILayout.PropertyField(lineStyle);
             EditorGUILayout.Slider(thickness, 0.1f, 100f);
+            EditorGUILayout.PropertyField(thicknessCurve);
             EditorGUILayout.PropertyField(gradient);
 
             var style = (UguiLine.LineStyle)lineStyle.intValue;

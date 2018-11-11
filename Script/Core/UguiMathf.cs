@@ -13,6 +13,23 @@ namespace RedScarf.UguiFriend
         static readonly Quaternion rotation90 = Quaternion.FromToRotation(Vector2.up, Vector2.right);
 
         /// <summary>
+        /// 旋转向量
+        /// </summary>
+        /// <param name="inputDir"></param>
+        /// <param name="angle"></param>
+        /// <returns></returns>
+        public static Vector2 Rotation(Vector2 inputDir,float angle)
+        {
+            var inputDirAngle = Vector2.Angle(inputDir,Vector2.right);
+            var outDir = new Vector2(
+                        Mathf.Cos(angle+inputDirAngle)*inputDir.magnitude,
+                        Mathf.Sin(angle+inputDirAngle)*inputDir.magnitude
+                        );
+            
+            return outDir;
+        }
+
+        /// <summary>
         /// UV偏移
         /// </summary>
         /// <param name="uv"></param>
@@ -108,6 +125,7 @@ namespace RedScarf.UguiFriend
 
         #region 结构
 
+        [Serializable]
         /// <summary>
         /// 线段
         /// </summary>
@@ -117,9 +135,157 @@ namespace RedScarf.UguiFriend
             Vector2 m_End;
 
             public Line(Vector2 start,Vector2 end)
+                :this()
+            {
+                Set(start,end);
+            }
+
+            /// <summary>
+            /// 设置值
+            /// </summary>
+            /// <param name="start">开始点</param>
+            /// <param name="end">结束点</param>
+            public void Set(Vector2 start, Vector2 end)
             {
                 m_Start = start;
                 m_End = end;
+            }
+        }
+
+        /// <summary>
+        /// 圆
+        /// </summary>
+        [Serializable]
+        public struct Circle
+        {
+            Vector2 m_Center;
+            float m_Radius;
+            float m_Circumference;
+            float m_Diameter;
+            float m_Area;
+
+            public Circle(Vector2 center,float radius)
+                :this()
+            {
+                Set(center,radius);
+            }
+
+            /// <summary>
+            /// 设置值
+            /// </summary>
+            /// <param name="center">圆心</param>
+            /// <param name="radius">半径</param>
+            public void Set(Vector2 center,float radius)
+            {
+                m_Center = center;
+                m_Radius = radius;
+                m_Diameter = m_Radius * 2;
+                m_Circumference = 2 * Mathf.PI * m_Radius;
+                m_Area = Mathf.PI * m_Radius * m_Radius;
+            }
+
+            /// <summary>
+            /// 获取圆的相切的点
+            /// </summary>
+            /// <param name="point"></param>
+            /// <returns></returns>
+            public Vector2[] GetTangentPoints(Vector2 point)
+            {
+                var dist = Vector2.Distance(point,m_Center);
+                if (dist>m_Radius)
+                {
+                    var centerVector = m_Center - point;
+                    var tangentLength = Mathf.Sqrt(dist * dist - m_Radius * m_Radius);
+                    var centerVectorAngle = Mathf.Asin(tangentLength / dist)*Mathf.Rad2Deg;
+                    var p1 = point + Rotation(centerVector, centerVectorAngle);
+                    var p2 = point + Rotation(centerVector, -centerVectorAngle);
+
+                    return new Vector2[] {p1,p2};
+                }
+
+                return null;
+            }
+
+            /// <summary>
+            /// 圆心
+            /// </summary>
+            public Vector2 Center
+            {
+                get
+                {
+                    return m_Center;
+                }
+                set
+                {
+                    m_Center = value;
+                }
+            }
+
+            /// <summary>
+            /// 半径
+            /// </summary>
+            public float Radius
+            {
+                get
+                {
+                    return m_Radius;
+                }
+                set
+                {
+                    m_Radius = value;
+                    Set(m_Center, m_Radius);
+                }
+            }
+
+            /// <summary>
+            /// 周长
+            /// </summary>
+            public float Circumference
+            {
+                get
+                {
+                    return m_Circumference;
+                }
+                set
+                {
+                    m_Circumference = value;
+                    m_Radius = m_Circumference / (2 * Mathf.PI);
+                    Set(m_Center,m_Radius);
+                }
+            }
+
+            /// <summary>
+            /// 直径
+            /// </summary>
+            public float Diameter
+            {
+                get
+                {
+                    return m_Diameter;
+                }
+                set
+                {
+                    m_Diameter = value;
+                    m_Radius = m_Diameter / 2;
+                    Set(m_Center,m_Radius);
+                }
+            }
+
+            /// <summary>
+            /// 面积
+            /// </summary>
+            public float Area
+            {
+                get
+                {
+                    return m_Area;
+                }
+                set
+                {
+                    m_Area = value;
+                    m_Radius = Mathf.Sqrt(m_Area / Mathf.PI);
+                    Set(m_Center,m_Radius);
+                }
             }
         }
 

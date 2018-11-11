@@ -16,6 +16,7 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected List<Vector2> m_Points;
         [SerializeField] protected LineStyle m_LineStyle;
         [SerializeField] protected float m_Thickness = 1;
+        [SerializeField] protected AnimationCurve m_ThicknessCurve=AnimationCurve.Linear(0,1,1,1);
         [SerializeField] protected int m_SimpleDistance = UguiMathf.Bezier.defaultSimpleDistance;
         [SerializeField] protected Gradient m_Gradient;
         protected UguiMathf.Bezier m_Bezier;
