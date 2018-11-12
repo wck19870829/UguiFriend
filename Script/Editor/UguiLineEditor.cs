@@ -18,7 +18,7 @@ namespace RedScarf.UguiFriend
             var thicknessCurve = serializedObject.FindProperty("m_ThicknessCurve");
 
             EditorGUILayout.PropertyField(lineStyle);
-            EditorGUILayout.Slider(thickness, 0.1f, 100f);
+            EditorGUILayout.Slider(thickness, 0.1f, 1000f);
             EditorGUILayout.PropertyField(thicknessCurve);
             EditorGUILayout.PropertyField(gradient);
 

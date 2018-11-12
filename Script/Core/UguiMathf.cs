@@ -153,15 +153,66 @@ namespace RedScarf.UguiFriend
 
             /// <summary>
             /// 获取两线段相交的点
+            /// 平行或者共线视为不相交
             /// </summary>
             /// <param name="a"></param>
             /// <param name="b"></param>
             /// <returns></returns>
             public static Vector2? GetIntersectPoint(Line a,Line b)
             {
+                var pointA = a.Start;
+                var pointB = a.End;
+                var pointC = b.Start;
+                var pointD = b.End;
 
+                var areaABC = (pointA.x - pointC.x) * (pointB.y - pointC.y) - (pointA.y - pointC.y) * (pointB.x-pointC.x);
+                var areaABD = (pointA.x - pointD.x) * (pointB.y - pointD.y) - (pointA.y - pointD.y) * (pointB.x-pointD.x);
+                if (areaABC * areaABD >= 0)
+                    return null;
 
-                return null;
+                var areaCDA = (pointC.x - pointA.x) * (pointD.y - pointA.y) - (pointC.y - pointA.y) * (pointD.x-pointA.x);
+                var areaCDB = areaCDA + areaABC - areaABD;
+                if (areaCDA * areaCDB >= 0)
+                    return null;
+
+                var t = areaCDA / (areaABD-areaABC);
+                var dx = t * (pointB.x-pointA.x);
+                var dy = t * (pointB.y-pointA.y);
+                var intersect = new Vector2(pointA.x+dx,pointA.y+dy);
+
+                return intersect;
+            }
+
+            /// <summary>
+            /// 开始点
+            /// </summary>
+            public Vector2 Start
+            {
+                get
+                {
+                    return m_Start;
+                }
+                set
+                {
+                    m_Start = value;
+                    Set(m_Start,m_End);
+                }
+            }
+
+            /// <summary>
+            /// 结束点
+            /// </summary>
+            public Vector2 End
+            {
+                get
+                {
+                    return m_End;
+                }
+                set
+                {
+                    m_End = value;
+                    Set(m_Start, m_End);
+                }
             }
         }
 
