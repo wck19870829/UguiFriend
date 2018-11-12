@@ -23,14 +23,7 @@ namespace RedScarf.UguiFriend
             EditorGUILayout.PropertyField(gradient);
 
             var style = (UguiLine.LineStyle)lineStyle.intValue;
-            if (style==UguiLine.LineStyle.Bezier)
-            {
-                EditorGUILayout.IntSlider(simpleDistance, UguiMathf.Bezier.minSimpleDistance, UguiMathf.Bezier.maxSimpleDistance);
-            }
-            else if(style == UguiLine.LineStyle.Straight)
-            {
-
-            }
+            EditorGUILayout.IntSlider(simpleDistance, UguiMathf.Bezier.minSimpleDistance, UguiMathf.Bezier.maxSimpleDistance);
 
             serializedObject.ApplyModifiedProperties();
 

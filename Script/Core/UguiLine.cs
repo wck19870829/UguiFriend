@@ -19,8 +19,8 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected AnimationCurve m_ThicknessCurve=AnimationCurve.Linear(0,1,1,1);
         [SerializeField] protected int m_SimpleDistance = UguiMathf.Bezier.defaultSimpleDistance;
         [SerializeField] protected Gradient m_Gradient;
+        protected List<Vector2> m_SimplePoints;
         protected UguiMathf.Bezier m_Bezier;
-        protected List<Quad> m_Quads;
         protected DrivenRectTransformTracker m_DrivenRectTransformTracker;
 
         protected override void Awake()
@@ -41,14 +41,29 @@ namespace RedScarf.UguiFriend
             base.OnPopulateMesh(vh);
 
             vh.Clear();
-            var size = Vector2.zero;
             if (m_Points != null && m_Points.Count >= 2)
             {
-                if (m_Quads == null)
-                    m_Quads = new List<Quad>(1024);
+                if (m_SimplePoints == null)
+                    m_SimplePoints = new List<Vector2>(256);
+
                 if (m_LineStyle == LineStyle.Straight)
                 {
-                    CreateLineMesh(ref vh,ref m_Quads, m_Points, m_Gradient,color, m_Thickness,uvRect);
+                    m_SimplePoints.Clear();
+                    for (var i = 1; i < m_Points.Count; i++)
+                    {
+                        //细分
+                        var currentPoint = m_Points[i];
+                        var prevPoint = m_Points[i-1];
+                        var currentDist = Vector2.Distance(currentPoint, prevPoint);
+                        var interval = m_SimpleDistance / currentDist;
+                        var count = (int)(currentDist / m_SimpleDistance);
+                        for (var j=0;j<count;j++)
+                        {
+                            var point = Vector2.Lerp(prevPoint, currentPoint, interval * j);
+                            m_SimplePoints.Add(point);
+                        }
+                    }
+                    CreateLineMesh(ref vh, m_SimplePoints, m_Gradient,color, m_Thickness, m_ThicknessCurve, uvRect);
                 }
                 else if (m_LineStyle == LineStyle.Bezier)
                 {
@@ -65,7 +80,7 @@ namespace RedScarf.UguiFriend
                     {
                         throughPoints.Add(m_Bezier.ThroughPoints[i]);
                     }
-                    CreateLineMesh(ref vh,ref m_Quads, throughPoints, m_Gradient,color, m_Thickness,uvRect);
+                    CreateLineMesh(ref vh, throughPoints, m_Gradient,color, m_Thickness,m_ThicknessCurve, uvRect);
                 }
             }
         }
@@ -131,168 +146,75 @@ namespace RedScarf.UguiFriend
         /// <param name="u"></param>
         /// <param name="v"></param>
         /// <param name="thickness"></param>
-        public static void CreateLineMesh(ref VertexHelper vh,ref List<Quad> quads, List<Vector2> points, Gradient gradient,Color color, float thickness,Rect uvRect)
+        public static void CreateLineMesh(ref VertexHelper vh, List<Vector2> points, Gradient gradient,Color color, float thickness, AnimationCurve thicknessCurve, Rect uvRect)
         {
             vh.Clear();
-            quads.Clear();
 
             if (points != null && points.Count >= 2)
             {
-                var forwardDir = new Vector2(-1,1);
                 var pointsLength = 0f;
+                var minThickness = 0.01f;
                 for (var i=1;i<points.Count;i++)
                 {
                     pointsLength+=Vector2.Distance(points[i], points[i - 1]);
                 }
 
-                if (points.Count == 2)
+                var lastValue = 0f;
+                var lastForwardDir = UguiMathf.GetVertical(points[0], points[1]).normalized *
+                                    Mathf.Max(thicknessCurve.Evaluate(lastValue) * thickness, minThickness);
+                var lastForwardPoint = points[0] + lastForwardDir;
+                var lastBackPoint = points[0] - lastForwardDir;
+                var lastIndex = points.Count - 1;
+                for (var i = 1; i < lastIndex; i++)
                 {
-                    var quad = CreateQuad(points[0], points[1], thickness);
-                    quad.startValue = 0;
-                    quad.endValue = 1;
-                    quads.Add(quad);
-                }
-                else
-                {
-                    var lastMedianDir = Vector2.zero;
-                    var lastIndex = points.Count - 1;
-                    var lastPointForward=Vector2.zero;
-                    var lastPointBack = Vector2.zero;
-                    var lastDirOffset = Vector2.zero;
-                    var lastValue = 0f;
-                    for (var i = 0; i < points.Count; i++)
+                    var currentPoint = points[i];
+                    var prevPoint = points[i - 1];
+                    var nextPoint = points[i + 1];
+                    var currentDir = prevPoint - currentPoint;
+                    var nextDir = nextPoint - currentPoint;
+
+                    var currentStartValue = lastValue;
+                    var currentEndValue = lastValue + currentDir.magnitude / pointsLength;
+                    var currentForwardDir = UguiMathf.GetVertical(prevPoint, currentPoint).normalized *
+                                            Mathf.Max(thicknessCurve.Evaluate(currentEndValue) * thickness, minThickness);
+                    var currentForwardPoint = currentPoint + currentForwardDir;
+                    var currentBackPoint = currentPoint - currentForwardDir;
+
+                    var nextForwardDir = UguiMathf.GetVertical(currentPoint, nextPoint).normalized *
+                                        Mathf.Max(thicknessCurve.Evaluate(currentEndValue + nextDir.magnitude / pointsLength) * thickness, minThickness);
+                    var nextForwardPoint = nextPoint + nextForwardDir;
+                    var nextBackPoint = nextPoint - nextForwardDir;
+
+                    var currentForwardLine = new UguiMathf.Line(lastForwardPoint, currentForwardPoint);
+                    var currentBackLine = new UguiMathf.Line(lastBackPoint,currentBackPoint);
+                    var nextForwardLine = new UguiMathf.Line(nextForwardPoint, currentForwardPoint);
+                    var nextBackLine = new UguiMathf.Line(nextBackPoint, currentBackPoint);
+                    var forwardIntersectPoint = UguiMathf.Line.GetIntersectPoint(currentForwardLine, nextForwardLine);
+                    var backIntersectPoint = UguiMathf.Line.GetIntersectPoint(currentBackLine, nextBackLine);
+                    if (forwardIntersectPoint != null)
                     {
-                        var current = points[i];
-                        if (i == 0)
-                        {
-                            //第一个点
-                            var firstPointVertical = UguiMathf.GetVertical(current, points[i + 1]).normalized*thickness;
-                            firstPointVertical *= Mathf.Sign(Vector2.Dot(firstPointVertical,forwardDir));
-                            lastPointForward = current + firstPointVertical;
-                            lastPointBack = current - firstPointVertical;
-                            lastDirOffset = firstPointVertical;
-                        }
-                        else if (i==lastIndex)
-                        {
-                            //最后一个点
-                            var prev = points[i - 1];
-                            var lastPointVertical = UguiMathf.GetVertical(current, prev).normalized * thickness;
-                            lastPointVertical *= Mathf.Sign(Vector2.Dot(lastPointVertical, lastDirOffset));
-                            var forwardPoint = current + lastPointVertical;
-                            var backPoint = current - lastPointVertical;
+                        currentForwardPoint = (Vector2)forwardIntersectPoint;
+                    }
+                    else
+                    {
+                        //填充三角形
+                    }
+                    if (backIntersectPoint!=null)
+                    {
+                        currentBackPoint = (Vector2)backIntersectPoint;
+                    }
+                    else
+                    {
+                        //填充三角形
 
-                            var quad = new Quad();
-                            quad.start = prev;
-                            quad.end = current;
-                            var startUp = new UIVertex();
-                            startUp.position = lastPointForward;
-                            var startDown = new UIVertex();
-                            startDown.position = lastPointBack;
-                            var endUp = new UIVertex();
-                            endUp.position = forwardPoint;
-                            var endDown = new UIVertex();
-                            endDown.position = backPoint;
-                            quad.startUp = startUp;
-                            quad.startDown = startDown;
-                            quad.endUp = endUp;
-                            quad.endDown = endDown;
-                            quad.startValue = lastValue;
-                            quad.endValue = 1;
-                            quads.Add(quad);
-                        }
-                        else
-                        {
-                            //创建网格
-                            var prev = points[i - 1];
-                            var next = points[i + 1];
-                            var prevDir = prev - current;
-                            var nextDir = next - current;
-                            var dist = Vector2.Distance(prev,current);
-                            var value = dist / pointsLength;
-                            var medianDir = (Vector2)(Vector3.Slerp(prevDir, nextDir, 0.5f).normalized);
-                            var currentThickness = thickness / Mathf.Sin(Mathf.Deg2Rad * 0.5f * Vector2.Angle(prevDir, nextDir));
-                            currentThickness = Mathf.Clamp(currentThickness,thickness,thickness*5);
-                            medianDir *= currentThickness;
-                            medianDir *= Mathf.Sign(Vector2.Dot(medianDir, lastDirOffset));
-                            var forwardPoint = current + medianDir;
-                            var backPoint = current - medianDir;
-
-                            var quad = new Quad();
-                            quad.start = prev;
-                            quad.end = current;
-                            var startUp = new UIVertex();
-                            startUp.position = lastPointForward;
-                            var startDown = new UIVertex();
-                            startDown.position = lastPointBack;
-                            var endUp = new UIVertex();
-                            endUp.position = forwardPoint;
-                            var endDown = new UIVertex();
-                            endDown.position = backPoint;
-                            quad.startUp = startUp;
-                            quad.startDown = startDown;
-                            quad.endUp = endUp;
-                            quad.endDown = endDown;
-                            quad.startValue = lastValue;
-                            quad.endValue = lastValue + value;
-                            quads.Add(quad);
-
-                            lastPointForward = forwardPoint;
-                            lastPointBack = backPoint;
-                            lastValue += value;
-                            lastDirOffset = medianDir;
-                        }
                     }
 
-                }
-                for (var i = 0; i < quads.Count; i++)
-                {
-                    var quad = quads[i];
-                    var startColor=gradient.Evaluate(quad.startValue)*color;
-                    var endColor = gradient.Evaluate(quad.endValue)*color;
-                    quad.SetColor(startColor, startColor, endColor, endColor);
-                    var startUpUV0 = UguiMathf.UVOffset(new Vector2(quad.startValue, 0),uvRect);
-                    var startDownUV0 = UguiMathf.UVOffset(new Vector2(quad.startValue, 1), uvRect);
-                    var endUpUV0 = UguiMathf.UVOffset(new Vector2(quad.endValue, 0), uvRect);
-                    var endDownUV0 = UguiMathf.UVOffset(new Vector2(quad.endValue, 1), uvRect);
-                    quad.SetUV0(startUpUV0,startDownUV0,endUpUV0,endDownUV0);
-                    vh.AddUIVertexQuad(quad.GetVertexes());
+                    lastForwardPoint = currentForwardPoint;
+                    lastBackPoint = currentBackPoint;
+                    lastValue = currentEndValue;
+                    lastForwardDir = currentForwardDir;
                 }
             }
-        }
-
-        /// <summary>
-        /// 创建直线的网格
-        /// </summary>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        /// <param name="color"></param>
-        /// <param name="thickness"></param>
-        /// <returns></returns>
-        public static Quad CreateQuad(Vector2 start, Vector2 end, float thickness)
-        {
-            var offset = UguiTools.GetVertical(start, end) * thickness;
-
-            var startUp = new UIVertex();
-            startUp.position = start + offset;
-
-            var startDown = new UIVertex();
-            startDown.position = start - offset;
-
-            var endUp = new UIVertex();
-            endUp.position = end + offset;
-
-            var endDown = new UIVertex();
-            endDown.position = end - offset;
-
-            var quad = new Quad();
-            quad.startUp = startUp;
-            quad.startDown = startDown;
-            quad.endUp = endUp;
-            quad.endDown = endDown;
-            quad.start = start;
-            quad.end = end;
-
-            return quad;
         }
 
         /// <summary>
@@ -302,55 +224,6 @@ namespace RedScarf.UguiFriend
         {
             Straight,          //直线
             Bezier             //贝塞尔曲线
-        }
-
-        /// <summary>
-        /// 方形面片
-        /// </summary>
-        public struct Quad
-        {
-            public Vector2 start;
-            public Vector2 end;
-            public UIVertex startUp;
-            public UIVertex startDown;
-            public UIVertex endUp;
-            public UIVertex endDown;
-            public float startValue;
-            public float endValue;
-
-            public void SetUV0(Vector2 startUpValue, Vector2 startDownValue, Vector2 endUpValue, Vector2 endDownValue)
-            {
-                startUp.uv0 = startUpValue;
-                startDown.uv0 = startDownValue;
-                endUp.uv0 = endUpValue;
-                endDown.uv0 = endDownValue;
-            }
-
-            public void SetUV1(Vector2 startUpValue, Vector2 startDownValue, Vector2 endUpValue, Vector2 endDownValue)
-            {
-                startUp.uv1 = startUpValue;
-                startDown.uv1 = startDownValue;
-                endUp.uv1 = endUpValue;
-                endDown.uv1 = endDownValue;
-            }
-
-            public void SetColor(Color startUpColor,Color startDownColor,Color endUpColor,Color endDownColor)
-            {
-                startUp.color = startUpColor;
-                startDown.color = startDownColor;
-                endUp.color = endUpColor;
-                endDown.color = endDownColor;
-            }
-
-            public UIVertex[] GetVertexes()
-            {
-                var vertexes = new UIVertex[]
-                {
-                    startUp,startDown,endDown,endUp
-                };
-
-                return vertexes;
-            }
         }
     }
 }

@@ -150,6 +150,19 @@ namespace RedScarf.UguiFriend
                 m_Start = start;
                 m_End = end;
             }
+
+            /// <summary>
+            /// 获取两线段相交的点
+            /// </summary>
+            /// <param name="a"></param>
+            /// <param name="b"></param>
+            /// <returns></returns>
+            public static Vector2? GetIntersectPoint(Line a,Line b)
+            {
+
+
+                return null;
+            }
         }
 
         /// <summary>
@@ -187,18 +200,18 @@ namespace RedScarf.UguiFriend
             /// <summary>
             /// 获取圆的相切的点
             /// </summary>
-            /// <param name="point"></param>
+            /// <param name="outsidePoint">圆外的一点</param>
             /// <returns></returns>
-            public Vector2[] GetTangentPoints(Vector2 point)
+            public Vector2[] GetTangentPoints(Vector2 outsidePoint)
             {
-                var dist = Vector2.Distance(point,m_Center);
+                var dist = Vector2.Distance(outsidePoint, m_Center);
                 if (dist>m_Radius)
                 {
-                    var centerVector = m_Center - point;
+                    var centerVector = m_Center - outsidePoint;
                     var tangentLength = Mathf.Sqrt(dist * dist - m_Radius * m_Radius);
                     var centerVectorAngle = Mathf.Asin(tangentLength / dist)*Mathf.Rad2Deg;
-                    var p1 = point + Rotation(centerVector, centerVectorAngle);
-                    var p2 = point + Rotation(centerVector, -centerVectorAngle);
+                    var p1 = outsidePoint + Rotation(centerVector, centerVectorAngle);
+                    var p2 = outsidePoint + Rotation(centerVector, -centerVectorAngle);
 
                     return new Vector2[] {p1,p2};
                 }
