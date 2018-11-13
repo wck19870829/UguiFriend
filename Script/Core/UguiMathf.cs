@@ -20,12 +20,8 @@ namespace RedScarf.UguiFriend
         /// <returns></returns>
         public static Vector2 Rotation(Vector2 inputDir,float angle)
         {
-            var inputDirAngle = Vector2.Angle(inputDir,Vector2.right);
-            var outDir = new Vector2(
-                        Mathf.Cos(angle+inputDirAngle)*inputDir.magnitude,
-                        Mathf.Sin(angle+inputDirAngle)*inputDir.magnitude
-                        );
-            
+            var outDir = Quaternion.AngleAxis(angle, Vector3.back)*inputDir;
+
             return outDir;
         }
 
@@ -131,8 +127,8 @@ namespace RedScarf.UguiFriend
         /// </summary>
         public struct Line
         {
-            Vector2 m_Start;
-            Vector2 m_End;
+            [SerializeField]Vector2 m_Start;
+            [SerializeField] Vector2 m_End;
 
             public Line(Vector2 start,Vector2 end)
                 :this()
@@ -222,11 +218,8 @@ namespace RedScarf.UguiFriend
         [Serializable]
         public struct Circle
         {
-            Vector2 m_Center;
-            float m_Radius;
-            float m_Circumference;
-            float m_Diameter;
-            float m_Area;
+            [SerializeField]Vector2 m_Center;
+            [SerializeField]float m_Radius;
 
             public Circle(Vector2 center,float radius)
                 :this()
@@ -243,26 +236,23 @@ namespace RedScarf.UguiFriend
             {
                 m_Center = center;
                 m_Radius = radius;
-                m_Diameter = m_Radius * 2;
-                m_Circumference = 2 * Mathf.PI * m_Radius;
-                m_Area = Mathf.PI * m_Radius * m_Radius;
             }
 
             /// <summary>
-            /// 获取两圆之间的外公切线
+            /// 获取两圆之间的外边连线
             /// </summary>
             /// <param name="a"></param>
             /// <param name="b"></param>
             /// <returns></returns>
-            public static Line[] GetExternalCommonTangent(Circle a,Circle b)
+            public static Line[] GetExternalLines(Circle a,Circle b)
             {
-                var dist = Vector2.Distance(a.Center,b.Center);
-                if (dist>Mathf.Abs(a.Radius - b.Radius))
+                if (a.Center != b.Center)
                 {
-                    var angle = 90 - Mathf.Acos(Mathf.Abs(a.Radius - b.Radius) / dist) * Mathf.Rad2Deg;
-                    var tangentDir = UguiMathf.Rotation(b.Center - a.Center, angle);
-                    var tangentLine = new Line(a.Center + tangentDir.normalized * a.Radius, b.Center + tangentDir.normalized * b.Radius);
-                    var tangentLine2 = new Line(a.Center - tangentDir.normalized * a.Radius, b.Center - tangentDir.normalized * b.Radius);
+                    var dir = a.Center-b.Center;
+                    var vertical = UguiMathf.GetVertical(a.Center, b.Center);
+                    var tangentLine = new Line(a.Center + vertical.normalized * a.Radius, b.Center + vertical.normalized * b.Radius);
+                    var tangentLine2 = new Line(a.Center - vertical.normalized * a.Radius, b.Center - vertical.normalized * b.Radius);
+
                     return new Line[] { tangentLine, tangentLine2 };
                 }
 
@@ -329,12 +319,11 @@ namespace RedScarf.UguiFriend
             {
                 get
                 {
-                    return m_Circumference;
+                    return 2 * Mathf.PI * m_Radius;
                 }
                 set
                 {
-                    m_Circumference = value;
-                    m_Radius = m_Circumference / (2 * Mathf.PI);
+                    m_Radius = value / (2 * Mathf.PI);
                     Set(m_Center,m_Radius);
                 }
             }
@@ -346,12 +335,11 @@ namespace RedScarf.UguiFriend
             {
                 get
                 {
-                    return m_Diameter;
+                    return m_Radius * 2;
                 }
                 set
                 {
-                    m_Diameter = value;
-                    m_Radius = m_Diameter / 2;
+                    m_Radius = value * 0.5f;
                     Set(m_Center,m_Radius);
                 }
             }
@@ -363,12 +351,11 @@ namespace RedScarf.UguiFriend
             {
                 get
                 {
-                    return m_Area;
+                    return Mathf.PI * m_Radius * m_Radius;
                 }
                 set
                 {
-                    m_Area = value;
-                    m_Radius = Mathf.Sqrt(m_Area / Mathf.PI);
+                    m_Radius = Mathf.Sqrt(value / Mathf.PI);
                     Set(m_Center,m_Radius);
                 }
             }

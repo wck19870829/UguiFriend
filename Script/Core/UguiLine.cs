@@ -44,11 +44,11 @@ namespace RedScarf.UguiFriend
             if (m_Points != null && m_Points.Count >= 2)
             {
                 if (m_SimplePoints == null)
-                    m_SimplePoints = new List<Vector2>(256);
+                    m_SimplePoints = new List<Vector2>(512);
+                m_SimplePoints.Clear();
 
                 if (m_LineStyle == LineStyle.Straight)
                 {
-                    m_SimplePoints.Clear();
                     for (var i = 1; i < m_Points.Count; i++)
                     {
                         //细分
@@ -75,12 +75,11 @@ namespace RedScarf.UguiFriend
                     if (m_Bezier==null)
                         m_Bezier = new UguiMathf.Bezier();
                     m_Bezier.Set(bezierPoints, m_SimpleDistance);
-                    var throughPoints = new List<Vector2>(m_Bezier.ThroughPoints.Count);
                     for (var i=0;i< m_Bezier.ThroughPoints.Count;i++)
                     {
-                        throughPoints.Add(m_Bezier.ThroughPoints[i]);
+                        m_SimplePoints.Add(m_Bezier.ThroughPoints[i]);
                     }
-                    CreateLineMesh(ref vh, throughPoints, m_Gradient,color, m_Thickness,m_ThicknessCurve, uvRect);
+                    CreateLineMesh(ref vh, m_SimplePoints, m_Gradient,color, m_Thickness,m_ThicknessCurve, uvRect);
                 }
             }
         }
@@ -197,40 +196,40 @@ namespace RedScarf.UguiFriend
                     var prevCircle = new UguiMathf.Circle(prevPoint, prevThickness);
                     var currentCircle = new UguiMathf.Circle(currentPoint,currentThickness);
                     var nextCircle = new UguiMathf.Circle(nextPoint,nextThickness);
-                    var currentTangentLines = UguiMathf.Circle.GetExternalCommonTangent(prevCircle, currentCircle);
-                    var nextTangentLines = UguiMathf.Circle.GetExternalCommonTangent(currentCircle,nextCircle);
+                    var currentLines = UguiMathf.Circle.GetExternalLines(prevCircle, currentCircle);
+                    var nextLines = UguiMathf.Circle.GetExternalLines(currentCircle,nextCircle);
 
-                    if (currentTangentLines!=null&&nextTangentLines!=null)
+                    if (currentLines!=null&&nextLines!=null)
                     {
                         var currentForwardPoint = Vector2.zero;
                         var currentBackPoint = Vector2.zero;
                         var currentTangentLineForward = new UguiMathf.Line();
                         var currentTangentLineBack = new UguiMathf.Line();
-                        if (Vector2.Dot(currentDir, currentTangentLines[0].End) >= 0)
+                        if (Vector2.Dot(UguiMathf.GetVertical(prevPoint,currentPoint), currentLines[0].End-currentPoint) >= 0)
                         {
-                            currentForwardPoint = currentTangentLines[0].End;
-                            currentBackPoint= currentTangentLines[1].End;
-                            currentTangentLineForward = currentTangentLines[0];
-                            currentTangentLineBack= currentTangentLines[1];
+                            currentForwardPoint = currentLines[0].End;
+                            currentBackPoint= currentLines[1].End;
+                            currentTangentLineForward = currentLines[0];
+                            currentTangentLineBack= currentLines[1];
                         }
                         else
                         {
-                            currentForwardPoint = currentTangentLines[1].End;
-                            currentBackPoint = currentTangentLines[0].End;
-                            currentTangentLineForward = currentTangentLines[1];
-                            currentTangentLineBack = currentTangentLines[0];
+                            currentForwardPoint = currentLines[1].End;
+                            currentBackPoint = currentLines[0].End;
+                            currentTangentLineForward = currentLines[1];
+                            currentTangentLineBack = currentLines[0];
                         }
-                        var nextTangentLineForward = new UguiMathf.Line();
-                        var nextTangentLineBack = new UguiMathf.Line();
-                        if (Vector2.Dot(nextDir, nextTangentLines[0].End) >= 0)
+                        var nextLineForward = new UguiMathf.Line();
+                        var nextLineBack = new UguiMathf.Line();
+                        if (Vector2.Dot(UguiMathf.GetVertical(currentPoint,nextPoint), nextLines[0].End-nextPoint) >= 0)
                         {
-                            nextTangentLineForward = nextTangentLines[0];
-                            nextTangentLineBack = nextTangentLines[1];
+                            nextLineForward = nextLines[0];
+                            nextLineBack = nextLines[1];
                         }
                         else
                         {
-                            nextTangentLineForward = nextTangentLines[1];
-                            nextTangentLineBack = nextTangentLines[0];
+                            nextLineForward = nextLines[1];
+                            nextLineBack = nextLines[0];
                         }
 
                         var currentForwardVertex = new UIVertex();
@@ -248,13 +247,13 @@ namespace RedScarf.UguiFriend
                         currentCenterVertex.color = currentColor;
                         currentCenterVertex.uv0 = currentCenterVertex.uv1 = UguiMathf.UVOffset(new Vector2(currentValue, 0.5f), uvRect);
 
-                        var intersectPointForward = UguiMathf.Line.GetIntersectPoint(currentTangentLineForward, nextTangentLineForward);
+                        var intersectPointForward = UguiMathf.Line.GetIntersectPoint(currentTangentLineForward, nextLineForward);
                         if (intersectPointForward!=null)
                         {
                             currentForwardVertex.position = (Vector2)intersectPointForward;
                         }
 
-                        var intersectPointBack= UguiMathf.Line.GetIntersectPoint(currentTangentLineBack, nextTangentLineBack);
+                        var intersectPointBack= UguiMathf.Line.GetIntersectPoint(currentTangentLineBack, nextLineBack);
                         if (intersectPointBack!=null)
                         {
                             currentBackVertex.position = (Vector2)intersectPointBack;
@@ -264,9 +263,19 @@ namespace RedScarf.UguiFriend
                         vh.AddVert(forwardVertex);
                         vh.AddVert(centerVertex);
                         vh.AddVert(currentCenterVertex);
-                        vh.AddVert(currentBackVertex);
+                        vh.AddVert(currentForwardVertex);
                         vh.AddTriangle(vh.currentVertCount - 1, vh.currentVertCount - 2, vh.currentVertCount - 4);
                         vh.AddTriangle(vh.currentVertCount - 2, vh.currentVertCount - 3, vh.currentVertCount - 4);
+                        if (intersectPointForward == null)
+                        {
+                            var nextLineForwardStartVertex = new UIVertex();
+                            nextLineForwardStartVertex.position = nextLineForward.Start;
+                            currentForwardVertex.position = nextLineForward.Start;
+                            nextLineForwardStartVertex.color = currentColor;
+                            nextLineForwardStartVertex.uv0 = nextLineForwardStartVertex.uv1 = currentForwardVertex.uv0;
+                            vh.AddVert(nextLineForwardStartVertex);
+                            vh.AddTriangle(vh.currentVertCount - 1, vh.currentVertCount - 2, vh.currentVertCount - 3);
+                        }
 
                         vh.AddVert(centerVertex);
                         vh.AddVert(backVertex);
@@ -274,6 +283,17 @@ namespace RedScarf.UguiFriend
                         vh.AddVert(currentCenterVertex);
                         vh.AddTriangle(vh.currentVertCount - 1, vh.currentVertCount - 2, vh.currentVertCount - 4);
                         vh.AddTriangle(vh.currentVertCount - 2, vh.currentVertCount - 3, vh.currentVertCount - 4);
+                        if (intersectPointBack == null)
+                        {
+                            var nextLineBackStartVertex = new UIVertex();
+                            nextLineBackStartVertex.position = nextLineBack.Start;
+                            currentBackVertex.position = nextLineBack.Start;
+                            nextLineBackStartVertex.color = currentColor;
+                            nextLineBackStartVertex.uv0 = nextLineBackStartVertex.uv1 = currentBackVertex.uv0;
+                            vh.AddVert(nextLineBackStartVertex);
+                            vh.AddTriangle(vh.currentVertCount - 1, vh.currentVertCount - 2, vh.currentVertCount - 3);
+                        }
+
 
                         forwardVertex =currentForwardVertex;
                         backVertex = currentBackVertex;
