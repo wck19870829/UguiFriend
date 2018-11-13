@@ -152,155 +152,135 @@ namespace RedScarf.UguiFriend
 
             if (points != null && points.Count >= 2)
             {
+                thickness *= 0.5f;
                 var totalLength = 0f;
-                var minThickness = 0.01f;
                 for (var i=1;i<points.Count;i++)
                 {
                     totalLength+=Vector2.Distance(points[i], points[i - 1]);
                 }
 
-                //由第一个点初始化
-                var lastValue = 0f;
-                var firstForwardDir = UguiMathf.GetVertical(points[0], points[1]).normalized *
-                                    Mathf.Max(thicknessCurve.Evaluate(lastValue) * thickness, minThickness);
-                var lastForwardPoint = points[0] + firstForwardDir;
-                var lastBackPoint = points[0] - firstForwardDir;
+                var cacheValue = 0f;
                 var lastIndex = points.Count - 1;
-                var firstColor= color * gradient.Evaluate(0);
 
-                var lastVertex = new UIVertex();
-                lastVertex.position = points[0];
-                lastVertex.uv0 = lastVertex.uv1 = UguiMathf.UVOffset(new Vector2(0,0.5f),uvRect);
-                lastVertex.color= firstColor;
-                var lastForwardVertex = new UIVertex();
-                lastForwardVertex.position = lastForwardPoint;
-                lastForwardVertex.uv0 = lastForwardVertex.uv1 = UguiMathf.UVOffset(new Vector2(0,0), uvRect);
-                lastForwardVertex.color = firstColor;
-                var lastBackVertex = new UIVertex();
-                lastBackVertex.position = lastBackPoint;
-                lastBackVertex.uv0 = lastBackVertex.uv1 = UguiMathf.UVOffset(new Vector2(0,1), uvRect);
-                lastBackVertex.color = firstColor;
+                var forwardDir = UguiMathf.GetVertical(points[0],points[1])*thicknessCurve.Evaluate(0)*thickness;
+                var forwardVertex = new UIVertex();
+                forwardVertex.position = points[0] + forwardDir;
+                forwardVertex.color = gradient.Evaluate(0) * color;
+                forwardVertex.uv0 = forwardVertex.uv1 = UguiMathf.UVOffset(new Vector2(0,0),uvRect);
 
-                for (var i = 1; i < lastIndex; i++)
+                var backVertex = new UIVertex();
+                backVertex.position = points[0] - forwardDir;
+                backVertex.color = gradient.Evaluate(0) * color;
+                backVertex.uv0 = backVertex.uv1 = UguiMathf.UVOffset(new Vector2(0, 1), uvRect);
+
+                var centerVertex = new UIVertex();
+                centerVertex.position = points[0];
+                centerVertex.color = gradient.Evaluate(0) * color;
+                centerVertex.uv0 = centerVertex.uv1 = UguiMathf.UVOffset(new Vector2(0, 0.5f), uvRect);
+
+                for (var i=1;i< lastIndex; i++)
                 {
-                    var currentPoint = points[i];
                     var prevPoint = points[i - 1];
+                    var currentPoint = points[i];
                     var nextPoint = points[i + 1];
-                    var currentDir = prevPoint - currentPoint;
+                    var currentDir = currentPoint - prevPoint;
                     var nextDir = nextPoint - currentPoint;
 
-                    var currentValue = lastValue + currentDir.magnitude / totalLength;
-                    var currentColor = color * gradient.Evaluate(currentValue);
-                    var currentForwardDir = UguiMathf.GetVertical(prevPoint, currentPoint).normalized *
-                                            Mathf.Max(thicknessCurve.Evaluate(currentValue) * thickness, minThickness);
-                    var currentForwardPoint = currentPoint + currentForwardDir;
-                    var currentBackPoint = currentPoint - currentForwardDir;
+                    var currentValue = Vector2.Distance(prevPoint, currentPoint) / totalLength+cacheValue;
+                    var currentThickness = thicknessCurve.Evaluate(currentValue) * thickness;
+                    var currentColor = gradient.Evaluate(currentValue) * color;
+                    var prevThickness= thicknessCurve.Evaluate(cacheValue) * thickness;
+                    var prevColor= gradient.Evaluate(cacheValue) * color;
+                    var nextValue = Vector2.Distance(currentPoint,nextPoint);
+                    var nextThickness= thicknessCurve.Evaluate(nextValue) * thickness;
 
-                    var nextForwardStartDir = UguiMathf.GetVertical(currentPoint, nextPoint).normalized *
-                                                Mathf.Max(thicknessCurve.Evaluate(currentValue) * thickness, minThickness);
-                    var nextForwardStartPoint = currentPoint + nextForwardStartDir;
-                    var nextBackStartPoint = currentPoint - nextForwardStartDir;
-                    var nextForwardEndDir = UguiMathf.GetVertical(currentPoint, nextPoint).normalized *
-                                            Mathf.Max(thicknessCurve.Evaluate(currentValue + nextDir.magnitude / totalLength) * thickness, minThickness);
-                    var nextForwardEndPoint = nextPoint + nextForwardEndDir;
-                    var nextBackEndPoint = nextPoint - nextForwardEndDir;
+                    var prevCircle = new UguiMathf.Circle(prevPoint, prevThickness);
+                    var currentCircle = new UguiMathf.Circle(currentPoint,currentThickness);
+                    var nextCircle = new UguiMathf.Circle(nextPoint,nextThickness);
+                    var currentTangentLines = UguiMathf.Circle.GetExternalCommonTangent(prevCircle, currentCircle);
+                    var nextTangentLines = UguiMathf.Circle.GetExternalCommonTangent(currentCircle,nextCircle);
 
-                    var currentForwardLine = new UguiMathf.Line(lastForwardPoint, currentForwardPoint);
-                    var currentBackLine = new UguiMathf.Line(lastBackPoint,currentBackPoint);
-                    var nextForwardLine = new UguiMathf.Line(nextForwardStartPoint, nextForwardEndPoint);
-                    var nextBackLine = new UguiMathf.Line(nextBackStartPoint, nextBackEndPoint);
-                    var forwardIntersectPoint = UguiMathf.Line.GetIntersectPoint(currentForwardLine, nextForwardLine);
-                    var backIntersectPoint = UguiMathf.Line.GetIntersectPoint(currentBackLine, nextBackLine);
-                    if (forwardIntersectPoint != null)
-                        currentForwardPoint = (Vector2)forwardIntersectPoint;
-                    if (backIntersectPoint!=null)
-                        currentBackPoint = (Vector2)backIntersectPoint;
-
-                    //填充
-                    var currentVertex = new UIVertex();
-                    currentVertex.position = currentPoint;
-                    currentVertex.uv0 = currentVertex.uv1 = UguiMathf.UVOffset(new Vector2(currentValue, 0.5f), uvRect);
-                    currentVertex.color = currentColor;
-                    var currentForwardVertex = new UIVertex();
-                    currentForwardVertex.position = currentForwardPoint;
-                    currentForwardVertex.uv0 = currentForwardVertex.uv1 = UguiMathf.UVOffset(new Vector2(currentValue, 0), uvRect);
-                    currentForwardVertex.color = currentColor;
-                    var currentBackVertex = new UIVertex();
-                    currentBackVertex.position = currentBackPoint;
-                    currentBackVertex.uv0 = currentBackVertex.uv1 = UguiMathf.UVOffset(new Vector2(currentValue, 1), uvRect);
-                    currentBackVertex.color = currentColor;
-
-                    vh.AddVert(lastForwardVertex);
-                    vh.AddVert(lastVertex);
-                    vh.AddVert(currentVertex);
-                    vh.AddVert(currentForwardVertex);
-                    vh.AddTriangle(vh.currentVertCount-1,vh.currentVertCount-2,vh.currentVertCount-4);
-                    vh.AddTriangle(vh.currentVertCount - 2, vh.currentVertCount - 3, vh.currentVertCount - 4);
-
-                    //填充正向衔接缝隙
-                    if (forwardIntersectPoint == null)
+                    if (currentTangentLines!=null&&nextTangentLines!=null)
                     {
-                        currentForwardVertex.position = nextForwardStartPoint;
-                        vh.AddVert(currentForwardVertex);
-                        vh.AddTriangle(vh.currentVertCount - 1, vh.currentVertCount - 2, vh.currentVertCount - 3);
-                    }
+                        var currentForwardPoint = Vector2.zero;
+                        var currentBackPoint = Vector2.zero;
+                        var currentTangentLineForward = new UguiMathf.Line();
+                        var currentTangentLineBack = new UguiMathf.Line();
+                        if (Vector2.Dot(currentDir, currentTangentLines[0].End) >= 0)
+                        {
+                            currentForwardPoint = currentTangentLines[0].End;
+                            currentBackPoint= currentTangentLines[1].End;
+                            currentTangentLineForward = currentTangentLines[0];
+                            currentTangentLineBack= currentTangentLines[1];
+                        }
+                        else
+                        {
+                            currentForwardPoint = currentTangentLines[1].End;
+                            currentBackPoint = currentTangentLines[0].End;
+                            currentTangentLineForward = currentTangentLines[1];
+                            currentTangentLineBack = currentTangentLines[0];
+                        }
+                        var nextTangentLineForward = new UguiMathf.Line();
+                        var nextTangentLineBack = new UguiMathf.Line();
+                        if (Vector2.Dot(nextDir, nextTangentLines[0].End) >= 0)
+                        {
+                            nextTangentLineForward = nextTangentLines[0];
+                            nextTangentLineBack = nextTangentLines[1];
+                        }
+                        else
+                        {
+                            nextTangentLineForward = nextTangentLines[1];
+                            nextTangentLineBack = nextTangentLines[0];
+                        }
 
-                    vh.AddVert(lastVertex);
-                    vh.AddVert(lastBackVertex);
-                    vh.AddVert(currentBackVertex);
-                    vh.AddVert(currentVertex);
-                    vh.AddTriangle(vh.currentVertCount - 1, vh.currentVertCount - 2, vh.currentVertCount - 4);
-                    vh.AddTriangle(vh.currentVertCount - 2, vh.currentVertCount - 3, vh.currentVertCount - 4);
+                        var currentForwardVertex = new UIVertex();
+                        currentForwardVertex.position = currentForwardPoint;
+                        currentForwardVertex.color = currentColor;
+                        currentForwardVertex.uv0 = currentForwardVertex.uv1 = UguiMathf.UVOffset(new Vector2(currentValue,0f),uvRect);
 
-                    //填充背向衔接缝隙
-                    if (backIntersectPoint == null)
-                    {
-                        currentBackVertex.position = nextBackStartPoint;
+                        var currentBackVertex = new UIVertex();
+                        currentBackVertex.position = currentBackPoint;
+                        currentBackVertex.color = currentColor;
+                        currentBackVertex.uv0 = currentBackVertex.uv1 = UguiMathf.UVOffset(new Vector2(currentValue, 1f), uvRect);
+
+                        var currentCenterVertex = new UIVertex();
+                        currentCenterVertex.position = currentPoint;
+                        currentCenterVertex.color = currentColor;
+                        currentCenterVertex.uv0 = currentCenterVertex.uv1 = UguiMathf.UVOffset(new Vector2(currentValue, 0.5f), uvRect);
+
+                        var intersectPointForward = UguiMathf.Line.GetIntersectPoint(currentTangentLineForward, nextTangentLineForward);
+                        if (intersectPointForward!=null)
+                        {
+                            currentForwardVertex.position = (Vector2)intersectPointForward;
+                        }
+
+                        var intersectPointBack= UguiMathf.Line.GetIntersectPoint(currentTangentLineBack, nextTangentLineBack);
+                        if (intersectPointBack!=null)
+                        {
+                            currentBackVertex.position = (Vector2)intersectPointBack;
+                        }
+
+                        //创建网格
+                        vh.AddVert(forwardVertex);
+                        vh.AddVert(centerVertex);
+                        vh.AddVert(currentCenterVertex);
                         vh.AddVert(currentBackVertex);
-                        vh.AddTriangle(vh.currentVertCount - 1, vh.currentVertCount - 2, vh.currentVertCount - 3);
+                        vh.AddTriangle(vh.currentVertCount - 1, vh.currentVertCount - 2, vh.currentVertCount - 4);
+                        vh.AddTriangle(vh.currentVertCount - 2, vh.currentVertCount - 3, vh.currentVertCount - 4);
+
+                        vh.AddVert(centerVertex);
+                        vh.AddVert(backVertex);
+                        vh.AddVert(currentBackVertex);
+                        vh.AddVert(currentCenterVertex);
+                        vh.AddTriangle(vh.currentVertCount - 1, vh.currentVertCount - 2, vh.currentVertCount - 4);
+                        vh.AddTriangle(vh.currentVertCount - 2, vh.currentVertCount - 3, vh.currentVertCount - 4);
+
+                        forwardVertex =currentForwardVertex;
+                        backVertex = currentBackVertex;
+                        centerVertex = currentCenterVertex;
+                        cacheValue = currentValue;
                     }
-
-                    lastForwardPoint = currentForwardPoint;
-                    lastBackPoint = currentBackPoint;
-                    lastValue = currentValue;
-                    lastVertex = currentVertex;
-                    lastForwardVertex = currentForwardVertex;
-                    lastBackVertex = currentBackVertex;
                 }
-
-                //添加最后一段
-                var endPoint = points[points.Count - 1];
-                var endColor = color * gradient.Evaluate(1);
-                var endForwardDir = UguiMathf.GetVertical(lastVertex.position, endPoint).normalized *
-                                    Mathf.Max(thicknessCurve.Evaluate(1) * thickness, minThickness);
-                var endForwardPoint = endPoint + endForwardDir;
-                var endBackPoint = endPoint - endForwardDir;
-                var endForwardVertex = new UIVertex();
-                endForwardVertex.position = endForwardPoint;
-                endForwardVertex.uv0 = endForwardVertex.uv1 = UguiMathf.UVOffset(new Vector2(lastValue, 0), uvRect);
-                endForwardVertex.color = endColor;
-                var endVertex = new UIVertex();
-                endVertex.position = endPoint;
-                endVertex.uv0 = endVertex.uv1 = UguiMathf.UVOffset(new Vector2(lastValue, 0.5f), uvRect);
-                endVertex.color = endColor;
-                var endBackVertex = new UIVertex();
-                endBackVertex.position = endBackPoint;
-                endBackVertex.uv0 = endBackVertex.uv1 = UguiMathf.UVOffset(new Vector2(lastValue, 1), uvRect);
-                endBackVertex.color = endColor;
-
-                vh.AddVert(lastForwardVertex);
-                vh.AddVert(lastVertex);
-                vh.AddVert(endVertex);
-                vh.AddVert(endForwardVertex);
-                vh.AddTriangle(vh.currentVertCount - 1, vh.currentVertCount - 2, vh.currentVertCount - 4);
-                vh.AddTriangle(vh.currentVertCount - 2, vh.currentVertCount - 3, vh.currentVertCount - 4);
-
-                vh.AddVert(lastVertex);
-                vh.AddVert(lastBackVertex);
-                vh.AddVert(endBackVertex);
-                vh.AddVert(endVertex);
-                vh.AddTriangle(vh.currentVertCount - 1, vh.currentVertCount - 2, vh.currentVertCount - 4);
-                vh.AddTriangle(vh.currentVertCount - 2, vh.currentVertCount - 3, vh.currentVertCount - 4);
             }
         }
 

@@ -249,6 +249,27 @@ namespace RedScarf.UguiFriend
             }
 
             /// <summary>
+            /// 获取两圆之间的外公切线
+            /// </summary>
+            /// <param name="a"></param>
+            /// <param name="b"></param>
+            /// <returns></returns>
+            public static Line[] GetExternalCommonTangent(Circle a,Circle b)
+            {
+                var dist = Vector2.Distance(a.Center,b.Center);
+                if (dist>Mathf.Abs(a.Radius - b.Radius))
+                {
+                    var angle = 90 - Mathf.Acos(Mathf.Abs(a.Radius - b.Radius) / dist) * Mathf.Rad2Deg;
+                    var tangentDir = UguiMathf.Rotation(b.Center - a.Center, angle);
+                    var tangentLine = new Line(a.Center + tangentDir.normalized * a.Radius, b.Center + tangentDir.normalized * b.Radius);
+                    var tangentLine2 = new Line(a.Center - tangentDir.normalized * a.Radius, b.Center - tangentDir.normalized * b.Radius);
+                    return new Line[] { tangentLine, tangentLine2 };
+                }
+
+                return null;
+            }
+
+            /// <summary>
             /// 获取圆的相切的点
             /// </summary>
             /// <param name="outsidePoint">圆外的一点</param>
