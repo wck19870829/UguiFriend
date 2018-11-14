@@ -67,14 +67,9 @@ namespace RedScarf.UguiFriend
                 }
                 else if (m_LineStyle == LineStyle.Bezier)
                 {
-                    var bezierPoints = new List<Vector3>(m_Points.Count);
-                    for (var i=0;i< m_Points.Count;i++)
-                    {
-                        bezierPoints.Add(m_Points[i]);
-                    }
                     if (m_Bezier==null)
                         m_Bezier = new UguiMathf.Bezier();
-                    m_Bezier.Set(bezierPoints, m_SimpleDistance);
+                    m_Bezier.Set(m_Points, m_SimpleDistance);
                     for (var i=0;i< m_Bezier.ThroughPoints.Count;i++)
                     {
                         m_SimplePoints.Add(m_Bezier.ThroughPoints[i]);

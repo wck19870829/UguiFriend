@@ -10,7 +10,17 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public static class UguiMathf
     {
-        static readonly Quaternion rotation90 = Quaternion.FromToRotation(Vector2.up, Vector2.right);
+        const int listInitSize = 2048;
+        static readonly Quaternion rotation90;
+        static readonly List<Vector2> vector2List;
+        static readonly List<Vector3> vector3List;
+
+        static UguiMathf()
+        {
+            rotation90 = Quaternion.FromToRotation(Vector2.up, Vector2.right);
+            vector2List = new List<Vector2>(listInitSize);
+            vector3List = new List<Vector3>(listInitSize);
+        }
 
         /// <summary>
         /// 旋转向量
@@ -117,6 +127,28 @@ namespace RedScarf.UguiFriend
         public static Vector3 GetVertical(Vector3 dir)
         {
             return rotation90 * dir;
+        }
+
+        private static List<Vector3> GetVector3List(List<Vector2>list)
+        {
+            vector3List.Clear();
+            foreach (var item in list)
+            {
+                vector3List.Add(item);
+            }
+
+            return vector3List;
+        }
+
+        private static List<Vector2> GetVector2List(List<Vector3> list)
+        {
+            vector2List.Clear();
+            foreach (var item in list)
+            {
+                vector2List.Add(item);
+            }
+
+            return vector2List;
         }
 
         #region 结构
@@ -374,6 +406,7 @@ namespace RedScarf.UguiFriend
 
             List<Segment> m_Segments;
             List<Vector3> m_ThroughPoints;
+            List<Vector3> m_KeyPoints;
             Dictionary<Vector2, Segment> m_SegmentPercentDict;
             float m_Length;
             int m_SimpleDistance;
@@ -382,6 +415,7 @@ namespace RedScarf.UguiFriend
             {
                 m_Segments = new List<Segment>();
                 m_ThroughPoints = new List<Vector3>();
+                m_KeyPoints = new List<Vector3>();
                 m_SegmentPercentDict = new Dictionary<Vector2, Segment>();
             }
 
@@ -391,20 +425,34 @@ namespace RedScarf.UguiFriend
                 Set(keyPoints, simpleDistance);
             }
 
+            public Bezier(List<Vector2> keyPoints, int simpleDistance = defaultSimpleDistance)
+                : this()
+            {
+                Set(keyPoints, simpleDistance);
+            }
+
+            public void Set(List<Vector2> keyPoints, int simpleDistance)
+            {
+                Set(GetVector3List(keyPoints),simpleDistance);
+            }
+
             public void Set(List<Vector3> keyPoints,int simpleDistance)
             {
-                m_SimpleDistance = Mathf.Clamp(simpleDistance, minSimpleDistance,maxSimpleDistance);
                 m_Length = 0;
+                m_KeyPoints.Clear();
                 m_Segments.Clear();
                 m_ThroughPoints.Clear();
                 m_SegmentPercentDict.Clear();
+                m_SimpleDistance = Mathf.Clamp(simpleDistance, minSimpleDistance, maxSimpleDistance);
 
-                if (keyPoints.Count>=2)
+                m_KeyPoints.AddRange(keyPoints);
+
+                if (m_KeyPoints.Count>=2)
                 {
-                    if (keyPoints.Count==2)
+                    if (m_KeyPoints.Count==2)
                     {
-                        var start = keyPoints[0];
-                        var end = keyPoints[1];
+                        var start = m_KeyPoints[0];
+                        var end = m_KeyPoints[1];
                         var dist = Vector3.Distance(start,end);
                         var segment = new Segment(
                             start,
@@ -418,11 +466,11 @@ namespace RedScarf.UguiFriend
                     else
                     {
                         var lastTangent = Vector3.zero;
-                        for (var i = 1; i < keyPoints.Count - 1; i++)
+                        for (var i = 1; i < m_KeyPoints.Count - 1; i++)
                         {
-                            var current = keyPoints[i];
-                            var left = keyPoints[i - 1];
-                            var right = keyPoints[i + 1];
+                            var current = m_KeyPoints[i];
+                            var left = m_KeyPoints[i - 1];
+                            var right = m_KeyPoints[i + 1];
                             var leftDir = left - current;
                             var rightDir = right - current;
                             var dist = Vector3.Distance(left, current);
@@ -442,7 +490,7 @@ namespace RedScarf.UguiFriend
                         }
 
                         //添加最后一段
-                        var lastPoint = keyPoints[keyPoints.Count - 1];
+                        var lastPoint = m_KeyPoints[m_KeyPoints.Count - 1];
                         var lastSegment=m_Segments[m_Segments.Count - 1];
                         var lastDist = Vector3.Distance(lastPoint,lastSegment.EndPosition);
                         lastSegment = new Segment(
@@ -479,6 +527,11 @@ namespace RedScarf.UguiFriend
             /// 经过贝塞尔曲线上的点集合
             /// </summary>
             public List<Vector3> ThroughPoints { get { return m_ThroughPoints; } }
+
+            /// <summary>
+            /// 原始关键点
+            /// </summary>
+            public List<Vector3> KeyPoints { get { return m_KeyPoints; } }
 
             /// <summary>
             /// 长度
