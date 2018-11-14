@@ -80,6 +80,18 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 是否碰撞到
+        /// </summary>
+        /// <param name="localPosition"></param>
+        /// <returns></returns>
+        public virtual bool IsHit(Vector2 localPosition)
+        {
+
+
+            return false;
+        }
+
+        /// <summary>
         /// 线段样式
         /// </summary>
         public virtual LineStyle StartLineStyle
@@ -263,13 +275,13 @@ namespace RedScarf.UguiFriend
                         vh.AddTriangle(vh.currentVertCount - 2, vh.currentVertCount - 3, vh.currentVertCount - 4);
                         if (intersectPointForward == null)
                         {
-                            var nextLineForwardStartVertex = new UIVertex();
-                            nextLineForwardStartVertex.position = nextLineForward.Start;
-                            currentForwardVertex.position = nextLineForward.Start;
-                            nextLineForwardStartVertex.color = currentColor;
-                            nextLineForwardStartVertex.uv0 = nextLineForwardStartVertex.uv1 = currentForwardVertex.uv0;
-                            vh.AddVert(nextLineForwardStartVertex);
-                            vh.AddTriangle(vh.currentVertCount - 1, vh.currentVertCount - 2, vh.currentVertCount - 3);
+                            //var nextLineForwardStartVertex = new UIVertex();
+                            //nextLineForwardStartVertex.position = nextLineForward.Start;
+                            //currentForwardVertex.position = nextLineForward.Start;
+                            //nextLineForwardStartVertex.color = currentColor;
+                            //nextLineForwardStartVertex.uv0 = nextLineForwardStartVertex.uv1 = currentForwardVertex.uv0;
+                            //vh.AddVert(nextLineForwardStartVertex);
+                            //vh.AddTriangle(vh.currentVertCount - 1, vh.currentVertCount - 2, vh.currentVertCount - 3);
                         }
 
                         vh.AddVert(centerVertex);
@@ -280,13 +292,13 @@ namespace RedScarf.UguiFriend
                         vh.AddTriangle(vh.currentVertCount - 2, vh.currentVertCount - 3, vh.currentVertCount - 4);
                         if (intersectPointBack == null)
                         {
-                            var nextLineBackStartVertex = new UIVertex();
-                            nextLineBackStartVertex.position = nextLineBack.Start;
-                            currentBackVertex.position = nextLineBack.Start;
-                            nextLineBackStartVertex.color = currentColor;
-                            nextLineBackStartVertex.uv0 = nextLineBackStartVertex.uv1 = currentBackVertex.uv0;
-                            vh.AddVert(nextLineBackStartVertex);
-                            vh.AddTriangle(vh.currentVertCount - 1, vh.currentVertCount - 2, vh.currentVertCount - 3);
+                            //var nextLineBackStartVertex = new UIVertex();
+                            //nextLineBackStartVertex.position = nextLineBack.Start;
+                            //currentBackVertex.position = nextLineBack.Start;
+                            //nextLineBackStartVertex.color = currentColor;
+                            //nextLineBackStartVertex.uv0 = nextLineBackStartVertex.uv1 = currentBackVertex.uv0;
+                            //vh.AddVert(nextLineBackStartVertex);
+                            //vh.AddTriangle(vh.currentVertCount - 1, vh.currentVertCount - 2, vh.currentVertCount - 3);
                         }
 
 

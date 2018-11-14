@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEditor;
 using UnityEditor.UI;
+using System.Collections.Generic;
 
 namespace RedScarf.UguiFriend
 {
@@ -32,6 +33,43 @@ namespace RedScarf.UguiFriend
             EditorGUILayout.PropertyField(points, true);
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        [DrawGizmo(GizmoType.InSelectionHierarchy|GizmoType.Active|GizmoType.NonSelected,typeof(UguiLine))]
+        static void DrawControlPoints(UguiLine line,GizmoType gizmoType)
+        {
+            var pointsClone = new List<Vector2>(line.Points);
+            var cacheColor = Handles.color;
+            var controlColor = new Color(0,1,0,0.6f);
+            Handles.color = controlColor;
+
+            var ray=HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
+
+            var snap = Vector2.one;
+            for(var i=0;i< pointsClone.Count;i++)
+            {
+                var controlPointPos = line.transform.TransformPoint(pointsClone[i]);
+                var controlPointSize = HandleUtility.GetHandleSize(controlPointPos) * 0.3f;
+                if (Handles.Button(controlPointPos, Quaternion.identity, controlPointSize, controlPointSize*1.2f, Handles.SphereCap))
+                {
+                    Debug.Log("Select");
+                }
+                else
+                {
+                    var newPos = Handles.FreeMoveHandle(controlPointPos, Quaternion.identity, controlPointSize, snap, Handles.SphereCap);
+                    pointsClone[i] = line.transform.InverseTransformPoint(newPos);
+                }
+            }
+            line.Points = pointsClone;
+
+            Handles.color = cacheColor;
+
+            Handles.BeginGUI();
+            var addIconSize = new Vector2(100, 100);
+            var iconPos = Event.current.mousePosition;
+            iconPos.y -= addIconSize.y;
+            GUI.Label(new Rect(iconPos, addIconSize), "Add point?");
+            Handles.EndGUI();
         }
     }
 }
