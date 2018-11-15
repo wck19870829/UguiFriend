@@ -101,8 +101,8 @@ namespace RedScarf.UguiFriend
             {
                 var localPos = m_Content.InverseTransformPoint(child.position);
                 var dir = (Vector2)localPos - origin;
-                var dot = Mathf.Max(Vector2.Dot(dir, findVector),0.0001f);
-                var score = dot / dir.sqrMagnitude;
+                var dot = Mathf.Max(Vector2.Dot(dir, findVector),0.001f);
+                var score = dot /Mathf.Max(dir.magnitude,0.001f);
 
                 m_ChildrenScoreDict.Add(child, score);
                 m_Children.Add(child);

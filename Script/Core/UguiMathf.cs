@@ -504,8 +504,8 @@ namespace RedScarf.UguiFriend
         /// </summary>
         public sealed class Bezier
         {
-            const float tangentPercent = 0.3f;                  //切线百分比
-            public const int defaultSimpleDistance = 5;         //采样距离
+            public const float defaultTangentPercent = 0.3f;                    //切线百分比
+            public const int defaultSimpleDistance = 5;                         //采样距离
             public const int minSimpleDistance = 1;
             public const int maxSimpleDistance = 20;
 
@@ -515,6 +515,7 @@ namespace RedScarf.UguiFriend
             Dictionary<Vector2, Segment> m_SegmentPercentDict;
             float m_Length;
             int m_SimpleDistance;
+            float m_TangentPercent;
 
             public Bezier()
             {
@@ -524,25 +525,26 @@ namespace RedScarf.UguiFriend
                 m_SegmentPercentDict = new Dictionary<Vector2, Segment>();
             }
 
-            public Bezier(List<Vector3> keyPoints, int simpleDistance = defaultSimpleDistance)
+            public Bezier(List<Vector3> keyPoints, int simpleDistance = defaultSimpleDistance, float tangentPercent = defaultTangentPercent)
                 :this()
             {
-                Set(keyPoints, simpleDistance);
+                Set(keyPoints, simpleDistance, tangentPercent);
             }
 
-            public Bezier(List<Vector2> keyPoints, int simpleDistance = defaultSimpleDistance)
+            public Bezier(List<Vector2> keyPoints, int simpleDistance = defaultSimpleDistance, float tangentPercent = defaultTangentPercent)
                 : this()
             {
-                Set(keyPoints, simpleDistance);
+                Set(keyPoints, simpleDistance, tangentPercent);
             }
 
-            public void Set(List<Vector2> keyPoints, int simpleDistance)
+            public void Set(List<Vector2> keyPoints, int simpleDistance = defaultSimpleDistance, float tangentPercent=defaultTangentPercent)
             {
-                Set(GetVector3List(keyPoints),simpleDistance);
+                Set(GetVector3List(keyPoints),simpleDistance, tangentPercent);
             }
 
-            public void Set(List<Vector3> keyPoints,int simpleDistance)
+            public void Set(List<Vector3> keyPoints, int simpleDistance = defaultSimpleDistance, float tangentPercent = defaultTangentPercent)
             {
+                m_TangentPercent = Mathf.Clamp(tangentPercent,0f,0.5f);
                 m_Length = 0;
                 m_KeyPoints.Clear();
                 m_Segments.Clear();
@@ -561,9 +563,9 @@ namespace RedScarf.UguiFriend
                         var dist = Vector3.Distance(start,end);
                         var segment = new Segment(
                             start,
-                            (end-start).normalized* dist* tangentPercent,
+                            (end-start).normalized* dist* m_TangentPercent,
                             end,
-                            (start-end).normalized * dist * tangentPercent,
+                            (start-end).normalized * dist * m_TangentPercent,
                             m_SimpleDistance
                         );
                         m_Segments.Add(segment);
@@ -580,13 +582,13 @@ namespace RedScarf.UguiFriend
                             var rightDir = right - current;
                             var dist = Vector3.Distance(left, current);
                             var medianDir = Vector3.Slerp(leftDir, rightDir,0.5f);
-                            var tangent = UguiMathf.GetVertical(medianDir).normalized * dist * tangentPercent;
+                            var tangent = UguiMathf.GetVertical(medianDir).normalized * dist * m_TangentPercent;
                             if (Vector3.Dot(tangent, leftDir) < 0) tangent = -tangent;
 
                             var segment = new Segment(
                                 left,
                                 current,
-                                lastTangent.normalized* dist * tangentPercent+left,
+                                lastTangent.normalized* dist * m_TangentPercent + left,
                                 tangent+current,
                                 m_SimpleDistance
                             );
@@ -601,7 +603,7 @@ namespace RedScarf.UguiFriend
                         lastSegment = new Segment(
                             lastSegment.EndPosition,
                             lastPoint,
-                            lastTangent.normalized* lastDist* tangentPercent+ lastSegment.EndPosition,
+                            lastTangent.normalized* lastDist* m_TangentPercent + lastSegment.EndPosition,
                             lastPoint,
                             m_SimpleDistance
                         );
@@ -633,6 +635,22 @@ namespace RedScarf.UguiFriend
             /// 经过贝塞尔曲线上的点集合
             /// </summary>
             public List<Vector3> ThroughPoints { get { return m_ThroughPoints; } }
+
+            /// <summary>
+            /// 操控轴百分比
+            /// </summary>
+            public float TangentPercent
+            {
+                get
+                {
+                    return m_TangentPercent;
+                }
+                set
+                {
+                    m_TangentPercent = value;
+                    Set(m_KeyPoints, m_SimpleDistance, m_TangentPercent);
+                }
+            }
 
             /// <summary>
             /// 原始关键点

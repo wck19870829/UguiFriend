@@ -58,37 +58,24 @@ namespace RedScarf.UguiFriend
             {
                 if (m_SimplePoints == null)
                     m_SimplePoints = new List<Vector2>(512);
+                if (m_Bezier == null)
+                    m_Bezier = new UguiMathf.Bezier();
+
                 m_SimplePoints.Clear();
 
                 if (m_LineStyle == LineStyle.Straight)
                 {
-                    for (var i = 1; i < m_Points.Count; i++)
-                    {
-                        //细分
-                        var currentPoint = m_Points[i];
-                        var prevPoint = m_Points[i-1];
-                        var currentDist = Vector2.Distance(currentPoint, prevPoint);
-                        var interval = m_SimpleDistance / currentDist;
-                        var count = (int)(currentDist / m_SimpleDistance);
-                        for (var j=0;j<count;j++)
-                        {
-                            var point = Vector2.Lerp(prevPoint, currentPoint, interval * j);
-                            m_SimplePoints.Add(point);
-                        }
-                    }
-                    CreateLineMesh(ref vh, m_SimplePoints, m_Gradient,color, m_Thickness, m_ThicknessCurve, uvRect);
+                    m_Bezier.Set(m_Points, m_SimpleDistance,0);
                 }
                 else if (m_LineStyle == LineStyle.Bezier)
                 {
-                    if (m_Bezier==null)
-                        m_Bezier = new UguiMathf.Bezier();
                     m_Bezier.Set(m_Points, m_SimpleDistance);
-                    for (var i=0;i< m_Bezier.ThroughPoints.Count;i++)
-                    {
-                        m_SimplePoints.Add(m_Bezier.ThroughPoints[i]);
-                    }
-                    CreateLineMesh(ref vh, m_SimplePoints, m_Gradient,color, m_Thickness,m_ThicknessCurve, uvRect);
                 }
+                for (var i = 0; i < m_Bezier.ThroughPoints.Count; i++)
+                {
+                    m_SimplePoints.Add(m_Bezier.ThroughPoints[i]);
+                }
+                CreateLineMesh(ref vh, m_SimplePoints, m_Gradient, color, m_Thickness, m_ThicknessCurve, uvRect);
             }
         }
 
