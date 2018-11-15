@@ -29,17 +29,30 @@ namespace RedScarf.UguiFriend
 
             m_DrivenRectTransformTracker = new DrivenRectTransformTracker();
             rectTransform.pivot = Vector2.zero;
-            m_DrivenRectTransformTracker.Add(
-                gameObject,
-                rectTransform,
-                DrivenTransformProperties.Pivot | DrivenTransformProperties.SizeDelta
-            );
+            //m_DrivenRectTransformTracker.Add(
+            //    gameObject,
+            //    rectTransform,
+            //    DrivenTransformProperties.Pivot | DrivenTransformProperties.SizeDelta
+            //);
+        }
+
+        public override void SetVerticesDirty()
+        {
+            base.SetVerticesDirty();
+
+            var size = Vector2.zero;
+            var pivot = Vector2.zero;
+            if (m_SimplePoints != null)
+            {
+                var rect=UguiMathf.GetRect(m_SimplePoints);
+                size = rect.size;
+                pivot = rect.position;
+            }
+            rectTransform.sizeDelta = size;
         }
 
         protected override void OnPopulateMesh(VertexHelper vh)
         {
-            base.OnPopulateMesh(vh);
-
             vh.Clear();
             if (m_Points != null && m_Points.Count >= 2)
             {
@@ -80,13 +93,30 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 是否碰撞到
+        /// 点是否在线段上
         /// </summary>
-        /// <param name="localPosition"></param>
+        /// <param name="point"></param>
         /// <returns></returns>
-        public virtual bool IsHit(Vector2 localPosition)
+        public virtual bool IsHit(Vector2 point)
         {
+            if (m_Bezier != null&&m_Bezier.Length>0)
+            {
+                var percent = 0f;
+                for (var i = 1; i < m_Bezier.ThroughPoints.Count; i++)
+                {
+                    var prev = m_Bezier.ThroughPoints[i - 1];
+                    var current = m_Bezier.ThroughPoints[i];
+                    var middle = Vector2.Lerp(prev,current,0.5f);
+                    var dist = Vector2.Distance(point, middle);
+                    var thickness = m_ThicknessCurve.Evaluate(percent) * m_Thickness*0.5f;
+                    if (dist <= thickness)
+                    {
+                        return true;
+                    }
 
+                    percent += Vector2.Distance(prev, current)/m_Bezier.Length;
+                }
+            }
 
             return false;
         }
@@ -164,6 +194,7 @@ namespace RedScarf.UguiFriend
                 {
                     totalLength+=Vector2.Distance(points[i], points[i - 1]);
                 }
+                if (totalLength <= 0) return;
 
                 var cacheValue = 0f;
                 var lastIndex = points.Count - 1;

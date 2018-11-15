@@ -35,6 +35,45 @@ namespace RedScarf.UguiFriend
             serializedObject.ApplyModifiedProperties();
         }
 
+        private void OnSceneGUI()
+        {
+            var line = target as UguiLine;
+            if (IsMouseHit(line))
+            {
+                Handles.BeginGUI();
+                var addIconSize = new Vector2(100, 100);
+                var iconPos = Event.current.mousePosition;
+                iconPos.y -= addIconSize.y;
+                GUI.Box(new Rect(iconPos, addIconSize), "Add point?");
+                Handles.EndGUI();
+
+                if (Event.current.type == EventType.MouseDown)
+                {
+                    if (Event.current.clickCount == 2)
+                    {
+                        var ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
+                        var plane = UguiMathf.GetPlane(line.transform);
+                        var worldPos = UguiMathf.GetProjectOnPlane(plane, ray.origin);
+                        var localPos = line.transform.InverseTransformPoint(worldPos);
+
+
+                    }
+                }
+
+                HandleUtility.Repaint();
+            }
+        }
+
+        static bool IsMouseHit(UguiLine line)
+        {
+            var ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
+            var plane = UguiMathf.GetPlane(line.transform);
+            var worldPos = UguiMathf.GetProjectOnPlane(plane, ray.origin);
+            var localPos = line.transform.InverseTransformPoint(worldPos);
+
+            return line.IsHit(localPos);
+        }
+
         [DrawGizmo(GizmoType.InSelectionHierarchy|GizmoType.Active|GizmoType.NonSelected,typeof(UguiLine))]
         static void DrawControlPoints(UguiLine line,GizmoType gizmoType)
         {
@@ -42,9 +81,6 @@ namespace RedScarf.UguiFriend
             var cacheColor = Handles.color;
             var controlColor = new Color(0,1,0,0.6f);
             Handles.color = controlColor;
-
-            var ray=HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
-
             var snap = Vector2.one;
             for(var i=0;i< pointsClone.Count;i++)
             {
@@ -63,13 +99,6 @@ namespace RedScarf.UguiFriend
             line.Points = pointsClone;
 
             Handles.color = cacheColor;
-
-            Handles.BeginGUI();
-            var addIconSize = new Vector2(100, 100);
-            var iconPos = Event.current.mousePosition;
-            iconPos.y -= addIconSize.y;
-            GUI.Label(new Rect(iconPos, addIconSize), "Add point?");
-            Handles.EndGUI();
         }
     }
 }

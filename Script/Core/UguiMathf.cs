@@ -45,6 +45,7 @@ namespace RedScarf.UguiFriend
         {
             uv.x = uvRect.x + uvRect.width * uv.x;
             uv.y = uvRect.y + uvRect.height * uv.y;
+
             return uv;
         }
 
@@ -53,14 +54,12 @@ namespace RedScarf.UguiFriend
         /// </summary>
         /// <param name="points"></param>
         /// <returns></returns>
-        public static Rect GetRect(Vector2[] points)
+        public static Rect GetRect(IEnumerable<Vector2> points)
         {
             if (points == null)
                 throw new Exception("Points is null.");
-            if (points.Length == 0)
-                throw new Exception("Points length is zero.");
 
-            var rect = new Rect(points[0], Vector3.zero);
+            var rect = new Rect();
             foreach (var point in points)
             {
                 rect.xMax = Mathf.Max(rect.xMax, point.x);
@@ -70,6 +69,29 @@ namespace RedScarf.UguiFriend
             }
 
             return rect;
+        }
+
+        /// <summary>
+        /// 点到面上的投影点
+        /// </summary>
+        /// <param name="plane"></param>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        public static Vector3 GetProjectOnPlane(Plane plane,Vector3 point)
+        {
+            var ray = new Ray(point, plane.normal);
+            var enter = 0f;
+            plane.Raycast(ray, out enter);
+            var projectPoint = point + plane.normal.normalized * enter;
+
+            return projectPoint;
+        }
+
+        public static Plane GetPlane(Transform target)
+        {
+            var plane = new Plane(target.forward.normalized,target.position);
+
+            return plane;
         }
 
         /// <summary>
@@ -100,7 +122,7 @@ namespace RedScarf.UguiFriend
             if (min == max && max == current) return;
 
             var value = UnityEngine.Random.Range(min, max);
-            if (value == current)
+            if (value != current)
             {
                 current = value;
             }
@@ -242,6 +264,89 @@ namespace RedScarf.UguiFriend
                     Set(m_Start, m_End);
                 }
             }
+
+            /// <summary>
+            /// 点到直线距离
+            /// </summary>
+            /// <param name="point"></param>
+            /// <returns></returns>
+            public float Distance(Vector2 point)
+            {
+                var project = (Vector2)Vector3.Project((point - m_Start), (m_End - m_Start));
+                var projectPoint = m_Start + project;
+
+                return Vector2.Distance(point,projectPoint);
+            }
+        }
+
+        [Serializable]
+        /// <summary>
+        /// 三角形
+        /// </summary>
+        public struct Triangle
+        {
+            [SerializeField]Vector2 m_A;
+            [SerializeField] Vector2 m_B;
+            [SerializeField] Vector2 m_C;
+
+            public Triangle(Vector2 a,Vector2 b,Vector2 c)
+                :this()
+            {
+                Set(a,b,c);
+            }
+
+            public void Set(Vector2 a, Vector2 b, Vector2 c)
+            {
+                m_A = a;
+                m_B = b;
+                m_C = c;
+            }
+
+            /// <summary>
+            /// 是否包含点
+            /// </summary>
+            /// <param name="point"></param>
+            /// <returns></returns>
+            public bool Contains(Vector2 point)
+            {
+                var tABP = new Triangle(point,m_A,m_B);
+                var tACP = new Triangle(point, m_A, m_C);
+                var tBCP = new Triangle(point, m_B, m_C);
+                var isContains = (tABP.Area + tACP.Area + tBCP.Area == Area)
+                                ? true
+                                : false;
+
+                return isContains;
+            }
+
+            /// <summary>
+            /// 面积
+            /// </summary>
+            public float Area
+            {
+                get
+                {
+                    var lineAB = m_A - m_B;
+                    var lineBC = m_B - m_C;
+                    return Vector2.Dot(lineAB,lineBC)*Vector2.Angle(lineAB,lineBC)*0.5f;
+                }
+            }
+
+            /// <summary>
+            /// A点
+            /// </summary>
+            public Vector2 A { get { return m_A; } set { m_A = value; } }
+
+            /// <summary>
+            /// B点
+            /// </summary>
+            public Vector2 B { get { return m_B; } set { m_B = value; } }
+
+            /// <summary>
+            /// C点
+            /// </summary>
+            public Vector2 C { get { return m_C; } set { m_C = value; } }
+
         }
 
         /// <summary>
@@ -509,12 +614,13 @@ namespace RedScarf.UguiFriend
                         m_ThroughPoints.AddRange(segment.KeyPoints);
                     }
                     var lastPercent = 0f;
-                    foreach (var segment in m_Segments)
+                    for(var i=0;i<m_Segments.Count-1;i++)
                     {
-                        var percent = segment.Length / m_Length;
-                        m_SegmentPercentDict.Add(new Vector2(lastPercent, percent),segment);
+                        var percent = m_Segments[i].Length / m_Length;
+                        m_SegmentPercentDict.Add(new Vector2(lastPercent, percent), m_Segments[i]);
                         lastPercent = percent;
                     }
+                    m_SegmentPercentDict.Add(new Vector2(lastPercent, 1), m_Segments[m_Segments.Count-1]);
                 }
             }
 

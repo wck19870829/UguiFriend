@@ -14,8 +14,6 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public static class UguiTools
     {
-        static readonly Quaternion rotation90 = Quaternion.FromToRotation(Vector2.up, Vector2.right);
-
         /// <summary>
         /// 销毁所有子元素
         /// </summary>
@@ -26,16 +24,6 @@ namespace RedScarf.UguiFriend
             {
                 GameObject.Destroy(go.transform.GetChild(i).gameObject);
             }
-        }
-
-        /// <summary>
-        /// 获取垂线
-        /// </summary>
-        /// <returns></returns>
-        public static Vector2 GetVertical(Vector2 start,Vector2 end)
-        {
-            var dir = (end - start).normalized;
-            return (Vector2)(rotation90 * dir);
         }
 
         /// <summary>
