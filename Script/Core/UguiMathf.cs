@@ -35,6 +35,8 @@ namespace RedScarf.UguiFriend
             return outDir;
         }
 
+        #region 矩形
+
         /// <summary>
         /// UV偏移
         /// </summary>
@@ -72,6 +74,28 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 合并矩形
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="rect2"></param>
+        /// <returns></returns>
+        public static Rect RectCombine(Rect rect, Rect rect2)
+        {
+            var combine = Rect.MinMaxRect(
+                Mathf.Min(rect.xMin, rect2.xMin),
+                Mathf.Min(rect.yMin, rect2.yMin),
+                Mathf.Max(rect.xMax, rect2.xMax),
+                Mathf.Max(rect.yMax, rect2.yMax)
+                );
+
+            return combine;
+        }
+
+        #endregion
+
+
+        #region 面
+        /// <summary>
         /// 点到面上的投影点
         /// </summary>
         /// <param name="plane"></param>
@@ -93,6 +117,8 @@ namespace RedScarf.UguiFriend
 
             return plane;
         }
+
+        #endregion
 
         /// <summary>
         /// 投射点到线上
@@ -179,12 +205,12 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 线段
         /// </summary>
-        public struct Line
+        public struct Line2
         {
             [SerializeField]Vector2 m_Start;
             [SerializeField] Vector2 m_End;
 
-            public Line(Vector2 start,Vector2 end)
+            public Line2(Vector2 start,Vector2 end)
                 :this()
             {
                 Set(start,end);
@@ -208,7 +234,7 @@ namespace RedScarf.UguiFriend
             /// <param name="a"></param>
             /// <param name="b"></param>
             /// <returns></returns>
-            public static Vector2? GetIntersectPoint(Line a,Line b)
+            public static Vector2? GetIntersectPoint(Line2 a,Line2 b)
             {
                 var pointA = a.Start;
                 var pointB = a.End;
@@ -276,6 +302,21 @@ namespace RedScarf.UguiFriend
                 var projectPoint = m_Start + project;
 
                 return Vector2.Distance(point,projectPoint);
+            }
+
+            /// <summary>
+            /// 获取点到线上的投射点
+            /// </summary>
+            /// <param name="point"></param>
+            /// <returns></returns>
+            public Vector2 ProjectPoint(Vector2 point)
+            {
+                var normal = m_End - m_Start;
+                var vector = point - m_Start;
+                var projectVector = (Vector2)Vector3.Project(vector, normal);
+                var projectPoint = m_Start + projectVector;
+
+                return projectPoint;
             }
         }
 
@@ -381,16 +422,16 @@ namespace RedScarf.UguiFriend
             /// <param name="a"></param>
             /// <param name="b"></param>
             /// <returns></returns>
-            public static Line[] GetExternalLines(Circle a,Circle b)
+            public static Line2[] GetExternalLines(Circle a,Circle b)
             {
                 if (a.Center != b.Center)
                 {
                     var dir = a.Center-b.Center;
                     var vertical = UguiMathf.GetVertical(a.Center, b.Center);
-                    var tangentLine = new Line(a.Center + vertical.normalized * a.Radius, b.Center + vertical.normalized * b.Radius);
-                    var tangentLine2 = new Line(a.Center - vertical.normalized * a.Radius, b.Center - vertical.normalized * b.Radius);
+                    var tangentLine = new Line2(a.Center + vertical.normalized * a.Radius, b.Center + vertical.normalized * b.Radius);
+                    var tangentLine2 = new Line2(a.Center - vertical.normalized * a.Radius, b.Center - vertical.normalized * b.Radius);
 
-                    return new Line[] { tangentLine, tangentLine2 };
+                    return new Line2[] { tangentLine, tangentLine2 };
                 }
 
                 return null;

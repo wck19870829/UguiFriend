@@ -19,6 +19,47 @@ namespace RedScarf.UguiFriend
 
         }
 
+        public static void DrawSphereCap()
+        {
+
+        }
+
+        static Vector2 startPoint;
+
+        /// <summary>
+        /// 绘制选取
+        /// </summary>
+        public static void DrawSelection()
+        {
+            if (Event.current != null)
+            {
+                switch (Event.current.type)
+                {
+                    case EventType.MouseDown:
+                        startPoint = Event.current.mousePosition;
+                        break;
+
+                    case EventType.MouseDrag:
+                        var endPoint = Event.current.mousePosition;
+                        Handles.BeginGUI();
+                        Handles.RectangleCap(0, startPoint, Quaternion.identity, 100);
+                        Handles.EndGUI();
+                        break;
+
+                    case EventType.MouseUp:
+
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 绘制可隐藏的属性
+        /// </summary>
+        /// <param name="stateFoldout"></param>
+        /// <param name="guiContent"></param>
+        /// <param name="drawContentAction"></param>
+        /// <param name="onValueChanged"></param>
         public static void DrawFadeGroup(AnimBool stateFoldout,GUIContent guiContent,Action drawContentAction,UnityAction onValueChanged)
         {
             if (stateFoldout == null)
@@ -43,6 +84,12 @@ namespace RedScarf.UguiFriend
             }
         }
 
+        /// <summary>
+        /// 绘制属性
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="props"></param>
+        /// <returns></returns>
         public static float DrawProps(Rect position,List<SerializedProperty> props)
         {
             if (props == null||props.Count==0)
@@ -63,6 +110,11 @@ namespace RedScarf.UguiFriend
             return yOffset;
         }
 
+        /// <summary>
+        /// 获取属性的高度
+        /// </summary>
+        /// <param name="props"></param>
+        /// <returns></returns>
         public static float GetPropsHeight(List<SerializedProperty> props)
         {
             if (props == null || props.Count == 0)

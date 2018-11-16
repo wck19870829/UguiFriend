@@ -228,8 +228,8 @@ namespace RedScarf.UguiFriend
                     {
                         var currentForwardPoint = Vector2.zero;
                         var currentBackPoint = Vector2.zero;
-                        var currentTangentLineForward = new UguiMathf.Line();
-                        var currentTangentLineBack = new UguiMathf.Line();
+                        var currentTangentLineForward = new UguiMathf.Line2();
+                        var currentTangentLineBack = new UguiMathf.Line2();
                         if (Vector2.Dot(UguiMathf.GetVertical(prevPoint,currentPoint), currentLines[0].End-currentPoint) >= 0)
                         {
                             currentForwardPoint = currentLines[0].End;
@@ -244,8 +244,8 @@ namespace RedScarf.UguiFriend
                             currentTangentLineForward = currentLines[1];
                             currentTangentLineBack = currentLines[0];
                         }
-                        var nextLineForward = new UguiMathf.Line();
-                        var nextLineBack = new UguiMathf.Line();
+                        var nextLineForward = new UguiMathf.Line2();
+                        var nextLineBack = new UguiMathf.Line2();
                         if (Vector2.Dot(UguiMathf.GetVertical(currentPoint,nextPoint), nextLines[0].End-nextPoint) >= 0)
                         {
                             nextLineForward = nextLines[0];
@@ -272,13 +272,13 @@ namespace RedScarf.UguiFriend
                         currentCenterVertex.color = currentColor;
                         currentCenterVertex.uv0 = currentCenterVertex.uv1 = UguiMathf.UVOffset(new Vector2(currentValue, 0.5f), uvRect);
 
-                        var intersectPointForward = UguiMathf.Line.GetIntersectPoint(currentTangentLineForward, nextLineForward);
+                        var intersectPointForward = UguiMathf.Line2.GetIntersectPoint(currentTangentLineForward, nextLineForward);
                         if (intersectPointForward!=null)
                         {
                             currentForwardVertex.position = (Vector2)intersectPointForward;
                         }
 
-                        var intersectPointBack= UguiMathf.Line.GetIntersectPoint(currentTangentLineBack, nextLineBack);
+                        var intersectPointBack= UguiMathf.Line2.GetIntersectPoint(currentTangentLineBack, nextLineBack);
                         if (intersectPointBack!=null)
                         {
                             currentBackVertex.position = (Vector2)intersectPointBack;

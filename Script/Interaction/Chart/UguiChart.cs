@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace RedScarf.UguiFriend
 {
@@ -9,6 +10,8 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public abstract class UguiChart : UIBehaviour
     {
+        public Text valueTextPrefab;
+        public Text nameTextPrefab;
         [SerializeField] protected UguiChartData m_Data;
         protected bool isDirty;
         protected RectTransform chartContent;
@@ -43,8 +46,8 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 图标数据基类
     /// </summary>
-    public abstract class UguiChartData
+    public class UguiChartData
     {
-
+        
     }
 }

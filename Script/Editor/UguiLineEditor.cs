@@ -35,6 +35,8 @@ namespace RedScarf.UguiFriend
             serializedObject.ApplyModifiedProperties();
         }
 
+        int selectIndex = -1;
+
         private void OnSceneGUI()
         {
             var line = target as UguiLine;
@@ -45,15 +47,37 @@ namespace RedScarf.UguiFriend
 
             var cacheColor = Handles.color;
             var controlColor = new Color(0, 1, 0, 0.6f);
-            Handles.color = controlColor;
+            var selectColor = Color.yellow;
             var snap = Vector2.one;
+
+            if (Event.current.rawType == EventType.KeyDown)
+            {
+                if (Event.current.keyCode==KeyCode.Escape)
+                {
+                    selectIndex = -1;
+                }
+            }
+
             for (var i = 0; i < line.Points.Count; i++)
             {
                 var controlPointPos = line.transform.TransformPoint(line.Points[i]);
                 var controlPointSize = HandleUtility.GetHandleSize(controlPointPos) * 0.3f;
-                var newPos = Handles.FreeMoveHandle(controlPointPos, Quaternion.identity, controlPointSize, snap, Handles.SphereCap);
-                if (newPos != (Vector3)line.Points[i])
-                    line.Points[i] = line.transform.InverseTransformPoint(newPos);
+                if (selectIndex != i)
+                {
+                    Handles.color = controlColor;
+                    if (Handles.Button(controlPointPos, Quaternion.identity, controlPointSize, controlPointSize, Handles.SphereCap))
+                    {
+                        selectIndex = i;
+                    }
+                }
+                else
+                {
+                    Handles.color = selectColor;
+                    Handles.SphereCap(0, controlPointPos, Quaternion.identity, controlPointSize * 1.2f);
+                    var newPos = Handles.PositionHandle(controlPointPos, Quaternion.identity);
+                    if (newPos != (Vector3)line.Points[i])
+                        line.Points[i] = line.transform.InverseTransformPoint(newPos);
+                }
             }
 
             Handles.color = cacheColor;
@@ -77,7 +101,7 @@ namespace RedScarf.UguiFriend
                         {
                             var prev = line.Points[i - 1];
                             var current = line.Points[i];
-                            var segmentLine = new UguiMathf.Line(prev, current);
+                            var segmentLine = new UguiMathf.Line2(prev, current);
                             var dist = segmentLine.Distance(localPos);
                             var dot = Vector2.Dot(localPos-prev,current-localPos);
                             var score = dot / Mathf.Max(dist,0.001f);
@@ -94,10 +118,12 @@ namespace RedScarf.UguiFriend
                         });
                         var insertIndex=line.Points.IndexOf(scoreList[0]);
                         line.Points.Insert(insertIndex, localPos);
-                        line.Points = line.Points;
                     }
                 }
 
+                line.Points = line.Points;
+                EditorUtility.SetDirty(line);
+                line.OnRebuildRequested();
                 HandleUtility.Repaint();
             }
         }
