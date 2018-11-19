@@ -332,6 +332,29 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 添加一个元素
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="parent"></param>
+        /// <returns></returns>
+        public static T AddChild<T>(string name,Transform parent=null)where T:Component
+        {
+            var go = new GameObject(name);
+            if (parent != null)
+                go.transform.SetParent(parent);
+
+            go.transform.localPosition = Vector3.zero;
+            go.transform.rotation = Quaternion.identity;
+            go.transform.localScale = Vector3.one;
+            var component = go.GetComponent<T>();
+            if(component==null)
+                component= go.AddComponent<T>();
+
+            return component;
+        }
+
+        /// <summary>
         /// 复制一个元素
         /// </summary>
         /// <typeparam name="T"></typeparam>

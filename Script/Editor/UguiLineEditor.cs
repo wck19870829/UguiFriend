@@ -122,8 +122,8 @@ namespace RedScarf.UguiFriend
                 }
 
                 line.Points = line.Points;
-                EditorUtility.SetDirty(line);
                 line.OnRebuildRequested();
+                EditorUtility.SetDirty(line);
                 HandleUtility.Repaint();
             }
         }

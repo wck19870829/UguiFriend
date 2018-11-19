@@ -21,12 +21,8 @@ namespace RedScarf.UguiFriend
         {
             base.Awake();
 
-            chartContent = new RectTransform();
-            chartContent.name = "Chart";
-            chartContent.SetParent(transform);
-            valueTextContent = new RectTransform();
-            valueTextContent.name = "ValueText";
-            valueTextContent.SetParent(transform);
+            chartContent = UguiTools.AddChild<RectTransform>("Chart",transform);
+            valueTextContent = UguiTools.AddChild<RectTransform>("ValueText", transform);
 
             isDirty = true;
         }
