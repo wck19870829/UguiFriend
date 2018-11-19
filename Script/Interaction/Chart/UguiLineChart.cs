@@ -11,10 +11,13 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiLineChart : UguiChart
     {
+        protected const string defaultAreaMat="UguiFriend/Material/AreaChart";
+
         protected const int simpleDistance = 2;
         protected const int singleTexWidth = 1024;
         protected static readonly Color[] clearColors=new Color[singleTexWidth];
 
+        [SerializeField] protected Material m_AreaMat;
         [SerializeField] protected Mask m_Mask;
         [SerializeField] protected List<Vector2> valueList;
         [SerializeField]protected Vector2 m_ScrollPos;
@@ -38,9 +41,15 @@ namespace RedScarf.UguiFriend
                     var image = UguiTools.AddChild<RawImage>("Image_" + i, m_Mask.transform);
                     imageList.Add(image);
                 }
+                if (m_AreaMat == null)
+                {
+                    var sourceMat = Resources.Load<Material>(defaultAreaMat);
+                    m_AreaMat = new Material(sourceMat);
+                }
                 for (var i=0;i< imageList.Count;i++)
                 {
                     var image = imageList[i];
+                    image.material = new Material(m_AreaMat);
                     image.texture = texList[i];
                     image.rectTransform.pivot = new Vector2(0, 1);
                     image.transform.localPosition = new Vector2(i*singleTexWidth,0);
