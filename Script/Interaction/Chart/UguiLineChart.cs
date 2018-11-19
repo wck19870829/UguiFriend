@@ -40,9 +40,11 @@ namespace RedScarf.UguiFriend
                 }
                 for (var i=0;i< imageList.Count;i++)
                 {
-                    imageList[i].texture = texList[i];
-                    imageList[i].transform.localPosition = new Vector2(i*singleTexWidth,0);
-                    imageList[i].rectTransform.sizeDelta = singleSize;
+                    var image = imageList[i];
+                    image.texture = texList[i];
+                    image.rectTransform.pivot = new Vector2(0, 1);
+                    image.transform.localPosition = new Vector2(i*singleTexWidth,0);
+                    image.rectTransform.sizeDelta = singleSize;
                 }
             }
         }
