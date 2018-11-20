@@ -97,15 +97,25 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 能否驱动
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static bool CanDrive(Type type)
+        {
+            return driveLinkDict.ContainsKey(type);
+        }
+
+        /// <summary>
         /// 获取驱动属性绑定的类型
         /// </summary>
-        /// <param name="valueType"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
-        public static Type GetDriveType(Type valueType)
+        public static Type GetDriveType(Type type)
         {
-            if (driveLinkDict.ContainsKey(valueType))
+            if (driveLinkDict.ContainsKey(type))
             {
-                return driveLinkDict[valueType].driveType;
+                return driveLinkDict[type].driveType;
             }
 
             return null;

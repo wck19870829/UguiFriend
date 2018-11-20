@@ -47,7 +47,7 @@ namespace RedScarf.UguiFriend
                     {
                         if (prop.CanRead && prop.CanWrite)
                         {
-                            if (UguiTweenMultDrive.CanDrive(prop.PropertyType))
+                            if (UguiTweenMaster.CanDrive(prop.PropertyType))
                             {
                                 var from = prop.GetValue(cacheTarget, new object[0]);
                                 var to = from;
@@ -68,7 +68,7 @@ namespace RedScarf.UguiFriend
                     var fieldArr = cacheTarget.GetType().GetFields(bindingAttr);
                     foreach (var field in fieldArr)
                     {
-                        if (UguiTweenMultDrive.CanDrive(field.FieldType))
+                        if (UguiTweenMaster.CanDrive(field.FieldType))
                         {
                             var from = field.GetValue(cacheTarget);
                             var to = from;
@@ -148,7 +148,18 @@ namespace RedScarf.UguiFriend
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            EditorGUI.PropertyField(position,property.FindPropertyRelative("driveName"));
+            if (property.objectReferenceValue!=null)
+            {
+                if (property.objectReferenceValue.GetType() != typeof(UguiTweenMasterDrive))
+                {
+                    so = new SerializedObject(property.objectReferenceValue);
+                }
+                else so=property.serializedObject;
+            }
+            else
+            {
+                EditorGUI.PropertyField(position,property,new GUIContent("null"));
+            }
 
             //using (var scope = new EditorGUI.PropertyScope(position, label, property))
             //{

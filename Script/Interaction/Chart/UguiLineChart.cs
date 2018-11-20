@@ -49,7 +49,8 @@ namespace RedScarf.UguiFriend
                 for (var i=0;i< imageList.Count;i++)
                 {
                     var image = imageList[i];
-                    image.material = new Material(m_AreaMat);
+                    if(image.material==null)
+                        image.material = new Material(m_AreaMat);
                     image.texture = texList[i];
                     image.rectTransform.pivot = new Vector2(0, 1);
                     image.transform.localPosition = new Vector2(i*singleTexWidth,0);
