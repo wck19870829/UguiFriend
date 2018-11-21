@@ -5,6 +5,8 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 using System.Collections.Generic;
+using System.Text;
+using System.Diagnostics;
 
 namespace RedScarf.UguiFriend
 {
@@ -12,7 +14,7 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// Windows系统下键盘同步
     /// </summary>
-    public sealed class UguiKeyboardSyncWin : MonoBehaviour
+    public class UguiKeyboardSyncWin : MonoBehaviour
     {
         UguiKeyboard keyboard;
 
@@ -27,8 +29,34 @@ namespace RedScarf.UguiFriend
             keyboard.OnKeyUp += OnKeyUp;
         }
 
+        private void Update()
+        {
+            var processWnd = GetProcessWnd();
+            var inputStr = CurrentCompStr(processWnd);
+            UnityEngine.Debug.LogFormat("str:{0}", processWnd);
+        }
+
+        protected virtual bool SwitchingInputMethod(Event e)
+        {
+            if (e.control)
+            {
+                if (e.keyCode == KeyCode.Space || e.shift)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         void OnKeyDown(Event e)
         {
+            if (SwitchingInputMethod(e))
+            {
+                //切换输入法
+
+            }
+
             KeyDown(e.keyCode);
         }
 
@@ -48,7 +76,7 @@ namespace RedScarf.UguiFriend
             }
             else
             {
-                Debug.LogErrorFormat("Key code is invalid:{0}",keyCode);
+                UnityEngine.Debug.LogErrorFormat("Key code is invalid:{0}", keyCode);
             }
         }
 
@@ -63,14 +91,12 @@ namespace RedScarf.UguiFriend
             }
             else
             {
-                Debug.LogErrorFormat("Key code is invalid:{0}", keyCode);
+                UnityEngine.Debug.LogErrorFormat("Key code is invalid:{0}", keyCode);
             }
         }
 
         void KeyDown(VirtualKeyCode virtualKeyCode)
         {
-            //Debug.LogFormat("Key down:{0}", virtualKeyCode);
-
             var input = new INPUT();
             var keyboard = new KEYBDINPUT();
             keyboard.KeyCode = (ushort)virtualKeyCode;
@@ -83,8 +109,6 @@ namespace RedScarf.UguiFriend
 
         void KeyUp(VirtualKeyCode virtualKeyCode)
         {
-            //Debug.LogFormat("Key up:{0}", virtualKeyCode);
-
             var input = new INPUT();
             var keyboard = new KEYBDINPUT();
             keyboard.KeyCode = (ushort)virtualKeyCode;
@@ -204,10 +228,91 @@ namespace RedScarf.UguiFriend
 
         #endregion
 
-        #region Windows内置方法
+        #region Windows系统方法
 
         [DllImport("user32.dll", SetLastError = true)]
         static extern UInt32 SendInput(UInt32 numberOfInputs, INPUT[] inputs, Int32 sizeOfInputStructure);
+
+        [DllImport("imm32.dll")]
+        static extern IntPtr ImmGetContext(IntPtr hWnd);
+
+        [DllImport("imm32.dll")]
+        static extern bool ImmReleaseContext(IntPtr hWnd, IntPtr hIMC);
+
+        [DllImport("Imm32.dll", CharSet = CharSet.Unicode)]
+        static extern int ImmGetCompositionStringW(IntPtr hIMC, int dwIndex, byte[] lpBuf, int dwBufLen);
+
+        const int GCS_COMPSTR = 8;
+
+        public string CurrentCompStr(IntPtr handle)
+        {
+            int readType = GCS_COMPSTR;
+
+            IntPtr hIMC = ImmGetContext(handle);
+            try
+            {
+                int strLen = ImmGetCompositionStringW(hIMC, readType, null, 0);
+
+                if (strLen > 0)
+                {
+                    byte[] buffer = new byte[strLen];
+
+                    ImmGetCompositionStringW(hIMC, readType, buffer, strLen);
+
+                    return Encoding.Unicode.GetString(buffer);
+
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+            finally
+            {
+                ImmReleaseContext(handle, hIMC);
+            }
+        }
+
+        public delegate bool WNDENUMPROC(IntPtr hwnd, uint lParam);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool EnumWindows(WNDENUMPROC lpEnumFunc, uint lParam);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr GetParent(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, ref uint lpdwProcessId);
+
+        [DllImport("kernel32.dll")]
+        public static extern void SetLastError(uint dwErrCode);
+
+        public static IntPtr GetProcessWnd()
+        {
+            IntPtr ptrWnd = IntPtr.Zero;
+            uint pid = (uint)Process.GetCurrentProcess().Id;  // 当前进程 ID
+
+            bool bResult = EnumWindows(new WNDENUMPROC(delegate (IntPtr hwnd, uint lParam)
+            {
+                uint id = 0;
+
+                if (GetParent(hwnd) == IntPtr.Zero)
+                {
+                    GetWindowThreadProcessId(hwnd, ref id);
+                    if (id == lParam)    // 找到进程对应的主窗口句柄
+                    {
+                        ptrWnd = hwnd;   // 把句柄缓存起来
+                        SetLastError(0);    // 设置无错误
+                        return false;   // 返回 false 以终止枚举窗口
+                    }
+                }
+
+                return true;
+
+            }), pid);
+
+            return (!bResult && Marshal.GetLastWin32Error() == 0) ? ptrWnd : IntPtr.Zero;
+        }
 
         struct INPUT
         {

@@ -4,12 +4,13 @@ using System.Collections;
 /// <summary>
 /// Ugui物体接口
 /// </summary>
-public interface IUguiZeroObject
+public interface IUZObject
 {
     object Data { get; set; }
 }
 
-public interface IUguiZeroObject<TData>: IUguiZeroObject
+public interface IUZObject<TData>: IUZObject
+    where TData: IUZObjectData
 {
     new TData Data { get; set; }
 }
@@ -17,12 +18,12 @@ public interface IUguiZeroObject<TData>: IUguiZeroObject
 /// <summary>
 /// 数据接口
 /// </summary>
-public interface IUguiZeroObjectData
+public interface IUZObjectData
 {
     object ID { get;}
 }
 
-public interface IUguiZeroObjectData<T>:IUguiZeroObjectData
+public interface IUZObjectData<T>: IUZObjectData
 {
-    new object ID { get; }
+    new T ID { get; }
 }
