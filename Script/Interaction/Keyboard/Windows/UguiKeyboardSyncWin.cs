@@ -32,17 +32,19 @@ namespace RedScarf.UguiFriend
         {
             if (Input.GetKeyDown(KeyCode.A))
             {
-                string[] langs;
-                TSFWapper.GetCurrentLang(out langs);
-                foreach (var lang in langs)
-                {
-                    Debug.Log(lang);
-                }
+                var processWnd = GetProcessWnd();
+                var inputStr = CurrentCompStr(processWnd);
+                UnityEngine.Debug.LogFormat("str:{0}", inputStr);
+
+                //string[] langs;
+                //TSFWapper.GetCurrentLang(out langs);
+                //foreach (var lang in langs)
+                //{
+                //    Debug.Log(lang);
+                //}
             }
 
-            //var processWnd = GetProcessWnd();
-            //var inputStr = CurrentCompStr(processWnd);
-            //UnityEngine.Debug.LogFormat("str:{0}",inputStr);
+
         }
 
         protected virtual bool IsSwitchingInputMethod(Event e)
@@ -242,8 +244,8 @@ namespace RedScarf.UguiFriend
         [DllImport("user32.dll", SetLastError = true)]
         static extern UInt32 SendInput(UInt32 numberOfInputs, INPUT[] inputs, Int32 sizeOfInputStructure);
 
-        //[DllImport("imm32.dll")]
-        //static extern int ImmGetCandidateListA(IntPtr hIMC, deIndex, lpCandList, dwBufLen);
+        [DllImport("imm32.dll")]
+        static extern int ImmGetCandidateListA(IntPtr hIMC, int deIndex, tagCANDIDATELIST lpCandList,int dwBufLen);
 
         [DllImport("imm32.dll")]
         static extern IntPtr ImmGetContext(IntPtr hWnd);
@@ -323,6 +325,17 @@ namespace RedScarf.UguiFriend
             }), pid);
 
             return (!bResult && Marshal.GetLastWin32Error() == 0) ? ptrWnd : IntPtr.Zero;
+        }
+
+        struct tagCANDIDATELIST
+        {
+            uint dwSize;
+            uint dwStyle;
+            uint dwCount;
+            uint dwSelection;
+            uint dwPageStart;
+            uint dwPageSize;
+            uint[] dwOffset;
         }
 
         struct INPUT
