@@ -33,8 +33,12 @@ namespace RedScarf.UguiFriend
             if (Input.GetKeyDown(KeyCode.A))
             {
                 var processWnd = GetProcessWnd();
-                var inputStr = CurrentCompStr(processWnd);
-                UnityEngine.Debug.LogFormat("str:{0}", inputStr);
+                //var inputStr = CurrentCompStr(processWnd);
+                //UnityEngine.Debug.LogFormat("str:{0}", inputStr);
+
+                tagCANDIDATELIST tagCandidateList = new tagCANDIDATELIST();
+                //var len = ImmGetCandidateListA(processWnd, 0, ref tagCandidateList, 0);
+                //Debug.LogFormat("{0}  {1}",len,tagCandidateList);
 
                 //string[] langs;
                 //TSFWapper.GetCurrentLang(out langs);
@@ -245,7 +249,7 @@ namespace RedScarf.UguiFriend
         static extern UInt32 SendInput(UInt32 numberOfInputs, INPUT[] inputs, Int32 sizeOfInputStructure);
 
         [DllImport("imm32.dll")]
-        static extern int ImmGetCandidateListA(IntPtr hIMC, int deIndex, tagCANDIDATELIST lpCandList,int dwBufLen);
+        static extern int ImmGetCandidateListA(IntPtr hIMC, int deIndex,ref tagCANDIDATELIST lpCandList,int dwBufLen);
 
         [DllImport("imm32.dll")]
         static extern IntPtr ImmGetContext(IntPtr hWnd);
