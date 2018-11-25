@@ -37,7 +37,7 @@ namespace RedScarf.UguiFriend
 
         int selectIndex = -1;
 
-        private void OnSceneGUI()
+        protected virtual void OnSceneGUI()
         {
             var line = target as UguiLine;
             var ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);

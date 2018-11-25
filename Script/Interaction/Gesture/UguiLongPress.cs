@@ -53,6 +53,7 @@ namespace RedScarf.UguiFriend
                     OnLongPressEnd.Invoke();
                 }
             }
+            m_Time = 0;
         }
 
         protected virtual void OnCheckStart()
@@ -75,6 +76,17 @@ namespace RedScarf.UguiFriend
             if (OnLongPressTick != null)
             {
                 OnLongPressTick.Invoke(tickCount);
+            }
+        }
+
+        /// <summary>
+        /// 按下的时间
+        /// </summary>
+        public float Time
+        {
+            get
+            {
+                return m_Time;
             }
         }
     }
