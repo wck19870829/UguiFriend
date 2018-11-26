@@ -3,14 +3,13 @@ using System.Collections;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using UnityEngine.UI;
-using UnityEditor;
 
 namespace RedScarf.UguiFriend
 {
     /// <summary>
-    /// 吸入特效
+    /// 可吸入的图片
     /// </summary>
-    public class UguiSuckEffect : RawImage
+    public class UguiSuckImage : RawImage
     {
         public const int minSimpleDist = 10;
         public const int maxSimpleDist = 100;
@@ -18,16 +17,19 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected Vector2 m_BlackHolePoint;
         [SerializeField] protected float m_Percent;
         [SerializeField] protected int m_SimpleDist = 50;
-        [SerializeField] protected float m_Duration=0.2f;
+        [SerializeField] protected float m_Duration=0.25f;
         protected List<UIVertex> m_Verts;
         protected List<int> m_Indices;
         protected State m_State;
         protected Texture2D m_ScreenShot;
+        protected Texture m_CacheTex;
+        protected Dictionary<GameObject, bool> m_ChildrenStateDict;
 
-        protected UguiSuckEffect()
+        protected UguiSuckImage()
         {
             m_Verts = new List<UIVertex>(1024);
             m_Indices = new List<int>(4096);
+            m_ChildrenStateDict = new Dictionary<GameObject, bool>();
         }
 
         protected virtual void Update()
@@ -52,6 +54,13 @@ namespace RedScarf.UguiFriend
                     if (m_Percent <= 0)
                     {
                         m_State = State.None;
+
+                        //还原状态
+                        foreach (var item in m_ChildrenStateDict)
+                        {
+                            item.Key.SetActive(item.Value);
+                        }
+                        m_ChildrenStateDict.Clear();
                     }
                     break;
             }
@@ -62,14 +71,9 @@ namespace RedScarf.UguiFriend
         /// </summary>
         protected virtual void Snapshoot()
         {
-            if(m_ScreenShot==null|| m_ScreenShot.width!=Screen.width|| m_ScreenShot.height != Screen.height)
-            {
-                m_ScreenShot = new Texture2D(Screen.width, Screen.height,TextureFormat.ARGB32,false);
-            }
-            m_ScreenShot.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0, false);
-            m_ScreenShot.Apply();
 
-            texture = m_ScreenShot;
+
+            m_CacheTex = this.texture;
         }
 
         protected override void OnPopulateMesh(VertexHelper vh)
@@ -146,8 +150,24 @@ namespace RedScarf.UguiFriend
         /// </summary>
         public virtual void Storage()
         {
+            if (m_State == State.Storage||m_Percent==1) return;
+
             m_State = State.Storage;
-            Snapshoot();
+
+            //缓存子物体状态
+            m_ChildrenStateDict.Clear();
+            var children = gameObject.GetComponentsInChildren<Transform>(false);
+            foreach (var child in children)
+            {
+                m_ChildrenStateDict.Add(child.gameObject, child.gameObject.activeSelf);
+            }
+            m_ChildrenStateDict.Remove(gameObject);
+            foreach (var item in m_ChildrenStateDict)
+            {
+                item.Key.SetActive(false);
+            }
+
+            UguiScreenshot.GetInstance().Capture(ref m_ScreenShot, null);
         }
 
         /// <summary>
@@ -155,6 +175,8 @@ namespace RedScarf.UguiFriend
         /// </summary>
         public virtual void TakeOut()
         {
+            if (m_State == State.TakeOut||m_Percent==0) return;
+
             m_State = State.TakeOut;
         }
 

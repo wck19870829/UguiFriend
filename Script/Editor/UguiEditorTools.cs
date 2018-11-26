@@ -19,9 +19,15 @@ namespace RedScarf.UguiFriend
 
         }
 
-        public static void DrawSphereCap()
+        /// <summary>
+        /// 获取游戏视图框
+        /// </summary>
+        /// <returns></returns>
+        public static void GetGameViewRect(out int width,out int height)
         {
-
+            var screenSize = UnityStats.screenRes.Split('×');
+            width = int.Parse(screenSize[0]);
+            height = int.Parse(screenSize[1]);
         }
 
         static Vector2 startPoint;

@@ -5,18 +5,18 @@ using UnityEditor.UI;
 
 namespace RedScarf.UguiFriend
 {
-    [CustomEditor(typeof(UguiSuckEffect), true)]
-    public class UguiSuckEffectEditor : RawImageEditor
+    [CustomEditor(typeof(UguiSuckImage), true)]
+    public class UguiSuckImageEditor : RawImageEditor
     {
         public override void OnInspectorGUI()
         {
-            var suckEffect = target as UguiSuckEffect;
+            var suckEffect = target as UguiSuckImage;
             var simpleDist = serializedObject.FindProperty("m_SimpleDist");
             var blackHolePoint = serializedObject.FindProperty("m_BlackHolePoint");
             var percent = serializedObject.FindProperty("m_Percent");
             var duration = serializedObject.FindProperty("m_Duration");
 
-            EditorGUILayout.IntSlider(simpleDist,UguiSuckEffect.minSimpleDist,UguiSuckEffect.maxSimpleDist);
+            EditorGUILayout.IntSlider(simpleDist,UguiSuckImage.minSimpleDist,UguiSuckImage.maxSimpleDist);
             EditorGUILayout.PropertyField(blackHolePoint);
             EditorGUILayout.Slider(percent, 0, 1);
             duration.floatValue = EditorGUILayout.FloatField("Duration",duration.floatValue);
@@ -27,22 +27,25 @@ namespace RedScarf.UguiFriend
 
             EditorGUILayout.Space();
 
-            using (var scope=new GUILayout.HorizontalScope())
+            if (EditorApplication.isPlaying)
             {
-                if (GUILayout.Button("Storage"))
+                using (var scope = new GUILayout.HorizontalScope())
                 {
-                    suckEffect.Storage();
-                }
-                if (GUILayout.Button("Take out"))
-                {
-                    suckEffect.TakeOut();
+                    if (GUILayout.Button("Storage"))
+                    {
+                        suckEffect.Storage();
+                    }
+                    if (GUILayout.Button("Take out"))
+                    {
+                        suckEffect.TakeOut();
+                    }
                 }
             }
         }
 
         protected virtual void OnSceneGUI()
         {
-            var suckEffect = target as UguiSuckEffect;
+            var suckEffect = target as UguiSuckImage;
 
             var cacheColor=Handles.color;
             Handles.color = new Color(0, 1, 0, 0.6f);
