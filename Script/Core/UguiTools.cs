@@ -184,6 +184,37 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 获取屏幕坐标
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        public static Rect GetScreenRect(Graphic target)
+        {
+            var screenRect = new Rect();
+
+            var rootCanvas = target.canvas.rootCanvas;
+            var cornersArr = new Vector3[4];
+            target.rectTransform.GetWorldCorners(cornersArr);
+
+            if (rootCanvas.worldCamera==null||rootCanvas.renderMode==RenderMode.ScreenSpaceOverlay)
+            {
+                var cornersRect = GetRectContainsPoints(cornersArr);
+                screenRect = cornersRect;
+            }
+            else
+            {
+                for (var i=0;i<cornersArr.Length;i++)
+                {
+                    cornersArr[i] = rootCanvas.worldCamera.WorldToScreenPoint(cornersArr[i]);
+                }
+                var cornersRect = GetRectContainsPoints(cornersArr);
+                screenRect = cornersRect;
+            }
+
+            return screenRect;
+        }
+
+        /// <summary>
         /// 设置锚点
         /// </summary>
         /// <param name="target"></param>
@@ -196,117 +227,85 @@ namespace RedScarf.UguiFriend
 
             switch (anchorPresets)
             {
-                case (AnchorPresets.TopLeft):
-                    {
-                        target.anchorMin = new Vector2(0, 1);
-                        target.anchorMax = new Vector2(0, 1);
-                        break;
-                    }
+                case AnchorPresets.TopLeft:
+                    target.anchorMin = new Vector2(0, 1);
+                    target.anchorMax = new Vector2(0, 1);
+                    break;
 
-                case (AnchorPresets.TopCenter):
-                    {
-                        target.anchorMin = new Vector2(0.5f, 1);
-                        target.anchorMax = new Vector2(0.5f, 1);
-                        break;
-                    }
+                case AnchorPresets.TopCenter:
+                    target.anchorMin = new Vector2(0.5f, 1);
+                    target.anchorMax = new Vector2(0.5f, 1);
+                    break;
 
-                case (AnchorPresets.TopRight):
-                    {
-                        target.anchorMin = new Vector2(1, 1);
-                        target.anchorMax = new Vector2(1, 1);
-                        break;
-                    }
+                case AnchorPresets.TopRight:
+                    target.anchorMin = new Vector2(1, 1);
+                    target.anchorMax = new Vector2(1, 1);
+                    break;
 
-                case (AnchorPresets.MiddleLeft):
-                    {
-                        target.anchorMin = new Vector2(0, 0.5f);
-                        target.anchorMax = new Vector2(0, 0.5f);
-                        break;
-                    }
+                case AnchorPresets.MiddleLeft:
+                    target.anchorMin = new Vector2(0, 0.5f);
+                    target.anchorMax = new Vector2(0, 0.5f);
+                    break;
 
-                case (AnchorPresets.MiddleCenter):
-                    {
-                        target.anchorMin = new Vector2(0.5f, 0.5f);
-                        target.anchorMax = new Vector2(0.5f, 0.5f);
-                        break;
-                    }
+                case AnchorPresets.MiddleCenter:
+                    target.anchorMin = new Vector2(0.5f, 0.5f);
+                    target.anchorMax = new Vector2(0.5f, 0.5f);
+                    break;
 
-                case (AnchorPresets.MiddleRight):
-                    {
-                        target.anchorMin = new Vector2(1, 0.5f);
-                        target.anchorMax = new Vector2(1, 0.5f);
-                        break;
-                    }
+                case AnchorPresets.MiddleRight:
+                    target.anchorMin = new Vector2(1, 0.5f);
+                    target.anchorMax = new Vector2(1, 0.5f);
+                    break;
 
-                case (AnchorPresets.BottomLeft):
-                    {
-                        target.anchorMin = new Vector2(0, 0);
-                        target.anchorMax = new Vector2(0, 0);
-                        break;
-                    }
+                case AnchorPresets.BottomLeft:
+                    target.anchorMin = new Vector2(0, 0);
+                    target.anchorMax = new Vector2(0, 0);
+                    break;
 
-                case (AnchorPresets.BottonCenter):
-                    {
-                        target.anchorMin = new Vector2(0.5f, 0);
-                        target.anchorMax = new Vector2(0.5f, 0);
-                        break;
-                    }
+                case AnchorPresets.BottonCenter:
+                    target.anchorMin = new Vector2(0.5f, 0);
+                    target.anchorMax = new Vector2(0.5f, 0);
+                    break;
 
-                case (AnchorPresets.BottomRight):
-                    {
-                        target.anchorMin = new Vector2(1, 0);
-                        target.anchorMax = new Vector2(1, 0);
-                        break;
-                    }
+                case AnchorPresets.BottomRight:
+                    target.anchorMin = new Vector2(1, 0);
+                    target.anchorMax = new Vector2(1, 0);
+                    break;
 
-                case (AnchorPresets.HorStretchTop):
-                    {
-                        target.anchorMin = new Vector2(0, 1);
-                        target.anchorMax = new Vector2(1, 1);
-                        break;
-                    }
+                case AnchorPresets.HorStretchTop:
+                    target.anchorMin = new Vector2(0, 1);
+                    target.anchorMax = new Vector2(1, 1);
+                    break;
 
-                case (AnchorPresets.HorStretchMiddle):
-                    {
-                        target.anchorMin = new Vector2(0, 0.5f);
-                        target.anchorMax = new Vector2(1, 0.5f);
-                        break;
-                    }
+                case AnchorPresets.HorStretchMiddle:
+                    target.anchorMin = new Vector2(0, 0.5f);
+                    target.anchorMax = new Vector2(1, 0.5f);
+                    break;
 
-                case (AnchorPresets.HorStretchBottom):
-                    {
-                        target.anchorMin = new Vector2(0, 0);
-                        target.anchorMax = new Vector2(1, 0);
-                        break;
-                    }
+                case AnchorPresets.HorStretchBottom:
+                    target.anchorMin = new Vector2(0, 0);
+                    target.anchorMax = new Vector2(1, 0);
+                    break;
 
-                case (AnchorPresets.VertStretchLeft):
-                    {
-                        target.anchorMin = new Vector2(0, 0);
-                        target.anchorMax = new Vector2(0, 1);
-                        break;
-                    }
+                case AnchorPresets.VertStretchLeft:
+                    target.anchorMin = new Vector2(0, 0);
+                    target.anchorMax = new Vector2(0, 1);
+                    break;
 
-                case (AnchorPresets.VertStretchCenter):
-                    {
-                        target.anchorMin = new Vector2(0.5f, 0);
-                        target.anchorMax = new Vector2(0.5f, 1);
-                        break;
-                    }
+                case AnchorPresets.VertStretchCenter:
+                    target.anchorMin = new Vector2(0.5f, 0);
+                    target.anchorMax = new Vector2(0.5f, 1);
+                    break;
 
-                case (AnchorPresets.VertStretchRight):
-                    {
-                        target.anchorMin = new Vector2(1, 0);
-                        target.anchorMax = new Vector2(1, 1);
-                        break;
-                    }
+                case AnchorPresets.VertStretchRight:
+                    target.anchorMin = new Vector2(1, 0);
+                    target.anchorMax = new Vector2(1, 1);
+                    break;
 
-                case (AnchorPresets.StretchAll):
-                    {
-                        target.anchorMin = new Vector2(0, 0);
-                        target.anchorMax = new Vector2(1, 1);
-                        break;
-                    }
+                case AnchorPresets.StretchAll:
+                    target.anchorMin = new Vector2(0, 0);
+                    target.anchorMax = new Vector2(1, 1);
+                    break;
             }
         }
 

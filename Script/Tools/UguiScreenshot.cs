@@ -10,6 +10,7 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public sealed class UguiScreenshot : MonoBehaviour
     {
+        const int defaultSize = 2048;
         static UguiScreenshot s_Current;
 
         Camera m_Camera;
@@ -38,16 +39,31 @@ namespace RedScarf.UguiFriend
             s_Current = null;
         }
 
-        public void Capture(ref Texture2D tex,Graphic graphic)
+        /// <summary>
+        /// 截图
+        /// </summary>
+        /// <param name="tex">位图</param>
+        /// <param name="target">渲染物体</param>
+        public void Capture(ref Texture2D tex,Graphic target)
         {
-            //var canvas=graphic.canvas;
-            var width = Screen.width;
-            var height = Screen.height;
+            var screenWidth = Screen.width;
+            var screenHeight = Screen.height;
 
-#if UNTY_EDITOR
-            UguiEditorTools.GetGameView(out width,out height);
+#if UNITY_EDITOR
+            var screenSize=UnityEditor.UnityStats.screenRes.Split('x');
+            screenWidth = int.Parse(screenSize[0]);
+            screenHeight = int.Parse(screenSize[1]);
 #endif
-            Debug.Log(width);
+            var rootCanvas = target.canvas.rootCanvas;
+            var screenRect=UguiTools.GetScreenRect(target);
+
+            var rt = RenderTexture.GetTemporary(defaultSize, defaultSize,32,RenderTextureFormat.ARGB32);
+            if (tex == null)
+                tex = new Texture2D((int)screenRect.width, (int)screenRect.height, TextureFormat.ARGB32, false);
+            var cacheRT = RenderTexture.active;
+
+            RenderTexture.active = cacheRT;
+            RenderTexture.ReleaseTemporary(rt);
         }
 
         ///// <summary>

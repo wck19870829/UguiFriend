@@ -167,7 +167,7 @@ namespace RedScarf.UguiFriend
                 item.Key.SetActive(false);
             }
 
-            UguiScreenshot.GetInstance().Capture(ref m_ScreenShot, null);
+            UguiScreenshot.GetInstance().Capture(ref m_ScreenShot, this);
         }
 
         /// <summary>
