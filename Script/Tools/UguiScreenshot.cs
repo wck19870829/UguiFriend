@@ -10,10 +10,10 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public sealed class UguiScreenshot : MonoBehaviour
     {
-        const int defaultSize = 2048;
         static UguiScreenshot s_Current;
 
         Camera m_Camera;
+        Canvas m_Canvas;
 
         public static UguiScreenshot GetInstance()
         {
@@ -29,6 +29,9 @@ namespace RedScarf.UguiFriend
                 s_Current.m_Camera = cam;
 
                 var canvas = go.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = cam;
+                s_Current.m_Canvas = canvas;
             }
 
             return s_Current;
@@ -55,35 +58,62 @@ namespace RedScarf.UguiFriend
             screenHeight = int.Parse(screenSize[1]);
 #endif
             var rootCanvas = target.canvas.rootCanvas;
-            var screenRect=UguiTools.GetScreenRect(target);
+            if (rootCanvas.renderMode != RenderMode.ScreenSpaceOverlay && rootCanvas.worldCamera == null)
+            {
+                throw new Exception("请正确设置相机!");
+            }
 
-            var rt = RenderTexture.GetTemporary(defaultSize, defaultSize,32,RenderTextureFormat.ARGB32);
+            var targetScreenRect=UguiTools.GetScreenRect(target);
+            var targetWidth = (int)targetScreenRect.width;
+            var targetHeight=(int)targetScreenRect.height;
+
             if (tex == null)
-                tex = new Texture2D((int)screenRect.width, (int)screenRect.height, TextureFormat.ARGB32, false);
-            var cacheRT = RenderTexture.active;
+                tex = new Texture2D(targetWidth, targetHeight, TextureFormat.ARGB32, false);
+            if (tex.width != targetWidth || tex.height != targetHeight)
+                tex.Resize(targetWidth, targetHeight, TextureFormat.ARGB32, false);
 
+            var rt = RenderTexture.GetTemporary(screenWidth, screenHeight, 32, RenderTextureFormat.ARGB32);
+
+            if(rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay)
+            {
+                var dist = screenHeight*0.5f/Mathf.Tan(m_Camera.fieldOfView * 0.5f*Mathf.Deg2Rad);
+                m_Canvas.planeDistance = dist;
+                m_Camera.transform.localPosition = new Vector3(0,0,-dist);
+                gameObject.SetActive(true);
+
+                //置入
+                var cacheParent = target.transform.parent;
+                target.transform.SetParent(transform);
+
+                var camRT = m_Camera.targetTexture;
+                m_Camera.targetTexture = rt;
+                m_Camera.RenderDontRestore();
+                m_Camera.targetTexture = camRT;
+
+                target.transform.SetParent(cacheParent);
+                gameObject.SetActive(false);
+            }
+            else
+            {
+                var camRT = rootCanvas.worldCamera.targetTexture;
+                rootCanvas.worldCamera.targetTexture = rt;
+                rootCanvas.worldCamera.RenderDontRestore();
+                rootCanvas.worldCamera.targetTexture = camRT;
+            }
+
+            var cacheRT = RenderTexture.active;
+            RenderTexture.active = rt;
+            var sourceRect = new Rect(
+                            targetScreenRect.x,
+                            screenHeight-targetScreenRect.yMax,
+                            targetScreenRect.width,
+                            targetScreenRect.height
+                            );
+            tex.ReadPixels(sourceRect, 0, 0);
+            tex.Apply();
             RenderTexture.active = cacheRT;
+
             RenderTexture.ReleaseTemporary(rt);
         }
-
-        ///// <summary>
-        ///// 快照
-        ///// </summary>
-        ///// <param name="tex">位图</param>
-        ///// <param name="target">渲染的物体</param>
-        ///// <param name="targetCam">渲染的物体摄像机</param>
-        //public void Capture(ref Texture2D tex,Rect screenRect,GameObject target,Camera targetCam)
-        //{
-        //    var cam = targetCam == null
-        //            ? m_Camera
-        //            : targetCam;
-
-        //    var width = Screen.width;
-        //    var height = Screen.height;
-
-        //    var screenShot = new Texture2D((int)screenRect.width, (int)screenRect.height, TextureFormat.ARGB32, false);
-        //    screenShot.ReadPixels(screenRect, 0, 0);
-        //    screenShot.Apply();
-        //}
     }
 }

@@ -61,19 +61,10 @@ namespace RedScarf.UguiFriend
                             item.Key.SetActive(item.Value);
                         }
                         m_ChildrenStateDict.Clear();
+                        this.texture = m_CacheTex;
                     }
                     break;
             }
-        }
-
-        /// <summary>
-        /// 快照
-        /// </summary>
-        protected virtual void Snapshoot()
-        {
-
-
-            m_CacheTex = this.texture;
         }
 
         protected override void OnPopulateMesh(VertexHelper vh)
@@ -154,20 +145,27 @@ namespace RedScarf.UguiFriend
 
             m_State = State.Storage;
 
-            //缓存子物体状态
-            m_ChildrenStateDict.Clear();
-            var children = gameObject.GetComponentsInChildren<Transform>(false);
-            foreach (var child in children)
+            //处于初始状态才缓存状态
+            if (m_Percent==0)
             {
-                m_ChildrenStateDict.Add(child.gameObject, child.gameObject.activeSelf);
-            }
-            m_ChildrenStateDict.Remove(gameObject);
-            foreach (var item in m_ChildrenStateDict)
-            {
-                item.Key.SetActive(false);
-            }
+                //截图
+                m_CacheTex = this.texture;
+                UguiScreenshot.GetInstance().Capture(ref m_ScreenShot, this);
+                this.texture = m_ScreenShot;
 
-            UguiScreenshot.GetInstance().Capture(ref m_ScreenShot, this);
+                //缓存子物体状态
+                m_ChildrenStateDict.Clear();
+                var children = gameObject.GetComponentsInChildren<Transform>(false);
+                foreach (var child in children)
+                {
+                    m_ChildrenStateDict.Add(child.gameObject, child.gameObject.activeSelf);
+                }
+                m_ChildrenStateDict.Remove(gameObject);
+                foreach (var item in m_ChildrenStateDict)
+                {
+                    item.Key.SetActive(false);
+                }
+            }
         }
 
         /// <summary>
