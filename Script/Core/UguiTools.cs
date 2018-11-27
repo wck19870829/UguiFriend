@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using UnityEngine;
@@ -373,6 +374,55 @@ namespace RedScarf.UguiFriend
             clone.transform.localPosition = Vector3.zero;
 
             return clone;
+        }
+
+        /// <summary>
+        /// 查询一个不使用的层
+        /// </summary>
+        /// <returns></returns>
+        public static int FindUnusedLayer()
+        {
+            for (var i=0;i<32;i++)
+            {
+                if (string.IsNullOrEmpty(LayerMask.LayerToName(i)))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public static void CopyProps(object source, object destination,bool onlyCopyValueType=true)
+        {
+            if (source == null || destination == null)
+                return;
+
+            var flag = BindingFlags.Public | BindingFlags.Instance;
+            var props = source.GetType().GetProperties(flag);
+            foreach (var prop in props)
+            {
+                if (prop.CanRead && prop.CanWrite)
+                {
+                    if (onlyCopyValueType)
+                    {
+                        if (!typeof(ValueType).IsAssignableFrom(prop.PropertyType))
+                        {
+                            continue;
+                        }
+                    }
+
+                    try
+                    {
+                        var value = prop.GetValue(source, null);
+                        prop.SetValue(destination, value, null);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogWarning(e);
+                    }
+                }
+            }
         }
 
         #region 其他

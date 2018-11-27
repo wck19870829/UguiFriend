@@ -2,44 +2,29 @@
 using System.Collections;
 using UnityEngine.UI;
 using System;
+using System.Collections.Generic;
 
 namespace RedScarf.UguiFriend
 {
     /// <summary>
     /// 截屏
     /// </summary>
-    public sealed class UguiScreenshot : MonoBehaviour
+    public sealed class UguiScreenshot : UguiSingleton<UguiScreenshot>,IUguiSingletonCreate<UguiScreenshot>
     {
-        static UguiScreenshot s_Current;
-
         Camera m_Camera;
         Canvas m_Canvas;
+        CanvasScaler m_CanvasScaler;
 
-        public static UguiScreenshot GetInstance()
+        public void OnSingletonCreate(UguiScreenshot instance)
         {
-            if (s_Current == null)
-            {
-                var go = UguiTools.AddChild<Transform>("Screenshot").gameObject;
-                go.SetActive(false);
-                s_Current = go.AddComponent<UguiScreenshot>();
+            var go = instance.gameObject;
+            go.SetActive(false);
 
-                var cam = UguiTools.AddChild<Camera>("Camera", go.transform);
-                cam.backgroundColor = Color.clear;
-                cam.clearFlags = CameraClearFlags.SolidColor;
-                s_Current.m_Camera = cam;
-
-                var canvas = go.AddComponent<Canvas>();
-                canvas.renderMode = RenderMode.ScreenSpaceCamera;
-                canvas.worldCamera = cam;
-                s_Current.m_Canvas = canvas;
-            }
-
-            return s_Current;
-        }
-
-        private void OnDestroy()
-        {
-            s_Current = null;
+            m_Camera = UguiTools.AddChild<Camera>("Camera", go.transform);
+            m_Camera.backgroundColor = Color.clear;
+            m_Camera.clearFlags = CameraClearFlags.SolidColor;
+            m_Canvas = go.AddComponent<Canvas>();
+            m_CanvasScaler = go.AddComponent<CanvasScaler>();
         }
 
         /// <summary>
@@ -67,40 +52,48 @@ namespace RedScarf.UguiFriend
             var targetWidth = (int)targetScreenRect.width;
             var targetHeight=(int)targetScreenRect.height;
 
-            if (tex == null)
-                tex = new Texture2D(targetWidth, targetHeight, TextureFormat.ARGB32, false);
-            if (tex.width != targetWidth || tex.height != targetHeight)
-                tex.Resize(targetWidth, targetHeight, TextureFormat.ARGB32, false);
-
-            var rt = RenderTexture.GetTemporary(screenWidth, screenHeight, 32, RenderTextureFormat.ARGB32);
-
-            if(rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay)
+            //对齐到目标画布
+            var rootScaler = rootCanvas.GetComponent<CanvasScaler>();
+            UguiTools.CopyProps(rootCanvas,m_Canvas);
+            UguiTools.CopyProps(rootCanvas.transform, m_Canvas.transform);
+            UguiTools.CopyProps(rootScaler, m_CanvasScaler);
+            m_Canvas.worldCamera = m_Camera;
+            if (rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay)
             {
-                var dist = screenHeight*0.5f/Mathf.Tan(m_Camera.fieldOfView * 0.5f*Mathf.Deg2Rad);
+                m_Canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                var dist = screenHeight * 0.5f / Mathf.Tan(m_Camera.fieldOfView * 0.5f * Mathf.Deg2Rad);
                 m_Canvas.planeDistance = dist;
-                m_Camera.transform.localPosition = new Vector3(0,0,-dist);
-                gameObject.SetActive(true);
-
-                //置入
-                var cacheParent = target.transform.parent;
-                target.transform.SetParent(transform);
-
-                var camRT = m_Camera.targetTexture;
-                m_Camera.targetTexture = rt;
-                m_Camera.RenderDontRestore();
-                m_Camera.targetTexture = camRT;
-
-                target.transform.SetParent(cacheParent);
-                gameObject.SetActive(false);
+                m_Camera.transform.localPosition = new Vector3(0, 0, -dist/rootCanvas.scaleFactor);
             }
             else
             {
-                var camRT = rootCanvas.worldCamera.targetTexture;
-                rootCanvas.worldCamera.targetTexture = rt;
-                rootCanvas.worldCamera.RenderDontRestore();
-                rootCanvas.worldCamera.targetTexture = camRT;
+                UguiTools.CopyProps(rootCanvas.worldCamera, m_Camera);
             }
 
+            //渲染准备
+            var unusedLayer = UguiTools.FindUnusedLayer();
+            if (unusedLayer < 0) unusedLayer = 31;
+            unusedLayer = 5;
+            gameObject.layer = unusedLayer;
+            gameObject.SetActive(true);
+            m_Camera.backgroundColor = Color.clear;
+            m_Canvas.gameObject.layer = unusedLayer;
+            m_Camera.cullingMask = 1 << unusedLayer;
+
+            //置入
+            var parent = target.transform.parent;
+            target.transform.SetParent(transform, true);
+
+            //渲染
+            var rt = RenderTexture.GetTemporary(screenWidth, screenHeight, 32, RenderTextureFormat.ARGB32);
+            m_Camera.targetTexture = rt;
+            GL.Clear(true, true, Color.clear);
+            m_Camera.RenderDontRestore();
+
+            target.transform.SetParent(parent, true);
+            gameObject.SetActive(false);
+
+            //拷贝图像
             var cacheRT = RenderTexture.active;
             RenderTexture.active = rt;
             var sourceRect = new Rect(
@@ -109,6 +102,10 @@ namespace RedScarf.UguiFriend
                             targetScreenRect.width,
                             targetScreenRect.height
                             );
+            if (tex == null)
+                tex = new Texture2D(targetWidth, targetHeight, TextureFormat.ARGB32, false);
+            if (tex.width != targetWidth || tex.height != targetHeight)
+                tex.Resize(targetWidth, targetHeight, TextureFormat.ARGB32, false);
             tex.ReadPixels(sourceRect, 0, 0);
             tex.Apply();
             RenderTexture.active = cacheRT;
