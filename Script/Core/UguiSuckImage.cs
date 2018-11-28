@@ -65,6 +65,15 @@ namespace RedScarf.UguiFriend
                     }
                     break;
             }
+
+            if (Input.GetKeyDown(KeyCode.T))
+            {
+                TakeOut();
+            }
+            else if (Input.GetKeyDown(KeyCode.S))
+            {
+                Storage();
+            }
         }
 
         protected override void OnPopulateMesh(VertexHelper vh)
@@ -150,7 +159,7 @@ namespace RedScarf.UguiFriend
             {
                 //截图
                 m_CacheTex = this.texture;
-                UguiScreenshot.Instance.Capture(ref m_ScreenShot, this);
+                UguiScreenshot.Instance.CaptureGraphic(ref m_ScreenShot, this);
                 this.texture = m_ScreenShot;
 
                 //缓存子物体状态

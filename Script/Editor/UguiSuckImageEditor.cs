@@ -24,23 +24,6 @@ namespace RedScarf.UguiFriend
             serializedObject.ApplyModifiedProperties();
 
             base.OnInspectorGUI();
-
-            EditorGUILayout.Space();
-
-            if (EditorApplication.isPlaying)
-            {
-                using (var scope = new GUILayout.HorizontalScope())
-                {
-                    if (GUILayout.Button("Storage"))
-                    {
-                        suckEffect.Storage();
-                    }
-                    if (GUILayout.Button("Take out"))
-                    {
-                        suckEffect.TakeOut();
-                    }
-                }
-            }
         }
 
         protected virtual void OnSceneGUI()
