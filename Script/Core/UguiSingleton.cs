@@ -53,6 +53,10 @@ namespace RedScarf.UguiFriend
         }
     }
 
+    /// <summary>
+    /// 单例创建接口
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public interface IUguiSingletonCreate<T>
         where T : MonoBehaviour
     {

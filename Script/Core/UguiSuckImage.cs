@@ -65,15 +65,6 @@ namespace RedScarf.UguiFriend
                     }
                     break;
             }
-
-            if (Input.GetKeyDown(KeyCode.T))
-            {
-                TakeOut();
-            }
-            else if (Input.GetKeyDown(KeyCode.S))
-            {
-                Storage();
-            }
         }
 
         protected override void OnPopulateMesh(VertexHelper vh)
@@ -204,6 +195,9 @@ namespace RedScarf.UguiFriend
             }
         }
 
+        /// <summary>
+        /// 状态
+        /// </summary>
         protected enum State
         {
             None,
