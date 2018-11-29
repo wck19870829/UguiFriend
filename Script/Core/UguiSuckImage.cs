@@ -17,7 +17,7 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected Vector2 m_BlackHolePoint;
         [SerializeField] protected float m_Percent;
         [SerializeField] protected int m_SimpleDist = 50;
-        [SerializeField] protected float m_Duration=0.25f;
+        [SerializeField] protected float m_Duration=0.3f;
         protected List<UIVertex> m_Verts;
         protected List<int> m_Indices;
         protected State m_State;
@@ -64,6 +64,18 @@ namespace RedScarf.UguiFriend
                         this.texture = m_CacheTex;
                     }
                     break;
+            }
+        }
+
+        protected virtual void OnGUI()
+        {
+            if (Input.GetKeyDown(KeyCode.S))
+            {
+                Storage();
+            }
+            if (Input.GetKeyDown(KeyCode.T))
+            {
+                TakeOut();
             }
         }
 

@@ -150,7 +150,7 @@ namespace RedScarf.UguiFriend
     }
 
     [CustomPropertyDrawer(typeof(UguiTweenMasterDrive), true)]
-    public class UguiTweenMasterDriveEditor : PropertyDrawer
+    public class UguiTweenMasterDriveDrawer : PropertyDrawer
     {
         protected List<SerializedProperty> props;
         protected float height;
