@@ -10,6 +10,9 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiLayer : MonoBehaviour
     {
+        const int layerInterval = 10000;
+        const int orderMax = layerInterval - 1;
+        static readonly List<UguiLayer> s_LayerList;
         static bool s_Dirty;
 
         [SerializeField] protected int m_Layer;                     //层类型,范围[0...31]
@@ -17,9 +20,19 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected int m_GlobalOrder;               //绝对排序值
         [SerializeField] protected bool m_AutoSort=true;            //是否自动排序
 
-        protected virtual void OnEnabled()
+        static UguiLayer()
+        {
+            s_LayerList = new List<UguiLayer>();
+        }
+
+        protected virtual void OnEnable()
         {
             SetDirty();
+        }
+
+        protected virtual void OnDisable()
+        {
+
         }
 
         protected virtual void LateUpdate()
@@ -32,6 +45,8 @@ namespace RedScarf.UguiFriend
             if (s_Dirty)
             {
                 s_Dirty = false;
+
+                SortingImmediate();
             }
         }
 
@@ -41,6 +56,17 @@ namespace RedScarf.UguiFriend
         public static void SetDirty()
         {
             s_Dirty = true;
+        }
+
+        /// <summary>
+        /// 立即排序
+        /// </summary>
+        public static void SortingImmediate()
+        {
+            //s_LayerList.Sort((a,b)=> 
+            //{
+
+            //});
         }
 
         /// <summary>
