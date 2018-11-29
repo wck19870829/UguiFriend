@@ -52,8 +52,8 @@ namespace RedScarf.UguiFriend
             var targetHeight = (int)targetRectTrans.rect.height;
             var maxTextureSize = (float)SystemInfo.maxTextureSize;
             var texSizeRotio = Mathf.Min(
-                                Mathf.Min(maxTextureSize / targetWidth, 1),
-                                Mathf.Min(maxTextureSize / targetHeight, 1)
+                                Mathf.Min(maxTextureSize / targetWidth,(float)screenWidth/ targetWidth, 1),
+                                Mathf.Min(maxTextureSize / targetHeight,(float)screenHeight/targetHeight ,1)
                                 );
             var texWidth = (int)(targetWidth * texSizeRotio);
             var texHeight = (int)(targetHeight * texSizeRotio);

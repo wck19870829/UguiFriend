@@ -19,6 +19,8 @@ namespace RedScarf.UguiFriend
 
         }
 
+        public const int defaultLabelWidth = 60;
+
         /// <summary>
         /// 获取游戏视图框
         /// </summary>

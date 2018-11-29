@@ -20,9 +20,11 @@ namespace RedScarf.UguiFriend
             var autoSort = serializedObject.FindProperty("m_AutoSort");
 
             var enabled = GUI.enabled;
+            var labelWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = UguiEditorTools.defaultLabelWidth;
 
             //设置层
-            var infoConfig = Resources.Load<LayerInfoConfig>(configPath);
+            var infoConfig = Resources.Load<UguiLayerInfoConfig>(configPath);
             var displayOptions = new List<GUIContent>();
             var optionValues = new List<int>();
             for (var i = 0; i < infoConfig.nameList.Count; i++)
@@ -45,43 +47,24 @@ namespace RedScarf.UguiFriend
 
             using (var scope = new EditorGUILayout.HorizontalScope())
             {
-                autoSort.boolValue = EditorGUILayout.ToggleLeft("AutoSort", autoSort.boolValue,GUILayout.Width(80));
-
-                GUILayout.FlexibleSpace();
-
+                autoSort.boolValue = EditorGUILayout.ToggleLeft("Auto order", autoSort.boolValue,GUILayout.Width(100));
                 GUI.enabled = !autoSort.boolValue;
-                EditorGUILayout.PropertyField(order);
+                order.intValue=Mathf.Clamp(EditorGUILayout.IntField(order.intValue,GUILayout.Width(40)),0, UguiLayer.orderMax);
+
+                GUILayout.Space(20);
+
+                GUI.enabled = false;
+                EditorGUILayout.IntField("Global", globalOrder.intValue);
                 GUI.enabled = true;
             }
 
             GUI.enabled = enabled;
+            EditorGUIUtility.labelWidth=labelWidth;
 
-            serializedObject.ApplyModifiedProperties();
-        }
-    }
-
-    [Serializable]
-    /// <summary>
-    /// 序列化保存
-    /// </summary>
-    public class LayerInfoConfig : ScriptableObject
-    {
-        public List<string> nameList;
-    }
-
-    [CustomEditor(typeof(LayerInfoConfig))]
-    public class LayerInfoConfigEditor : Editor
-    {
-        public override void OnInspectorGUI()
-        {
-            var nameList = serializedObject.FindProperty("nameList");
-            for (var i = 0; i < nameList.arraySize; i++)
+            if (serializedObject.ApplyModifiedProperties())
             {
-                var sp = nameList.GetArrayElementAtIndex(i);
-                EditorGUILayout.PropertyField(sp, new GUIContent(i.ToString()));
+                UguiLayer.SetDirty();
             }
-
-            serializedObject.ApplyModifiedProperties();
         }
     }
 }

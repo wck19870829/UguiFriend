@@ -5,14 +5,17 @@ using System.Collections.Generic;
 
 namespace RedScarf.UguiFriend
 {
+    [DisallowMultipleComponent]
     /// <summary>
     /// 层级排序
     /// </summary>
     public class UguiLayer : MonoBehaviour
     {
-        const int layerInterval = 10000;
-        const int orderMax = layerInterval - 1;
+        public const int layerInterval = 10000;
+        public const int orderMax = layerInterval - 1;
         static readonly List<UguiLayer> s_LayerList;
+        static readonly Dictionary<int, int> s_OrderDict;
+        static readonly Dictionary<int, HashSet<int>> customOrderSet;
         static bool s_Dirty;
 
         [SerializeField] protected int m_Layer;                     //层类型,范围[0...31]
@@ -23,16 +26,24 @@ namespace RedScarf.UguiFriend
         static UguiLayer()
         {
             s_LayerList = new List<UguiLayer>();
+            s_OrderDict = new Dictionary<int, int>();
+            customOrderSet = new Dictionary<int, HashSet<int>>();
+            for (var i=0;i<32;i++)
+            {
+                customOrderSet.Add(i,new HashSet<int>());
+                s_OrderDict.Add(i,0);
+            }
         }
 
         protected virtual void OnEnable()
         {
+            s_LayerList.Add(this);
             SetDirty();
         }
 
         protected virtual void OnDisable()
         {
-
+            s_LayerList.Remove(this);
         }
 
         protected virtual void LateUpdate()
@@ -63,10 +74,54 @@ namespace RedScarf.UguiFriend
         /// </summary>
         public static void SortingImmediate()
         {
-            //s_LayerList.Sort((a,b)=> 
-            //{
+            for (var i=0;i<32;i++)
+            {
+                s_OrderDict[i]=0;
+            }
+            foreach (var item in customOrderSet.Values)
+            {
+                item.Clear();
+            }
+            foreach (var item in s_LayerList)
+            {
+                if (!item.m_AutoSort)
+                {
+                    if (!customOrderSet[item.m_Layer].Contains(item.m_Order))
+                    {
+                        customOrderSet[item.m_Layer].Add(item.m_Order);
+                    }
+                }
+            }
 
-            //});
+            foreach (var item in s_LayerList)
+            {
+                var layer = item.m_Layer;
+                var order = s_OrderDict[layer];
+                var orderSet = customOrderSet[layer];
+                while (orderSet.Contains(order))
+                {
+                    order++;
+                }
+                if (item.m_AutoSort)
+                {
+                    item.m_Order = order;
+                    s_OrderDict[layer] = order + 1;
+                }
+                item.m_GlobalOrder = layer * layerInterval + item.m_Order;
+            }
+
+            //排序
+            foreach (var item in s_LayerList)
+            {
+                var canvasArr = item.GetComponentsInChildren<Canvas>(true);
+                foreach (var canvas in canvasArr)
+                {
+                    if (canvas.GetComponentInParent<UguiLayer>() == item)
+                    {
+                        
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -101,6 +156,11 @@ namespace RedScarf.UguiFriend
             }
             set
             {
+                if(value<0||value> orderMax)
+                {
+                    throw new Exception("取值范围为[0..."+ orderMax+"]");
+                }
+
                 m_Order = value;
                 SetDirty();
             }
