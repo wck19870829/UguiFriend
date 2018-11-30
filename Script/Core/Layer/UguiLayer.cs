@@ -3,6 +3,7 @@ using System.Collections;
 using System;
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace RedScarf.UguiFriend
 {
@@ -10,7 +11,7 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 层级排序
     /// </summary>
-    public class UguiLayer : UIBehaviour
+    public abstract class UguiLayer : UIBehaviour
     {
         public const int layerInterval = 10000;
         public const int orderMax = layerInterval - 1;
@@ -60,82 +61,6 @@ namespace RedScarf.UguiFriend
             base.OnDisable();
 
             s_LayerList.Remove(this);
-        }
-
-        /// <summary>
-        /// 标记改变延迟排序
-        /// </summary>
-        public static void SetDirty()
-        {
-            s_Dirty = true;
-        }
-
-        /// <summary>
-        /// 立即排序
-        /// </summary>
-        public static void SortingImmediate()
-        {
-            for (var i=0;i<32;i++)
-            {
-                s_OrderDict[i]=0;
-            }
-            foreach (var item in customOrderSet.Values)
-            {
-                item.Clear();
-            }
-            foreach (var item in s_LayerList)
-            {
-                if (!item.m_AutoSort)
-                {
-                    if (!customOrderSet[item.m_Layer].Contains(item.m_Order))
-                    {
-                        customOrderSet[item.m_Layer].Add(item.m_Order);
-                    }
-                }
-            }
-
-            foreach (var item in s_LayerList)
-            {
-                var layer = item.m_Layer;
-                var order = s_OrderDict[layer];
-                var orderSet = customOrderSet[layer];
-                while (orderSet.Contains(order))
-                {
-                    order++;
-                }
-                if (item.m_AutoSort)
-                {
-                    item.m_Order = order;
-                    s_OrderDict[layer] = order + 1;
-                }
-                item.m_GlobalOrder = layer * layerInterval + item.m_Order;
-            }
-
-            //排序
-            s_LayerList.Sort((a,b)=> {
-                if (a.m_GlobalOrder == b.m_GlobalOrder) return 0;
-
-                return a.m_GlobalOrder > b.m_GlobalOrder ? 1 : -1;
-            });
-
-            var canvasList = new List<Canvas>();
-            foreach (var item in s_LayerList)
-            {
-                canvasList.Clear();
-                var canvasArr = item.GetComponentsInChildren<Canvas>(true);
-                foreach (var canvas in canvasArr)
-                {
-                    if (canvas.GetComponentInParent<UguiLayer>() == item)
-                    {
-                        canvasList.Add(canvas);
-                    }
-                }
-                canvasList.Sort((a,b)=> {
-                    if (a.sortingOrder == b.sortingOrder) return 0;
-
-                    return a.sortingOrder > b.sortingOrder ? 1 : -1;
-                });
-            }
         }
 
         /// <summary>
@@ -205,6 +130,98 @@ namespace RedScarf.UguiFriend
                 m_AutoSort = value;
                 SetDirty();
             }
+        }
+
+        protected abstract int SetRenderOrder();
+
+        /// <summary>
+        /// 标记改变延迟排序
+        /// </summary>
+        public static void SetDirty()
+        {
+            s_Dirty = true;
+        }
+
+        /// <summary>
+        /// 立即排序
+        /// </summary>
+        public static void SortingImmediate()
+        {
+            for (var i = 0; i < 32; i++)
+            {
+                s_OrderDict[i] = 0;
+            }
+            foreach (var item in customOrderSet.Values)
+            {
+                item.Clear();
+            }
+            foreach (var item in s_LayerList)
+            {
+                if (!item.m_AutoSort)
+                {
+                    if (!customOrderSet[item.m_Layer].Contains(item.m_Order))
+                    {
+                        customOrderSet[item.m_Layer].Add(item.m_Order);
+                    }
+                }
+            }
+
+            foreach (var item in s_LayerList)
+            {
+                var layer = item.m_Layer;
+                var order = s_OrderDict[layer];
+                var orderSet = customOrderSet[layer];
+                while (orderSet.Contains(order))
+                {
+                    order++;
+                }
+                if (item.m_AutoSort)
+                {
+                    item.m_Order = order;
+                    s_OrderDict[layer] = order + 1;
+                }
+                item.m_GlobalOrder = layer * layerInterval + item.m_Order;
+            }
+
+            //排序
+            s_LayerList.Sort((a, b) => {
+                if (a.m_GlobalOrder == b.m_GlobalOrder) return 0;
+
+                return a.m_GlobalOrder > b.m_GlobalOrder ? 1 : -1;
+            });
+
+            var renderOrder=0;
+            foreach (var item in s_LayerList)
+            {
+                var num=item.SetRenderOrder();
+                renderOrder += num;
+            }
+        }
+    }
+
+    public abstract class UguiLayer<T> : UguiLayer
+        where T:Component
+    {
+        protected List<T> m_Children;
+
+        protected UguiLayer()
+        {
+            m_Children = new List<T>();
+        }
+
+        protected override int SetRenderOrder()
+        {
+            m_Children.Clear();
+            var children = GetComponentsInChildren<T>(true);
+            foreach (var child in children)
+            {
+                if (child.GetComponentInParent<UguiLayer>() == this)
+                {
+                    m_Children.Add(child);
+                }
+            }
+
+            return m_Children.Count;
         }
     }
 }

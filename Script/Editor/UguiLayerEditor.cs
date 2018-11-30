@@ -7,7 +7,7 @@ using UnityEditorInternal;
 
 namespace RedScarf.UguiFriend
 {
-    [CustomEditor(typeof(UguiLayer))]
+    [CustomEditor(typeof(UguiLayer),true)]
     public class UguiLayerEditor : Editor
     {
         const string configPath = "UguiFriend/Config/LayerInfoConfig";
