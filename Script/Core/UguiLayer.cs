@@ -2,6 +2,7 @@
 using System.Collections;
 using System;
 using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 namespace RedScarf.UguiFriend
 {
@@ -9,7 +10,7 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 层级排序
     /// </summary>
-    public class UguiLayer : MonoBehaviour
+    public class UguiLayer : UIBehaviour
     {
         public const int layerInterval = 10000;
         public const int orderMax = layerInterval - 1;
@@ -33,36 +34,36 @@ namespace RedScarf.UguiFriend
                 customOrderSet.Add(i,new HashSet<int>());
                 s_OrderDict.Add(i,0);
             }
+
+            Canvas.willRenderCanvases += OnWillRenderCanvases;
         }
 
-        protected virtual void OnEnable()
-        {
-            s_LayerList.Add(this);
-            SetDirty();
-        }
-
-        protected virtual void OnDisable()
-        {
-            s_LayerList.Remove(this);
-        }
-
-        protected virtual void LateUpdate()
-        {
-            OnLayerChange();
-        }
-
-        static void OnLayerChange()
+        static void OnWillRenderCanvases()
         {
             if (s_Dirty)
             {
                 s_Dirty = false;
-
                 SortingImmediate();
             }
         }
 
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+
+            s_LayerList.Add(this);
+            SetDirty();
+        }
+
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+
+            s_LayerList.Remove(this);
+        }
+
         /// <summary>
-        /// 重新排序
+        /// 标记改变延迟排序
         /// </summary>
         public static void SetDirty()
         {
@@ -111,16 +112,29 @@ namespace RedScarf.UguiFriend
             }
 
             //排序
+            s_LayerList.Sort((a,b)=> {
+                if (a.m_GlobalOrder == b.m_GlobalOrder) return 0;
+
+                return a.m_GlobalOrder > b.m_GlobalOrder ? 1 : -1;
+            });
+
+            var canvasList = new List<Canvas>();
             foreach (var item in s_LayerList)
             {
+                canvasList.Clear();
                 var canvasArr = item.GetComponentsInChildren<Canvas>(true);
                 foreach (var canvas in canvasArr)
                 {
                     if (canvas.GetComponentInParent<UguiLayer>() == item)
                     {
-                        
+                        canvasList.Add(canvas);
                     }
                 }
+                canvasList.Sort((a,b)=> {
+                    if (a.sortingOrder == b.sortingOrder) return 0;
+
+                    return a.sortingOrder > b.sortingOrder ? 1 : -1;
+                });
             }
         }
 
