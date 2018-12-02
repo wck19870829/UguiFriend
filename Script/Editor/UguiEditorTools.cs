@@ -19,13 +19,13 @@ namespace RedScarf.UguiFriend
 
         }
 
-        public const int defaultLabelWidth = 60;
+        public const int defaultLabelWidth = 120;
 
         /// <summary>
         /// 获取游戏视图框
         /// </summary>
         /// <returns></returns>
-        public static void GetGameViewRect(out int width,out int height)
+        public static void GetGameViewRect(out int width, out int height)
         {
             var screenSize = UnityStats.screenRes.Split('×');
             width = int.Parse(screenSize[0]);
@@ -33,6 +33,50 @@ namespace RedScarf.UguiFriend
         }
 
         static Vector2 startPoint;
+
+        /// <summary>
+        /// 绘制层级排序
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="sp"></param>
+        public static void DrawSortingLayer(GUIContent title,SerializedProperty sp)
+        {
+            using (var scope=new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.PrefixLabel(title);
+
+                var layerName = SortingLayer.IDToName(sp.intValue);
+                if (GUILayout.Button(layerName, EditorStyles.popup))
+                {
+                    var menu = new GenericMenu();
+                    foreach(var layer in SortingLayer.layers)
+                    {
+                        menu.AddItem(
+                                new GUIContent(layer.name),
+                                layerName == layer.name,
+                                (x)=> {
+                                    sp.intValue = SortingLayer.NameToID(x.ToString());
+                                    sp.serializedObject.ApplyModifiedProperties();
+                                    UguiSortingLayer.SetDirty();
+                                },
+                                layer.name
+                                );
+                    }
+
+                    menu.AddSeparator("");
+
+                    menu.AddItem(
+                        new GUIContent("Add Sorting Layer"),
+                        false,
+                        () =>
+                        {
+                            Selection.activeObject = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0];
+                        }
+                        );
+                    menu.ShowAsContext();
+                }
+            }
+        }
 
         /// <summary>
         /// 绘制选取
@@ -68,11 +112,11 @@ namespace RedScarf.UguiFriend
         /// <param name="guiContent"></param>
         /// <param name="drawContentAction"></param>
         /// <param name="onValueChanged"></param>
-        public static void DrawFadeGroup(AnimBool stateFoldout,GUIContent guiContent,Action drawContentAction,UnityAction onValueChanged)
+        public static void DrawFadeGroup(AnimBool stateFoldout, GUIContent guiContent, Action drawContentAction, UnityAction onValueChanged)
         {
             if (stateFoldout == null)
                 return;
-            if (onValueChanged!=null)
+            if (onValueChanged != null)
             {
                 stateFoldout.valueChanged.RemoveListener(onValueChanged);
                 stateFoldout.valueChanged.AddListener(onValueChanged);
@@ -98,13 +142,13 @@ namespace RedScarf.UguiFriend
         /// <param name="position"></param>
         /// <param name="props"></param>
         /// <returns></returns>
-        public static float DrawProps(Rect position,List<SerializedProperty> props)
+        public static float DrawProps(Rect position, List<SerializedProperty> props)
         {
-            if (props == null||props.Count==0)
+            if (props == null || props.Count == 0)
                 return 0;
 
             var yOffset = position.y;
-            for (var i=0;i<props.Count;i++)
+            for (var i = 0; i < props.Count; i++)
             {
                 if (props[i] != null)
                 {
@@ -131,7 +175,7 @@ namespace RedScarf.UguiFriend
             var height = 0f;
             foreach (var prop in props)
             {
-                height+=EditorGUI.GetPropertyHeight(prop);
+                height += EditorGUI.GetPropertyHeight(prop);
             }
 
             return height;
