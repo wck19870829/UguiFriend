@@ -13,14 +13,14 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public abstract class UguiSortingLayer : UIBehaviour
     {
-        public const int layerInterval = 10000;
+        public const int layerInterval = 1000;
         public const int sortingOrderMin = 0;
         public const int sortingOrderMax = layerInterval - 1;
         protected static readonly List<UguiSortingLayer> s_LayerList;
         protected static int s_GlobalSortngLayer;
         protected static bool s_Dirty;
 
-        [SerializeField] protected int m_SortingLayerID;
+        [SerializeField] protected int m_SortingLayerID;            //排序层id
         [SerializeField] protected int m_SortingOrder;              //相对排序值
         [SerializeField] protected bool m_AutoSort = true;          //是否自动排序
 
