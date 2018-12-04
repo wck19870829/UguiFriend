@@ -428,6 +428,30 @@ namespace RedScarf.UguiFriend
         #region 其他
 
         /// <summary>
+        /// 查找子类
+        /// </summary>
+        /// <param name="baseType">父类</param>
+        /// <returns></returns>
+        public static List<Type> FindSubClass(Type baseType)
+        {
+            var subTypeList = new List<Type>();
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var assemblie in assemblies)
+            {
+                var types = assemblie.GetTypes();
+                foreach (var type in types)
+                {
+                    if (baseType.IsAssignableFrom(type))
+                    {
+                        subTypeList.Add(type);
+                    }
+                }
+            }
+
+            return subTypeList;
+        }
+
+        /// <summary>
         /// byte[]转string
         /// </summary>
         /// <param name="bytes"></param>

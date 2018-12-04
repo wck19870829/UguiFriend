@@ -12,8 +12,8 @@ namespace RedScarf.UguiFriend
     public class UguiTimeSelector : MonoBehaviour
     {
         [SerializeField]protected bool gotoNow = true;
-        [SerializeField] protected UguiWidgetContent hourItem;
-        [SerializeField] protected UguiWidgetContent minuteItem;
+        //[SerializeField] protected UguiWidgetContent hourItem;
+        //[SerializeField] protected UguiWidgetContent minuteItem;
         int m_CurrentHour;
         int m_CurrentMinute;
 
