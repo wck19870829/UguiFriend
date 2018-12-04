@@ -11,12 +11,12 @@ namespace RedScarf.UguiFriend
         IUguiSingletonCreate<UguiHistoryManager>
     {
         Dictionary<string, IUguiHistoryElement> elementDict;
-        Dictionary<string, List<object>> stateDict;
-        int stateIndex;
+        Dictionary<string, LinkedList<StateKey>> stateDict;
+        int stateFrame;
 
         public void OnSingletonCreate(UguiHistoryManager instance)
         {
-            stateDict = new Dictionary<string, List<object>>();
+            stateDict = new Dictionary<string, LinkedList<StateKey>>();
             elementDict = new Dictionary<string, IUguiHistoryElement>();
         }
 
@@ -29,7 +29,7 @@ namespace RedScarf.UguiFriend
             var guid = element.GUID;
             if (!stateDict.ContainsKey(guid))
             {
-                stateDict.Add(guid, new List<object>());
+                stateDict.Add(guid,new LinkedList<StateKey>());
             }
             else
             {
@@ -74,11 +74,35 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 直接跳转到帧
+        /// </summary>
+        /// <param name="frame"></param>
+        public void GotoState(int frame)
+        {
+
+        }
+
+        /// <summary>
         /// 快照,保存当前状态
         /// </summary>
         public void Snapshoot()
         {
 
+        }
+
+        [System.Serializable]
+        private class StateLine
+        {
+
+
+            /// <summary>
+            /// 关键帧信息
+            /// </summary>
+            private class StateKey
+            {
+                public int frame;
+                public object state;
+            }
         }
     }
 }
