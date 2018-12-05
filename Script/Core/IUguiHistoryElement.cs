@@ -9,6 +9,18 @@ namespace RedScarf.UguiFriend
     public interface IUguiHistoryElement
     {
         /// <summary>
+        /// 注册
+        /// 使用UguiHistoryManager.Register(this)方法注册
+        /// </summary>
+        void Register();
+
+        /// <summary>
+        /// 取消注册
+        /// 使用UguiHistoryManager.Unregister(this)方法取消注册
+        /// </summary>
+        void Unregister();
+
+        /// <summary>
         /// 标识符,存储状态时作为Key值
         /// </summary>
         string GUID { get; }
@@ -20,21 +32,21 @@ namespace RedScarf.UguiFriend
         object DeepCloneState();
 
         /// <summary>
-        /// 返回上一步
+        /// 上一步
         /// </summary>
         /// <param name="data"></param>
-        void GotoPrevState(object data);
+        void GotoPrevStep(object data);
 
         /// <summary>
-        /// 返回下一步
+        /// 下一步
         /// </summary>
         /// <param name="data"></param>
-        void GotoNextState(object data);
+        void GotoNextStep(object data);
 
         /// <summary>
         /// 直接设置状态
         /// </summary>
         /// <param name="data"></param>
-        void GotoState(object data);
+        void GotoStep(object data);
     }
 }

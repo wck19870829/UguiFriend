@@ -10,14 +10,15 @@ namespace RedScarf.UguiFriend
     public sealed class UguiHistoryManager : UguiSingleton<UguiHistoryManager>,
         IUguiSingletonCreate<UguiHistoryManager>
     {
+        Dictionary<string, List<object>> stateDict;
         Dictionary<string, IUguiHistoryElement> elementDict;
-        Dictionary<string, LinkedList<StateKey>> stateDict;
-        int stateFrame;
+        int m_CurrentStep;
+        int m_StepCount;
 
         public void OnSingletonCreate(UguiHistoryManager instance)
         {
-            stateDict = new Dictionary<string, LinkedList<StateKey>>();
             elementDict = new Dictionary<string, IUguiHistoryElement>();
+            stateDict = new Dictionary<string, List<object>>();
         }
 
         /// <summary>
@@ -27,22 +28,19 @@ namespace RedScarf.UguiFriend
         public void Register(IUguiHistoryElement element)
         {
             var guid = element.GUID;
-            if (!stateDict.ContainsKey(guid))
-            {
-                stateDict.Add(guid,new LinkedList<StateKey>());
-            }
-            else
-            {
-                stateDict[guid].Clear();
-            }
 
             if (!elementDict.ContainsKey(guid))
             {
-                elementDict.Add(guid,element);
+                elementDict.Add(guid, element);
             }
             else
             {
                 elementDict[guid] = element;
+            }
+
+            if (!stateDict.ContainsKey(guid))
+            {
+                stateDict.Add(guid, new List<object>());
             }
         }
 
@@ -53,55 +51,116 @@ namespace RedScarf.UguiFriend
         public void Unregister(IUguiHistoryElement element)
         {
             var guid = element.GUID;
-            stateDict.Remove(guid);
             elementDict.Remove(guid);
+            stateDict.Remove(guid);
         }
 
         /// <summary>
         /// 上一步
         /// </summary>
-        public void GotoPrevState()
+        public void GotoPrevStep()
         {
+            if (m_CurrentStep <= 0) return;
 
+            m_CurrentStep--;
+            m_CurrentStep = Mathf.Clamp(m_CurrentStep, 0, m_StepCount - 1);
+            foreach (var item in elementDict)
+            {
+                var state = stateDict[item.Key][m_CurrentStep];
+                item.Value.GotoPrevStep(state);
+            }
         }
 
         /// <summary>
         /// 下一步
         /// </summary>
-        public void GotoNextState()
+        public void GotoNextStep()
         {
+            if (m_CurrentStep >= m_StepCount - 1) return;
 
+            m_CurrentStep++;
+            m_CurrentStep = Mathf.Clamp(m_CurrentStep, 0, m_StepCount - 1);
+            foreach (var item in elementDict)
+            {
+                var state = stateDict[item.Key][m_CurrentStep];
+                item.Value.GotoNextStep(state);
+            }
         }
 
         /// <summary>
-        /// 直接跳转到帧
+        /// 跳转到
         /// </summary>
         /// <param name="frame"></param>
-        public void GotoState(int frame)
+        public void GotoStep(int step)
         {
+            if (step < 0 || step >= m_StepCount) return;
 
+            m_CurrentStep = step;
+            m_CurrentStep = Mathf.Clamp(m_CurrentStep, 0, m_StepCount - 1);
+            foreach (var item in elementDict)
+            {
+                var state = stateDict[item.Key][m_CurrentStep];
+                item.Value.GotoStep(state);
+            }
         }
 
         /// <summary>
-        /// 快照,保存当前状态
+        /// 快照
         /// </summary>
-        public void Snapshoot()
+        /// <param name="step"></param>
+        public void Snapshoot(int step)
         {
+            if (step < 0 || step > m_StepCount)
+            {
+                return;
+            }
 
+            m_CurrentStep = step;
+            foreach (var item in elementDict)
+            {
+                var state=item.Value.DeepCloneState();
+                stateDict[item.Key].RemoveRange(m_CurrentStep, Mathf.Max(0,stateDict[item.Key].Count- m_CurrentStep));
+                stateDict[item.Key].Add(state);
+            }
+            m_StepCount = m_CurrentStep + 1;
         }
 
-        [System.Serializable]
-        private class StateLine
+        /// <summary>
+        /// 清除历史记录
+        /// </summary>
+        public void Clear()
         {
-
-
-            /// <summary>
-            /// 关键帧信息
-            /// </summary>
-            private class StateKey
+            foreach (var item in stateDict.Values)
             {
-                public int frame;
-                public object state;
+                item.Clear();
+            }
+            m_CurrentStep = 0;
+            m_StepCount = 0;
+        }
+
+        /// <summary>
+        /// 当前步骤索引
+        /// </summary>
+        public int CurrentStep
+        {
+            get
+            {
+                return m_CurrentStep;
+            }
+            set
+            {
+                m_CurrentStep = Mathf.Clamp(value,0,m_StepCount-1);
+            }
+        }
+
+        /// <summary>
+        /// 总步骤数
+        /// </summary>
+        public int StepCount
+        {
+            get
+            {
+                return m_StepCount;
             }
         }
     }
