@@ -27,9 +27,9 @@ namespace RedScarf.UguiFriend
                 {
                     throw new Exception("不能为null!");
                 }
-                if (value.GetBindingInfo().entityType != GetType())
+                if (UguiObjectManager.Instance.GetBindingAtt(value).entityType != GetType())
                 {
-                    throw new Exception("此实体的数据绑定类型应为:"+ value.GetBindingInfo().entityType);
+                    throw new Exception("此实体的数据绑定类型应为:"+ UguiObjectManager.Instance.GetBindingAtt(value).entityType);
                 }
 
                 UguiObjectManager.Instance.Unregister(this);
