@@ -27,18 +27,5 @@ namespace RedScarf.UguiFriend
         {
             return MemberwiseClone() as UguiObjectData;
         }
-
-        /// <summary>
-        /// 获取实体预设
-        /// 默认使用Resources加载，如使用其他加载方式重写此方法
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public virtual UguiObject GetPrefabSource()
-        {
-            var bindInfo = UguiObjectManager.Instance.GetBindingAtt(this);
-
-            return Resources.Load<UguiObject>(bindInfo.prefabPath);
-        }
     }
 }

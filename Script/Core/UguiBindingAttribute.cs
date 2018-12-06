@@ -12,11 +12,11 @@ namespace RedScarf.UguiFriend
     public class UguiBindingAttribute : Attribute
     {
         public string prefabPath;
-        public Type entityType;
+        public Type dataType;
 
-        public UguiBindingAttribute(Type entityType, string prefabPath = "")
+        public UguiBindingAttribute(Type dataType, string prefabPath = "")
         {
-            this.entityType = entityType;
+            this.dataType = dataType;
             this.prefabPath = prefabPath;
         }
     }

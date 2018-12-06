@@ -7,14 +7,13 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 历史记录管理器
     /// </summary>
-    public sealed class UguiHistoryManager : UguiSingleton<UguiHistoryManager>,
-        IUguiSingletonCreate<UguiHistoryManager>
+    public sealed class UguiHistoryManager
     {
-        Dictionary<string, List<UguiObjectData>> stateDict;
-        int m_CurrentStep;
-        int m_StepCount;
+        static Dictionary<string, List<UguiObjectData>> stateDict;
+        static int m_CurrentStep;
+        static int m_StepCount;
 
-        public void OnSingletonCreate(UguiHistoryManager instance)
+        static UguiHistoryManager()
         {
             stateDict = new Dictionary<string, List<UguiObjectData>>();
         }
@@ -22,13 +21,13 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 上一步
         /// </summary>
-        public void GotoPrevStep()
+        public static void GotoPrevStep()
         {
             if (m_CurrentStep <= 0) return;
 
             m_CurrentStep--;
             m_CurrentStep = Mathf.Clamp(m_CurrentStep, 0, m_StepCount - 1);
-            foreach (var item in UguiObjectManager.Instance.ObjectDict)
+            foreach (var item in UguiObjectManager.ObjectDict)
             {
                 var state = stateDict[item.Key][m_CurrentStep];
                 item.Value.GotoPrevStep(state);
@@ -38,13 +37,13 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 下一步
         /// </summary>
-        public void GotoNextStep()
+        public static void GotoNextStep()
         {
             if (m_CurrentStep >= m_StepCount - 1) return;
 
             m_CurrentStep++;
             m_CurrentStep = Mathf.Clamp(m_CurrentStep, 0, m_StepCount - 1);
-            foreach (var item in UguiObjectManager.Instance.ObjectDict)
+            foreach (var item in UguiObjectManager.ObjectDict)
             {
                 var state = stateDict[item.Key][m_CurrentStep];
                 item.Value.GotoNextStep(state);
@@ -55,13 +54,13 @@ namespace RedScarf.UguiFriend
         /// 跳转到
         /// </summary>
         /// <param name="step"></param>
-        public void GotoStep(int step)
+        public static void GotoStep(int step)
         {
             if (step < 0 || step >= m_StepCount) return;
 
             m_CurrentStep = step;
             m_CurrentStep = Mathf.Clamp(m_CurrentStep, 0, m_StepCount - 1);
-            foreach (var item in UguiObjectManager.Instance.ObjectDict)
+            foreach (var item in UguiObjectManager.ObjectDict)
             {
                 var state = stateDict[item.Key][m_CurrentStep];
                 item.Value.GotoStep(state);
@@ -72,7 +71,7 @@ namespace RedScarf.UguiFriend
         /// 快照
         /// </summary>
         /// <param name="step"></param>
-        public void Snapshoot(int step)
+        public static void Snapshoot(int step)
         {
             if (step < 0 || step > m_StepCount)
             {
@@ -80,7 +79,7 @@ namespace RedScarf.UguiFriend
             }
 
             m_CurrentStep = step;
-            foreach (var item in UguiObjectManager.Instance.ObjectDict)
+            foreach (var item in UguiObjectManager.ObjectDict)
             {
                 var state=item.Value.Snapshoot();
                 stateDict[item.Key].RemoveRange(m_CurrentStep, Mathf.Max(0,stateDict[item.Key].Count- m_CurrentStep));
@@ -92,7 +91,7 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 清除历史记录
         /// </summary>
-        public void Clear()
+        public static void Clear()
         {
             foreach (var item in stateDict.Values)
             {
@@ -105,7 +104,7 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 当前步骤索引
         /// </summary>
-        public int CurrentStep
+        public static int CurrentStep
         {
             get
             {
@@ -120,7 +119,7 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 总步骤数
         /// </summary>
-        public int StepCount
+        public static int StepCount
         {
             get
             {

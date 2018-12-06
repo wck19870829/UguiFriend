@@ -5,14 +5,17 @@ using System;
 
 namespace RedScarf.UguiFriend
 {
-    public abstract class UguiObject : UIBehaviour, IUguiObject
+    /// <summary>
+    /// Ugui对象基类
+    /// </summary>
+    public abstract class UguiObject : UIBehaviour
     {
         protected UguiObjectData m_Data;
 
         protected override void OnDestroy()
         {
             base.OnDestroy();
-            UguiObjectManager.Instance.Unregister(this);
+            UguiObjectManager.Unregister(this);
         }
 
         public UguiObjectData Data
@@ -27,14 +30,14 @@ namespace RedScarf.UguiFriend
                 {
                     throw new Exception("不能为null!");
                 }
-                if (UguiObjectManager.Instance.GetBindingAtt(value).entityType != GetType())
+                if (!UguiObjectManager.CheckMatch(value, this))
                 {
-                    throw new Exception("此实体的数据绑定类型应为:"+ UguiObjectManager.Instance.GetBindingAtt(value).entityType);
+                    throw new Exception("数据类型不匹配!");
                 }
 
-                UguiObjectManager.Instance.Unregister(this);
+                UguiObjectManager.Unregister(this);
                 m_Data = value;
-                UguiObjectManager.Instance.Register(this);
+                UguiObjectManager.Register(this);
             }
         }
 

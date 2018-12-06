@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using UnityEditor.AnimatedValues;
 using UnityEngine.Events;
+using System.IO;
 
 namespace RedScarf.UguiFriend
 {
@@ -14,12 +15,61 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public static class UguiEditorTools
     {
+        public const int defaultLabelWidth = 120;
+        public static readonly string pluginsPath;
+
         static UguiEditorTools()
         {
-
+            var directories = Directory.GetDirectories(Application.dataPath, "UguiFriend", SearchOption.AllDirectories);
+            foreach (var dir in directories)
+            {
+                var newDir = dir.Replace("\\","/");
+                if (newDir.Contains("RedScarf/UguiFriend"))
+                {
+                    pluginsPath = "Assets"+newDir.Replace(Application.dataPath, "");
+                    break;
+                }
+            }
         }
 
-        public const int defaultLabelWidth = 120;
+        #region 顶部菜单面板工具
+
+        //[MenuItem("Tools/UguiFriend/Update Object Prefab Config")]
+        ///// <summary>
+        ///// 更新数据与对象映射关系
+        ///// </summary>
+        //static void UpdateObjectPrefabConfig()
+        //{
+        //    var configPath = "UguiFriend/Config/ObjectPrefabConfig";
+        //    var config=Resources.Load<UguiObjectPrefabConfig>(configPath);
+        //    if (config==null)
+        //    {
+        //        config = ScriptableObject.CreateInstance<UguiObjectPrefabConfig>();
+        //        AssetDatabase.CreateAsset(config, pluginsPath + "/Resources/" + configPath + ".asset");
+        //        AssetDatabase.Refresh();
+        //    }
+
+        //    var typeSet = new HashSet<string>();
+        //    config.infos.Clear();
+        //    var allAssetPaths = AssetDatabase.GetAllAssetPaths();
+        //    foreach (var assetPath in allAssetPaths)
+        //    {
+        //        var obj=AssetDatabase.LoadAssetAtPath<UguiObject>(assetPath);
+        //        if (obj!=null)
+        //        {
+        //            var pathWithoutExtension = Path.GetDirectoryName(assetPath) + "/" + Path.GetFileNameWithoutExtension(assetPath);
+        //            if (typeSet.Contains(obj.GetType().FullName))
+        //            {
+        //                Debug.LogErrorFormat("预设冗余:{0}", pathWithoutExtension);
+        //            }
+
+        //            var info = new UguiObjectPrefabConfigItem(obj.GetType().FullName, pathWithoutExtension);
+        //            config.infos.Add(info);
+        //        }
+        //    }
+        //}
+
+        #endregion
 
         /// <summary>
         /// 获取游戏视图框

@@ -8,27 +8,37 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 管理器
     /// </summary>
-    public sealed class UguiObjectManager : UguiSingleton<UguiObjectManager>,
-        IUguiSingletonCreate<UguiObjectManager>
+    public sealed class UguiObjectManager
     {
-        static Dictionary<Type, UguiBindingAttribute> s_DataBindingDict;
+        public static Func<UguiObjectData, UguiObject> onCreateByData;
+        public static Func<Type, UguiObject> onCreateByType;
 
-        Dictionary<string, IUguiObject> m_ObjectDict;
+        static Dictionary<Type, Type> s_DataMappingDict;                    //Key:数据类型. Value:对象类型
+        static Dictionary<Type, UguiBindingAttribute> s_BindingDict;        //Key:对象类型. Value:绑定信息
+        static Dictionary<string, UguiObject> s_ObjectDict;
 
         static UguiObjectManager()
         {
-            s_DataBindingDict = new Dictionary<Type, UguiBindingAttribute>();
-            var types = UguiTools.FindSubClass(typeof(UguiObjectData));
+            s_ObjectDict = new Dictionary<string, UguiObject>();
+            s_DataMappingDict = new Dictionary<Type, Type>();
+            s_BindingDict = new Dictionary<Type, UguiBindingAttribute>();
+            var types = UguiTools.FindSubClass(typeof(UguiObject));
             foreach (var type in types)
             {
+                if (type.IsAbstract) continue;
+
                 var customAtts = type.GetCustomAttributes(typeof(UguiBindingAttribute), false);
                 if (customAtts != null && customAtts.Length == 1)
                 {
                     var customAtt = (UguiBindingAttribute)customAtts[0];
-                    if (typeof(IUguiObject).IsAssignableFrom(customAtt.entityType))
+                    if (!customAtt.dataType.IsAbstract)
                     {
-                        s_DataBindingDict.Add(type, customAtt);
-                        continue;
+                        if (typeof(UguiObjectData).IsAssignableFrom(customAtt.dataType))
+                        {
+                            s_BindingDict.Add(type, customAtt);
+                            s_DataMappingDict.Add(customAtt.dataType,type);
+                            continue;
+                        }
                     }
                 }
 
@@ -36,27 +46,21 @@ namespace RedScarf.UguiFriend
             }
         }
 
-
-        public void OnSingletonCreate(UguiObjectManager instance)
-        {
-            DontDestroyOnLoad(gameObject);
-        }
-
         /// <summary>
         /// 注册
         /// </summary>
         /// <param name="obj"></param>
-        public void Register(IUguiObject obj)
+        public static void Register(UguiObject obj)
         {
             if (obj == null) return;
 
-            if (!m_ObjectDict.ContainsKey(obj.Guid))
+            if (!s_ObjectDict.ContainsKey(obj.Guid))
             {
-                m_ObjectDict.Add(obj.Guid, obj);
+                s_ObjectDict.Add(obj.Guid, obj);
             }
             else
             {
-                m_ObjectDict[obj.Guid] = obj;
+                s_ObjectDict[obj.Guid] = obj;
             }
         }
 
@@ -64,24 +68,74 @@ namespace RedScarf.UguiFriend
         /// 取消注册
         /// </summary>
         /// <param name="obj"></param>
-        public void Unregister(IUguiObject obj)
+        public static void Unregister(UguiObject obj)
         {
             if (obj == null) return;
 
-            m_ObjectDict.Remove(obj.Guid);
+            s_ObjectDict.Remove(obj.Guid);
         }
 
-        public Dictionary<string, IUguiObject> ObjectDict
+        /// <summary>
+        /// 实体列表
+        /// </summary>
+        public static Dictionary<string, UguiObject> ObjectDict
         {
             get
             {
-                return m_ObjectDict;
+                return s_ObjectDict;
             }
         }
 
-        public UguiBindingAttribute GetBindingAtt(UguiObjectData data)
+        /// <summary>
+        /// 检测数据是否匹配实体
+        /// </summary>
+        /// <param name="objDataType"></param>
+        /// <param name="objType"></param>
+        /// <returns></returns>
+        public static bool CheckMatch(UguiObjectData data,UguiObject obj)
         {
-            return s_DataBindingDict[data.GetType()];
+            if (data != null || obj != null)
+            {
+                if (s_DataMappingDict.ContainsKey(data.GetType()))
+                {
+                    if (s_DataMappingDict[data.GetType()] == obj.GetType())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 由类型创建新的实体
+        /// </summary>
+        /// <param name="objType"></param>
+        /// <returns></returns>
+        public static UguiObject CreateNew(Type objType)
+        {
+            if (onCreateByType != null)
+            {
+                return onCreateByType.Invoke(objType);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// 由数据获取实体
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static UguiObject CreateNew(UguiObjectData data)
+        {
+            if (onCreateByData != null)
+            {
+                return onCreateByData.Invoke(data);
+            }
+
+            return null;
         }
     }
 }
