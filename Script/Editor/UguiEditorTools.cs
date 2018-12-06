@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using UnityEditor.AnimatedValues;
 using UnityEngine.Events;
 using System.IO;
+using UnityEditorInternal;
 
 namespace RedScarf.UguiFriend
 {
