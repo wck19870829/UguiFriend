@@ -10,6 +10,11 @@ namespace RedScarf.UguiFriend
     public class UguiObjectPrefabConfig : ScriptableObject
     {
         public List<UguiObjectPrefabConfigItem> infos;
+
+        public UguiObjectPrefabConfig()
+        {
+            infos = new List<UguiObjectPrefabConfigItem>();
+        }
     }
 
     [System.Serializable]

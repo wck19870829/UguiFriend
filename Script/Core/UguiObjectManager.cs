@@ -47,6 +47,30 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 重载实体的预设路径
+        /// </summary>
+        /// <param name="config"></param>
+        public static void OverloadPrefabPath(UguiObjectPrefabConfig config)
+        {
+            if (config == null) return;
+            foreach (var info in config.infos)
+            {
+                try
+                {
+                    var type = Type.GetType(info.objType, true, true);
+                    if (s_BindingDict.ContainsKey(type))
+                    {
+                        s_BindingDict[type].prefabPath = info.prefabPath;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
+                }
+            }
+        }
+
+        /// <summary>
         /// 注册
         /// </summary>
         /// <param name="obj"></param>

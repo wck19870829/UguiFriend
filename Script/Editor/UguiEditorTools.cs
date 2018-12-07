@@ -18,6 +18,8 @@ namespace RedScarf.UguiFriend
     {
         public const int defaultLabelWidth = 120;
         public static readonly string pluginsPath;
+        public static readonly string resPath;
+        public static readonly string configPath;
 
         static UguiEditorTools()
         {
@@ -27,7 +29,9 @@ namespace RedScarf.UguiFriend
                 var newDir = dir.Replace("\\","/");
                 if (newDir.Contains("RedScarf/UguiFriend"))
                 {
-                    pluginsPath = "Assets"+newDir.Replace(Application.dataPath, "");
+                    pluginsPath = "Assets"+newDir.Replace(Application.dataPath, "")+"/";
+                    resPath = pluginsPath + "EditorResources/";
+                    configPath = resPath + "Config/";
                     break;
                 }
             }
@@ -35,42 +39,38 @@ namespace RedScarf.UguiFriend
 
         #region 顶部菜单面板工具
 
-        //[MenuItem("Tools/UguiFriend/Update Object Prefab Config")]
-        ///// <summary>
-        ///// 更新数据与对象映射关系
-        ///// </summary>
-        //static void UpdateObjectPrefabConfig()
-        //{
-        //    var configPath = "UguiFriend/Config/ObjectPrefabConfig";
-        //    var config=Resources.Load<UguiObjectPrefabConfig>(configPath);
-        //    if (config==null)
-        //    {
-        //        config = ScriptableObject.CreateInstance<UguiObjectPrefabConfig>();
-        //        AssetDatabase.CreateAsset(config, pluginsPath + "/Resources/" + configPath + ".asset");
-        //        AssetDatabase.Refresh();
-        //    }
-
-        //    var typeSet = new HashSet<string>();
-        //    config.infos.Clear();
-        //    var allAssetPaths = AssetDatabase.GetAllAssetPaths();
-        //    foreach (var assetPath in allAssetPaths)
-        //    {
-        //        var obj=AssetDatabase.LoadAssetAtPath<UguiObject>(assetPath);
-        //        if (obj!=null)
-        //        {
-        //            var pathWithoutExtension = Path.GetDirectoryName(assetPath) + "/" + Path.GetFileNameWithoutExtension(assetPath);
-        //            if (typeSet.Contains(obj.GetType().FullName))
-        //            {
-        //                Debug.LogErrorFormat("预设冗余:{0}", pathWithoutExtension);
-        //            }
-
-        //            var info = new UguiObjectPrefabConfigItem(obj.GetType().FullName, pathWithoutExtension);
-        //            config.infos.Add(info);
-        //        }
-        //    }
-        //}
-
         #endregion
+
+        /// <summary>
+        /// 保存预设
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="name"></param>
+        public static void SaveConfig(ScriptableObject obj)
+        {
+            if (obj == null) return;
+
+            EditorUtility.SetDirty(obj);
+            AssetDatabase.SaveAssets();
+        }
+
+        /// <summary>
+        /// 加载配置
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static T LoadConfig<T>()where T:ScriptableObject
+        {
+            var path = configPath + typeof(T).Name + ".asset";
+            var config= AssetDatabase.LoadAssetAtPath<T>(path);
+            if (config==null)
+            {
+                config = ScriptableObject.CreateInstance<T>();
+                AssetDatabase.CreateAsset(config, path);
+            }
+
+            return config;
+        }
 
         /// <summary>
         /// 获取游戏视图框
