@@ -28,10 +28,50 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 获取全局坐标系ui元素尺寸
+        /// </summary>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public static Rect? GetGlobalGraphicRectIncludeChildren(RectTransform content)
+        {
+            if (content == null)
+                throw new Exception("Content is null.");
+
+            var children = content.GetComponentsInChildren<Graphic>();
+            if (children.Length == 0) return null;
+
+            Rect? globalRect=null;
+            var cornersArr = new Vector3[4];
+            foreach (var graphic in children)
+            {
+                graphic.rectTransform.GetWorldCorners(cornersArr);
+                var childRect = GetRectContainsPoints(cornersArr);
+
+                var mask = graphic.GetComponentInParent<Mask>();
+                if (mask != null)
+                {
+                    mask.rectTransform.GetWorldCorners(cornersArr);
+                    var maskRect= GetRectContainsPoints(cornersArr);
+                    var overlap = UguiMathf.RectOverlap(childRect, maskRect);
+                    if (overlap!=null)
+                    {
+                        childRect = (Rect)overlap;
+                    }
+                    else continue;
+                }
+
+                if (globalRect == null) globalRect = childRect;
+                globalRect = UguiMathf.RectCombine(childRect, (Rect)globalRect);
+            }
+
+            return globalRect;
+        }
+
+        /// <summary>
         /// 获取物体的世界坐标系边界(递归包含所有子物体)
         /// </summary>
         /// <param name="content"></param>
-        /// <param name="includeContent">true:包含content。false:不包含content</param>
+        /// <param name="includeContent">是否包含容器自身</param>
         /// <returns></returns>
         public static Rect? GetGlobalRectIncludeChildren(RectTransform content,bool includeContent)
         {
@@ -60,7 +100,7 @@ namespace RedScarf.UguiFriend
                 }
                 child.GetWorldCorners(cornersArr);
                 var childRect = GetRectContainsPoints(cornersArr);
-                contentRect = RectCombine((Rect)contentRect,childRect);
+                contentRect = UguiMathf.RectCombine((Rect)contentRect,childRect);
             }
 
             return contentRect;
@@ -96,24 +136,6 @@ namespace RedScarf.UguiFriend
             rect = GetRectContainsPoints(corners);
 
             return rect;
-        }
-
-        /// <summary>
-        /// 合并矩形
-        /// </summary>
-        /// <param name="rect"></param>
-        /// <param name="rect2"></param>
-        /// <returns></returns>
-        public static Rect RectCombine(Rect rect,Rect rect2)
-        {
-            var combine = Rect.MinMaxRect(
-                Mathf.Min(rect.xMin,rect2.xMin),
-                Mathf.Min(rect.yMin, rect2.yMin),
-                Mathf.Max(rect.xMax, rect2.xMax),
-                Mathf.Max(rect.yMax, rect2.yMax)
-                );
-
-            return combine;
         }
 
         /// <summary>

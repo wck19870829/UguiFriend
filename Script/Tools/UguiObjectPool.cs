@@ -34,6 +34,22 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 放入池
+        /// </summary>
+        /// <param name="objList"></param>
+        public virtual void Push(List<UguiObject>objList)
+        {
+            if (objList == null)
+                throw new Exception("List is null.");
+
+            foreach (var obj in objList)
+            {
+                Push(obj);
+            }
+            objList.Clear();
+        }
+
+        /// <summary>
         /// 获取
         /// </summary>
         /// <returns></returns>
@@ -58,10 +74,48 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 由数据获取实体
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public virtual UguiObject Get(UguiObjectData data)
+        {
+            if (data == null)
+                throw new Exception("Data is null.");
+
+            var objType=UguiObjectManager.GetObjectType(data.GetType());
+
+            return Get(objType);
+        }
+
+        /// <summary>
+        /// 获取
+        /// </summary>
+        /// <param name="dataList"></param>
+        /// <returns></returns>
+        public virtual List<UguiObject> Get(List<UguiObjectData>dataList)
+        {
+            var list = new List<UguiObject>();
+            foreach (var data in dataList)
+            {
+                list.Add(Get(data));
+            }
+
+            return list;
+        }
+
+        /// <summary>
         /// 清除
         /// </summary>
         public virtual void Clear()
         {
+            foreach (var value in poolDict.Values)
+            {
+                foreach (var obj in value)
+                {
+                    DestroyObject(obj);
+                }
+            }
             poolDict.Clear();
         }
 

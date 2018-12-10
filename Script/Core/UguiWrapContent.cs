@@ -15,7 +15,7 @@ namespace RedScarf.UguiFriend
     /// 1.如果使用效果（如位移特效，旋转特效，缩放特效），需子物体实现IUguiChildControl接口
     /// 2.如果使用颜色改变效果，需子物体挂载UguiColorTint组件
     /// </summary>
-    public class UguiWrapContent : UIBehaviour
+    public class UguiWrapContent : UIBehaviour,IUguiContent
     {
         protected readonly Vector2 contentDefaultPivot = new Vector2(0,1);
 
@@ -24,6 +24,8 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected float spacing = 100;                                                 //元素间距
         [SerializeField] protected Axis m_StartAxis;
 
+        protected List<UguiObject> m_Children;
+        protected Action m_OnReposition;
         protected Comparison<RectTransform> m_SortComparison;
         protected ScrollRect scrollRect;
         protected Mask mask;
@@ -39,6 +41,7 @@ namespace RedScarf.UguiFriend
         {
             items = new List<RectTransform>();
             maskCorners = new Vector3[4];
+            m_Children = new List<UguiObject>();
         }
 
         protected override void Start()
@@ -294,6 +297,37 @@ namespace RedScarf.UguiFriend
                 m_SortComparison = value;
                 Realign();
             }
+        }
+
+        public Action OnReposition
+        {
+            get
+            {
+                return m_OnReposition;
+            }
+            set
+            {
+                m_OnReposition = value;
+            }
+        }
+
+        public virtual List<UguiObject> Children
+        {
+            get
+            {
+                return m_Children;
+            }
+        }
+
+        public virtual void Set(List<UguiObjectData> dataList)
+        {
+            UguiObjectPool.Instance.Push(m_Children);
+            m_Children = UguiObjectPool.Instance.Get(dataList);
+        }
+
+        public virtual void Reposition()
+        {
+
         }
 
         /// <summary>

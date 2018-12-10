@@ -74,6 +74,29 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 获取两矩形相交区域,无相交区域返回null
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="rect2"></param>
+        /// <returns></returns>
+        public static Rect? RectOverlap(Rect rect, Rect rect2)
+        {
+            if (rect.Overlaps(rect2, true))
+            {
+                var overlap=Rect.MinMaxRect(
+                    Mathf.Max(rect.xMin,rect2.xMin),
+                    Mathf.Max(rect.yMin,rect2.yMin),
+                    Mathf.Min(rect.xMax,rect2.xMax),
+                    Mathf.Min(rect.yMax,rect2.yMax)
+                    );
+
+                return overlap;
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// 合并矩形
         /// </summary>
         /// <param name="rect"></param>

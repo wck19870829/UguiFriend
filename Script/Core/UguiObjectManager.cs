@@ -161,5 +161,23 @@ namespace RedScarf.UguiFriend
 
             return null;
         }
+
+        /// <summary>
+        /// 由数据类型获取实体类型
+        /// </summary>
+        /// <param name="dataType"></param>
+        /// <returns></returns>
+        public static Type GetObjectType(Type dataType)
+        {
+            if (dataType == null)
+                throw new Exception("Type is null.");
+
+            if (!s_DataMappingDict.ContainsKey(dataType))
+            {
+                throw new Exception("Type is error.");
+            }
+
+            return s_DataMappingDict[dataType];
+        }
     }
 }

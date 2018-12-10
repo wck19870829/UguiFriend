@@ -11,6 +11,7 @@ namespace RedScarf.UguiFriend
     public abstract class UguiObjectData
     {
         public string name;
+        public bool active;
         public string guid;
         public string parent;
         public Vector3 position;
