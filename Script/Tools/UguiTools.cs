@@ -207,37 +207,6 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 获取屏幕坐标
-        /// </summary>
-        /// <param name="target"></param>
-        /// <returns></returns>
-        public static Rect GetScreenRect(Graphic target)
-        {
-            var screenRect = new Rect();
-
-            var rootCanvas = target.canvas.rootCanvas;
-            var cornersArr = new Vector3[4];
-            target.rectTransform.GetWorldCorners(cornersArr);
-
-            if (rootCanvas.worldCamera==null||rootCanvas.renderMode==RenderMode.ScreenSpaceOverlay)
-            {
-                var cornersRect = GetRectContainsPoints(cornersArr);
-                screenRect = cornersRect;
-            }
-            else
-            {
-                for (var i=0;i<cornersArr.Length;i++)
-                {
-                    cornersArr[i] = rootCanvas.worldCamera.WorldToScreenPoint(cornersArr[i]);
-                }
-                var cornersRect = GetRectContainsPoints(cornersArr);
-                screenRect = cornersRect;
-            }
-
-            return screenRect;
-        }
-
-        /// <summary>
         /// 设置锚点
         /// </summary>
         /// <param name="target"></param>
