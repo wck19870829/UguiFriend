@@ -38,7 +38,6 @@ namespace RedScarf.UguiFriend
                 {typeof(Vector2),new DriveLink(Vector2Lerp,typeof(UguiTweenMasterDriveVector2))},
                 {typeof(Vector3),new DriveLink(Vector3Lerp,typeof(UguiTweenMasterDriveVector3)) },
                 {typeof(Vector4),new DriveLink(Vector4Lerp,typeof(UguiTweenMasterDriveVector4)) },
-                {typeof(Quaternion),new DriveLink(QuaternionLerp,typeof(UguiTweenMasterDriveQuaternion))},
                 {typeof(Rect),new DriveLink(RectLerp,typeof(UguiTweenMasterDriveRect)) },
 
                 {typeof(float),new DriveLink(FloatLerp,typeof(UguiTweenMasterDriveFloat)) },
@@ -180,11 +179,6 @@ namespace RedScarf.UguiFriend
             return (long)Mathf.Lerp((long)from, (long)to, t);
         }
 
-        static object QuaternionLerp(object from, object to, float t)
-        {
-            return Quaternion.Lerp((Quaternion)from, (Quaternion)to, t);
-        }
-
         static object RectLerp(object from, object to, float t)
         {
             var rectFrom = (Rect)from;
@@ -223,130 +217,4 @@ namespace RedScarf.UguiFriend
 
         #endregion
     }
-
-
-    #region 驱动类,用于运行时修改字段或属性
-
-    [Serializable]
-    public abstract class UguiTweenMasterDrive:ScriptableObject
-    {
-        public string driveName;
-        public AnimationCurve animationCurve;
-        public object from;
-        public object to;
-        public DriveType driveType;
-        public FieldInfo fInfo;
-        public PropertyInfo pInfo;
-
-        public enum DriveType
-        {
-            Property=0,
-            Field=1
-        }
-    }
-
-    [Serializable]
-    public abstract class UguiTweenMasterDrive<T>: UguiTweenMasterDrive,ISerializationCallbackReceiver
-    {
-        public T fromValue;
-        public T toValue;
-
-        public void OnAfterDeserialize()
-        {
-            from = fromValue;
-            to = toValue;
-        }
-
-        public void OnBeforeSerialize()
-        {
-            fromValue = (from==null)?default(T):(T)from;
-            toValue = (to==null)?default(T):(T)to;
-        }
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveVector2 : UguiTweenMasterDrive<Vector2>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveVector3 : UguiTweenMasterDrive<Vector3>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveVector4 : UguiTweenMasterDrive<Vector4>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveColor : UguiTweenMasterDrive<Color>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveColor32 : UguiTweenMasterDrive<Color32>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveBounds : UguiTweenMasterDrive<Bounds>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveQuaternion : UguiTweenMasterDrive<Quaternion>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveRect : UguiTweenMasterDrive<Rect>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveFloat : UguiTweenMasterDrive<float>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveInt : UguiTweenMasterDrive<int>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveUint : UguiTweenMasterDrive<uint>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveLong : UguiTweenMasterDrive<long>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveChar : UguiTweenMasterDrive<char>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveString : UguiTweenMasterDrive<string>
-    {
-
-    }
-
-    #endregion
 }

@@ -38,19 +38,27 @@ namespace RedScarf.UguiFriend
                         if (selectReoList == null)
                         {
                             selectReoList = new ReorderableList(serializedObject, selectList);
+                            selectReoList.elementHeight = 100;
                             selectReoList.drawElementCallback=(rect,index,isActive, isFocused) => 
                             {
-
+                                EditorGUI.PropertyField(rect,selectReoList.serializedProperty.GetArrayElementAtIndex(index));
                             };
                             selectReoList.onRemoveCallback = (list) => 
                             {
-
+                                master.DriveList.RemoveAt(selectReoList.index);
                             };
                             selectReoList.onAddCallback = (list)=>
                             {
                                 UguiTweenMasterWindow.OpenWindow(component.objectReferenceValue,master);
                             };
                         }
+                        var elementHeight = 60;
+                        for (var i = 0;i< selectReoList.serializedProperty.arraySize; i++)
+                        {
+                            var itemHeight = (int)EditorGUI.GetPropertyHeight(selectReoList.serializedProperty.GetArrayElementAtIndex(i));
+                            elementHeight = Mathf.Max(elementHeight, itemHeight);
+                        }
+                        selectReoList.elementHeight = elementHeight+10;
                         selectReoList.DoLayoutList();
                     },
                     Repaint
@@ -63,58 +71,10 @@ namespace RedScarf.UguiFriend
 
             serializedObject.ApplyModifiedProperties();
         }
-    }
 
-    [CustomPropertyDrawer(typeof(UguiTweenMasterDrive), true)]
-    public class UguiTweenMasterDriveDrawer : PropertyDrawer
-    {
-        protected List<SerializedProperty> props;
-        protected float height;
-
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        protected override void DrawAnimCurve()
         {
-            height = 0f;
-            var propHeight = 0f;
-            if (property.objectReferenceValue!=null)
-            {
-                var so = new SerializedObject(property.objectReferenceValue);
-                var indentLevel = EditorGUI.indentLevel;
-
-                var driveName = so.FindProperty("driveName");
-                propHeight = EditorGUI.GetPropertyHeight(driveName);
-                EditorGUI.LabelField(new Rect(position.x, position.y+height, position.width, propHeight), driveName.stringValue);
-                height += propHeight;
-
-                EditorGUI.indentLevel++;
-
-                var fromValue = so.FindProperty("fromValue");
-                propHeight = EditorGUI.GetPropertyHeight(fromValue);
-                EditorGUI.PropertyField(new Rect(position.x, position.y + height, position.width, propHeight), fromValue, new GUIContent("From"));
-                height += propHeight;
-
-                var toValue = so.FindProperty("toValue");
-                propHeight = EditorGUI.GetPropertyHeight(fromValue);
-                EditorGUI.PropertyField(new Rect(position.x, position.y + height, position.width, propHeight), toValue,new GUIContent("To"));
-                height += propHeight;
-
-                var animationCurve = so.FindProperty("animationCurve");
-                propHeight = EditorGUI.GetPropertyHeight(animationCurve);
-                EditorGUI.PropertyField(new Rect(position.x, position.y + height, position.width, propHeight), animationCurve);
-                height += propHeight;
-
-                EditorGUI.indentLevel = indentLevel;
-                so.ApplyModifiedProperties();
-            }
-            else
-            {
-                EditorGUI.PropertyField(position,property,new GUIContent("null"));
-                height+= EditorGUI.GetPropertyHeight(property);
-            }
-        }
-
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
-        {
-            return height;
+            
         }
     }
 }

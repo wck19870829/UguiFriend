@@ -20,49 +20,64 @@ namespace RedScarf.UguiFriend
             var tween = (UguiTween)target;
 
             var comp = serializedObject.FindProperty("m_Component");
+            var duration = serializedObject.FindProperty("m_Duration");
+            var playOnEnable = serializedObject.FindProperty("playOnEnable");
+            var playStyle = serializedObject.FindProperty("m_PlayStyle");
+
             if (comp != null)
             {
                 EditorGUILayout.PropertyField(comp, new GUIContent("Target"));
             }
 
-            var from = serializedObject.FindProperty("m_From");
-            if (from != null)
-            {
-                EditorGUILayout.PropertyField(from);
-            }
+            DrawFrom();
+            DrawTo();
 
-            var to = serializedObject.FindProperty("m_To");
-            if (to != null)
-            {
-                EditorGUILayout.PropertyField(to);
-            }
-
-            var duration = serializedObject.FindProperty("m_Duration");
             if (duration != null)
             {
                 EditorGUILayout.PropertyField(duration);
                 duration.floatValue = Mathf.Max(0, duration.floatValue);
             }
 
-            var animationCurve = serializedObject.FindProperty("m_AnimationCurve");
-            if (animationCurve != null)
-            {
-                EditorGUILayout.PropertyField(animationCurve, GUILayout.Height(40));
-            }
+            DrawAnimCurve();
 
-            var playOnEnable = serializedObject.FindProperty("playOnEnable");
             if (playOnEnable != null)
             {
                 EditorGUILayout.PropertyField(playOnEnable);
             }
 
-            var playStyle = serializedObject.FindProperty("m_PlayStyle");
             if (playStyle != null)
             {
                 EditorGUILayout.PropertyField(playStyle);
             }
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        protected virtual void DrawAnimCurve()
+        {
+            var animationCurve = serializedObject.FindProperty("m_AnimationCurve");
+            if (animationCurve != null)
+            {
+                EditorGUILayout.PropertyField(animationCurve, GUILayout.Height(40));
+            }
+        }
+
+        protected virtual void DrawFrom()
+        {
+            var from = serializedObject.FindProperty("m_From");
+            if (from != null)
+            {
+                EditorGUILayout.PropertyField(from);
+            }
+        }
+
+        protected virtual void DrawTo()
+        {
+            var to = serializedObject.FindProperty("m_To");
+            if (to != null)
+            {
+                EditorGUILayout.PropertyField(to);
+            }
         }
     }
 }

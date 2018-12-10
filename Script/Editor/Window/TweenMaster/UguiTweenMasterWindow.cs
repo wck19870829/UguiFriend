@@ -14,13 +14,14 @@ namespace RedScarf.UguiFriend
         static Dictionary<string, UguiTweenMasterDrive> driveAllDict;
         static Object cacheTarget;
         static UguiTweenMaster cacheMaster;
+        protected Vector2 scrollPosition;
 
         public static void OpenWindow(Object target, UguiTweenMaster master)
         {
-            Init(target, cacheMaster);
+            Init(target, master);
 
             var window = EditorWindow.GetWindow<UguiTweenMasterWindow>();
-            window.titleContent = new GUIContent("Tewwn Master Window");
+            window.titleContent = new GUIContent("Tween Master Window");
             window.Show();
         }
 
@@ -78,7 +79,42 @@ namespace RedScarf.UguiFriend
 
         private void OnGUI()
         {
+            if (cacheMaster == null)
+            {
 
+                return;
+            }
+
+            using(var scrollScope=new EditorGUILayout.ScrollViewScope(scrollPosition))
+            {
+                scrollPosition = scrollScope.scrollPosition;
+                foreach (var item in driveAllDict)
+                {
+                    var isSelect = false;
+                    foreach (var drive in cacheMaster.DriveList)
+                    {
+                        if (drive.driveName == item.Key)
+                        {
+                            isSelect = true;
+                        }
+                    }
+                    var newState = EditorGUILayout.ToggleLeft(item.Key, isSelect);
+                    if (isSelect != newState)
+                    {
+                        if (newState)
+                        {
+                            cacheMaster.DriveList.Add(item.Value);
+                        }
+                        else
+                        {
+                            cacheMaster.DriveList.RemoveAll((x) =>
+                            {
+                                return x.driveName == item.Key;
+                            });
+                        }
+                    }
+                }
+            }
         }
     }
 }
