@@ -8,7 +8,7 @@ using UnityEditorInternal;
 
 namespace RedScarf.UguiFriend
 {
-    [CustomEditor(typeof(UguiTweenMaster),true)]
+    [CustomEditor(typeof(UguiTweenMaster), true)]
     public class UguiTweenMasterEditor : UguiTweenEditor
     {
         protected AnimBool selectAnimBool;
@@ -24,7 +24,7 @@ namespace RedScarf.UguiFriend
             if (unselectAnimBool == null)
                 unselectAnimBool = new AnimBool(true);
             var component = serializedObject.FindProperty("m_Component");
-            var selectList = serializedObject.FindProperty("m_DriveList");
+            var driveList = serializedObject.FindProperty("m_DriveList");
 
             base.OnInspectorGUI();
 
@@ -33,11 +33,11 @@ namespace RedScarf.UguiFriend
                 //绘制需要驱动的属性和字段
                 UguiEditorTools.DrawFadeGroup(
                     selectAnimBool,
-                    new GUIContent("Drive list"),
-                    () => {
+                    new GUIContent("Drive list"),() =>
+                    {
                         if (selectReoList == null)
                         {
-                            selectReoList = new ReorderableList(serializedObject, selectList);
+                            selectReoList = new ReorderableList(serializedObject, driveList);
                             selectReoList.elementHeight = 100;
                             selectReoList.drawElementCallback=(rect,index,isActive, isFocused) => 
                             {

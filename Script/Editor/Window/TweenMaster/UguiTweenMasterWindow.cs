@@ -44,7 +44,7 @@ namespace RedScarf.UguiFriend
                         var from = prop.GetValue(cacheTarget, new object[0]);
                         var to = from;
 
-                        var driveInfo = ScriptableObject.CreateInstance(UguiTweenMaster.GetDriveType(from.GetType())) as UguiTweenMasterDrive;
+                        var driveInfo = System.Activator.CreateInstance(UguiTweenMaster.GetDriveType(from.GetType())) as UguiTweenMasterDrive;
                         driveInfo.from = from;
                         driveInfo.to = to;
                         driveInfo.animationCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
@@ -65,7 +65,7 @@ namespace RedScarf.UguiFriend
                     var from = field.GetValue(cacheTarget);
                     var to = from;
 
-                    var driveInfo = ScriptableObject.CreateInstance(UguiTweenMaster.GetDriveType(from.GetType())) as UguiTweenMasterDrive;
+                    var driveInfo = System.Activator.CreateInstance(UguiTweenMaster.GetDriveType(from.GetType())) as UguiTweenMasterDrive;
                     driveInfo.from = from;
                     driveInfo.to = to;
                     driveInfo.animationCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);

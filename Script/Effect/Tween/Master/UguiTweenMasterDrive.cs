@@ -9,7 +9,7 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 驱动类,用于运行时修改字段或属性
     /// </summary>
-    public abstract class UguiTweenMasterDrive : ScriptableObject
+    public class UguiTweenMasterDrive
     {
         public string driveName;
         public AnimationCurve animationCurve;
@@ -27,7 +27,7 @@ namespace RedScarf.UguiFriend
     }
 
     [Serializable]
-    public abstract class UguiTweenMasterDrive<T> : UguiTweenMasterDrive, ISerializationCallbackReceiver
+    public class UguiTweenMasterDrive<T> : UguiTweenMasterDrive, ISerializationCallbackReceiver
     {
         public T fromValue;
         public T toValue;
