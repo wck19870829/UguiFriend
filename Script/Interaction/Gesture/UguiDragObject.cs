@@ -17,6 +17,7 @@ namespace RedScarf.UguiFriend
         protected Canvas m_Canvas;
         protected Vector3 targetPos;
         protected bool m_IsDrag;
+        protected bool m_IsRunning;
 
         public Action OnBeginDragEvent;
         public Action OnDragEvent;
@@ -31,23 +32,46 @@ namespace RedScarf.UguiFriend
         protected virtual void Update()
         {
             Move();
+
+            if (contentRect!=null)
+            {
+                var contentBounds=RectTransformUtility.CalculateRelativeRectTransformBounds(contentRect);
+                var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(transform);
+            }
         }
 
         protected virtual void Move()
         {
-            if (m_IsDrag)
+            if (m_IsRunning)
             {
-                transform.position = Vector3.Lerp(transform.position, targetPos, 0.6f);
+                if (m_IsDrag)
+                {
+                    transform.position = Vector3.Lerp(transform.position, targetPos, 0.6f);
+                }
+                else
+                {
+                    transform.position = Vector3.Lerp(transform.position, targetPos, decelerationRate);
+                }
+                if (Vector3.Distance(transform.position, targetPos) < 0.1f)
+                {
+                    transform.position = targetPos;
+                    m_IsRunning = false;
+                }
             }
-            else
-            {
-                transform.position = Vector3.Lerp(transform.position, targetPos, decelerationRate);
-            }
+        }
+
+        /// <summary>
+        /// 停止运动
+        /// </summary>
+        public void Stop()
+        {
+            m_IsRunning = false;
         }
 
         public void OnBeginDrag(PointerEventData eventData)
         {
             m_IsDrag = true;
+            m_IsRunning = true;
             m_RectTransform = GetComponent<RectTransform>();
             m_Canvas = GetComponentInParent<Canvas>();
             cacheScreenPos = RectTransformUtility.WorldToScreenPoint(m_Canvas.worldCamera, transform.position);

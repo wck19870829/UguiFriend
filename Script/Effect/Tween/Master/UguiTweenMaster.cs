@@ -8,6 +8,7 @@ using System.Text;
 
 namespace RedScarf.UguiFriend
 {
+    [DisallowMultipleComponent]
     [Serializable]
     public class UguiTweenMaster : UguiTween
     {
@@ -15,16 +16,6 @@ namespace RedScarf.UguiFriend
 
         [SerializeField] protected Component m_Component;
         [SerializeField] protected List<UguiTweenMasterDrive> m_DriveList;
-
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-
-            foreach (var item in m_DriveList)
-            {
-                Debug.Log(item.GetType());
-            }
-        }
 
         protected class DriveLink
         {
@@ -59,17 +50,53 @@ namespace RedScarf.UguiFriend
             };
         }
 
+        /// <summary>
+        /// 移除一个驱动
+        /// </summary>
+        /// <param name="driveName"></param>
+        /// <returns></returns>
+        public UguiTweenMasterDrive AddDrive(string driveName)
+        {
+            if (m_Component == null)
+                throw new Exception("Component is null.");
+
+            var drive = m_DriveList.Find((x) => {return x.driveName == driveName; });
+            if (drive != null)
+                return drive;
+
+            return drive;
+        }
+
+        /// <summary>
+        /// 添加一个驱动
+        /// </summary>
+        /// <param name="driveName"></param>
+        public void RemoveDrive(string driveName)
+        {
+            m_DriveList.RemoveAll((x) =>
+            {
+                return x.driveName == driveName;
+            });
+            var drives = gameObject.GetComponents<UguiTweenMasterDrive>();
+            for (var i = 0; i < drives.Length; i++)
+            {
+                var drive = drives[i];
+                if (drive.driveName == driveName)
+                {
+                    DestroyImmediate(drive);
+                }
+            }
+        }
+
         public override void UpdateProgress(float progress)
         {
-            return;
-
             if (m_Component != null)
             {
                 foreach (var drive in m_DriveList)
                 {
                     if (drive == null) continue;
 
-                    var value=drive.animationCurve.Evaluate(progress);
+                    var progressValue= drive.animationCurve.Evaluate(progress);
                     switch (drive.driveType)
                     {
                         case UguiTweenMasterDrive.DriveType.Field:
@@ -77,6 +104,7 @@ namespace RedScarf.UguiFriend
                                 drive.fInfo = m_Component.GetType().GetField(drive.driveName);
                             if (drive.fInfo != null)
                             {
+                                var value = driveLinkDict[drive.fInfo.FieldType].lerpFunc(drive.from, drive.to, progressValue);
                                 drive.fInfo.SetValue(m_Component, value);
                             }
                             break;
@@ -86,6 +114,7 @@ namespace RedScarf.UguiFriend
                                 drive.pInfo = m_Component.GetType().GetProperty(drive.driveName);
                             if (drive.pInfo != null)
                             {
+                                var value = driveLinkDict[drive.pInfo.PropertyType].lerpFunc(drive.from, drive.to, progressValue);
                                 drive.pInfo.SetValue(m_Component, value, new object[0]);
                             }
                             break;
@@ -204,11 +233,12 @@ namespace RedScarf.UguiFriend
 
         static object CharLerp(object from, object to, float t)
         {
-            var chFrom = (int)from;
-            var chTo = (int)to;
+            var chFrom = Convert.ToInt32(from);
+            var chTo = Convert.ToInt32(to);
             var value = (int)Mathf.Lerp(chFrom, chTo, t);
+            var ch= Convert.ToChar(value);
 
-            return Convert.ToChar(value);
+            return ch;
         }
 
         static object StringLerp(object from, object to, float t)

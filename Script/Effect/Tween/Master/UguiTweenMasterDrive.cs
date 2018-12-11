@@ -24,6 +24,11 @@ namespace RedScarf.UguiFriend
             Property = 0,
             Field = 1
         }
+
+        protected UguiTweenMasterDrive()
+        {
+            animationCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+        }
     }
 
     [Serializable]
@@ -43,83 +48,5 @@ namespace RedScarf.UguiFriend
             fromValue = (from == null) ? default(T) : (T)from;
             toValue = (to == null) ? default(T) : (T)to;
         }
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveVector2 : UguiTweenMasterDrive<Vector2>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveVector3 : UguiTweenMasterDrive<Vector3>
-    {
-
-    }
-    
-    [Serializable]
-    public class UguiTweenMasterDriveVector4 : UguiTweenMasterDrive<Vector4>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveColor : UguiTweenMasterDrive<Color>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveColor32 : UguiTweenMasterDrive<Color32>
-    {
-
-    }
- 
-    [Serializable]
-    public class UguiTweenMasterDriveBounds : UguiTweenMasterDrive<Bounds>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveRect : UguiTweenMasterDrive<Rect>
-    {
-
-    }
-    
-    [Serializable]
-    public class UguiTweenMasterDriveFloat : UguiTweenMasterDrive<float>
-    {
-
-    }
-    
-    [Serializable]
-    public class UguiTweenMasterDriveInt : UguiTweenMasterDrive<int>
-    {
-
-    }
-    
-    [Serializable]
-    public class UguiTweenMasterDriveUint : UguiTweenMasterDrive<uint>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveLong : UguiTweenMasterDrive<long>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveChar : UguiTweenMasterDrive<char>
-    {
-
-    }
-
-    [Serializable]
-    public class UguiTweenMasterDriveString : UguiTweenMasterDrive<string>
-    {
-
     }
 }
