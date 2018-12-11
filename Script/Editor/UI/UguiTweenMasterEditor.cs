@@ -45,7 +45,16 @@ namespace RedScarf.UguiFriend
                             };
                             selectReoList.onRemoveCallback = (list) => 
                             {
+                                var removeName = master.DriveList[selectReoList.index].driveName;
                                 master.DriveList.RemoveAt(selectReoList.index);
+                                var destroyList = master.GetComponents<UguiTweenMasterDrive>();
+                                foreach (var drive in destroyList)
+                                {
+                                    if (drive.driveName== removeName)
+                                    {
+                                        DestroyImmediate(drive);
+                                    }
+                                }
                             };
                             selectReoList.onAddCallback = (list)=>
                             {

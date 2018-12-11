@@ -11,7 +11,9 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiTweenMasterWindow : EditorWindow
     {
-        static Dictionary<string, UguiTweenMasterDrive> driveAllDict;
+        static Dictionary<string, System.Type> fieldDict;
+        static Dictionary<string, System.Type> propDict;
+        static Dictionary<string, System.Type> driveAllDict;
         static Object cacheTarget;
         static UguiTweenMaster cacheMaster;
         protected Vector2 scrollPosition;
@@ -30,7 +32,9 @@ namespace RedScarf.UguiFriend
             cacheTarget = target;
             cacheMaster = master;
 
-            driveAllDict = new Dictionary<string, UguiTweenMasterDrive>();
+            fieldDict = new Dictionary<string, System.Type>();
+            propDict = new Dictionary<string, System.Type>();
+            driveAllDict = new Dictionary<string, System.Type>();
             var bindingAttr = BindingFlags.Instance | BindingFlags.Public;
 
             //属性
@@ -41,19 +45,13 @@ namespace RedScarf.UguiFriend
                 {
                     if (UguiTweenMaster.CanDrive(prop.PropertyType))
                     {
-                        var from = prop.GetValue(cacheTarget, new object[0]);
-                        var to = from;
-
-                        var driveInfo = System.Activator.CreateInstance(UguiTweenMaster.GetDriveType(from.GetType())) as UguiTweenMasterDrive;
-                        driveInfo.from = from;
-                        driveInfo.to = to;
-                        driveInfo.animationCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-                        driveInfo.driveName = prop.Name;
-                        driveInfo.driveType = UguiTweenMasterDrive.DriveType.Property;
-
-                        driveAllDict.Add(driveInfo.driveName, driveInfo);
+                        propDict.Add(prop.Name, UguiTweenMaster.GetDriveType(prop.PropertyType));
                     }
                 }
+            }
+            foreach (var item in propDict)
+            {
+                driveAllDict.Add(item.Key,item.Value);
             }
 
             //字段
@@ -62,18 +60,12 @@ namespace RedScarf.UguiFriend
             {
                 if (UguiTweenMaster.CanDrive(field.FieldType))
                 {
-                    var from = field.GetValue(cacheTarget);
-                    var to = from;
-
-                    var driveInfo = System.Activator.CreateInstance(UguiTweenMaster.GetDriveType(from.GetType())) as UguiTweenMasterDrive;
-                    driveInfo.from = from;
-                    driveInfo.to = to;
-                    driveInfo.animationCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-                    driveInfo.driveName = field.Name;
-                    driveInfo.driveType = UguiTweenMasterDrive.DriveType.Field;
-
-                    driveAllDict.Add(driveInfo.driveName, driveInfo);
+                    fieldDict.Add(field.Name, UguiTweenMaster.GetDriveType(field.FieldType));
                 }
+            }
+            foreach (var item in fieldDict)
+            {
+                driveAllDict.Add(item.Key, item.Value);
             }
         }
 
@@ -103,7 +95,17 @@ namespace RedScarf.UguiFriend
                     {
                         if (newState)
                         {
-                            cacheMaster.DriveList.Add(item.Value);
+                            var driveConfig = cacheMaster.gameObject.AddComponent(item.Value) as UguiTweenMasterDrive;
+                            driveConfig.driveName = item.Key;
+                            if (fieldDict.ContainsKey(item.Key))
+                            {
+                                driveConfig.driveType = UguiTweenMasterDrive.DriveType.Field;
+                            }
+                            else if (propDict.ContainsKey(item.Key))
+                            {
+                                driveConfig.driveType = UguiTweenMasterDrive.DriveType.Property;
+                            }
+                            cacheMaster.DriveList.Add(driveConfig);
                         }
                         else
                         {
@@ -111,6 +113,14 @@ namespace RedScarf.UguiFriend
                             {
                                 return x.driveName == item.Key;
                             });
+                            var destroyList = cacheMaster.GetComponents<UguiTweenMasterDrive>();
+                            foreach (var drive in destroyList)
+                            {
+                                if (drive.driveName==item.Key)
+                                {
+                                    DestroyImmediate(drive);
+                                }
+                            }
                         }
                     }
                 }

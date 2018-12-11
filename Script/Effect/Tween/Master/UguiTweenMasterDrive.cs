@@ -9,7 +9,7 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 驱动类,用于运行时修改字段或属性
     /// </summary>
-    public class UguiTweenMasterDrive
+    public class UguiTweenMasterDrive:MonoBehaviour
     {
         public string driveName;
         public AnimationCurve animationCurve;
@@ -56,7 +56,7 @@ namespace RedScarf.UguiFriend
     {
 
     }
-
+    
     [Serializable]
     public class UguiTweenMasterDriveVector4 : UguiTweenMasterDrive<Vector4>
     {
@@ -74,7 +74,7 @@ namespace RedScarf.UguiFriend
     {
 
     }
-
+ 
     [Serializable]
     public class UguiTweenMasterDriveBounds : UguiTweenMasterDrive<Bounds>
     {
@@ -86,19 +86,19 @@ namespace RedScarf.UguiFriend
     {
 
     }
-
+    
     [Serializable]
     public class UguiTweenMasterDriveFloat : UguiTweenMasterDrive<float>
     {
 
     }
-
+    
     [Serializable]
     public class UguiTweenMasterDriveInt : UguiTweenMasterDrive<int>
     {
 
     }
-
+    
     [Serializable]
     public class UguiTweenMasterDriveUint : UguiTweenMasterDrive<uint>
     {

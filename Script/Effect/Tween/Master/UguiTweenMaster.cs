@@ -16,6 +16,16 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected Component m_Component;
         [SerializeField] protected List<UguiTweenMasterDrive> m_DriveList;
 
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+
+            foreach (var item in m_DriveList)
+            {
+                Debug.Log(item.GetType());
+            }
+        }
+
         protected class DriveLink
         {
             public Func<object, object, float, object> lerpFunc;
@@ -51,6 +61,8 @@ namespace RedScarf.UguiFriend
 
         public override void UpdateProgress(float progress)
         {
+            return;
+
             if (m_Component != null)
             {
                 foreach (var drive in m_DriveList)
