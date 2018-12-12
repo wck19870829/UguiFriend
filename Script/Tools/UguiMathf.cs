@@ -57,32 +57,42 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 限制在Bounds在另外一个Bounds中
+        /// 限制Bounds在另外一个Bounds中
         /// </summary>
         /// <param name="bounds"></param>
         /// <param name="limitRect"></param>
         /// <returns></returns>
-        public static Bounds LimitBounds(Bounds bounds,Bounds limit)
+        public static Bounds LimitBounds(Bounds bounds,Bounds content)
         {
-            var minX = Mathf.Clamp(bounds.min.x, limit.min.x, limit.max.x);
-            var minY = Mathf.Clamp(bounds.min.y, limit.min.y, limit.max.y);
-            var minZ = Mathf.Clamp(bounds.min.z, limit.min.z, limit.max.z);
-            var maxX = Mathf.Clamp(bounds.max.x, limit.min.x, limit.max.x);
-            var maxY = Mathf.Clamp(bounds.max.y, limit.min.y, limit.max.y);
-            var maxZ = Mathf.Clamp(bounds.max.z, limit.min.z, limit.max.z);
+            var minX = Mathf.Clamp(bounds.min.x, content.min.x, content.max.x);
+            var minY = Mathf.Clamp(bounds.min.y, content.min.y, content.max.y);
+            var minZ = Mathf.Clamp(bounds.min.z, content.min.z, content.max.z);
+            var maxX = Mathf.Clamp(bounds.max.x, content.min.x, content.max.x);
+            var maxY = Mathf.Clamp(bounds.max.y, content.min.y, content.max.y);
+            var maxZ = Mathf.Clamp(bounds.max.z, content.min.z, content.max.z);
 
             var newBounds = new Bounds();
             newBounds.SetMinMax(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
-            var minOffset = newBounds.min - bounds.min;
-            var maxOffset = newBounds.max - bounds.max;
-            var offset=(newBounds.center-bounds.center).normalized*(minOffset.sqrMagnitude - maxOffset.sqrMagnitude) * 0.5f;
+            newBounds.size = new Vector3
+                            (
+                                Mathf.Min(newBounds.size.x, content.size.x), 
+                                Mathf.Min(newBounds.size.y, content.size.y),
+                                Mathf.Min(newBounds.size.z, content.size.z)
+                            );
+            var outBounds = content;
+            outBounds.Encapsulate(newBounds);
+            var newCenter = newBounds.center;
+            newCenter.x+= (outBounds.size.x - content.size.x)*Mathf.Sign(content.center.x-newBounds.center.x);
+            newCenter.y+= (outBounds.size.y - content.size.y) * Mathf.Sign(content.center.y - newBounds.center.y);
+            newCenter.z+= (outBounds.size.z - content.size.z) * Mathf.Sign(content.center.z - newBounds.center.z);
+            newBounds.center = newCenter;
 
             return newBounds;
         }
 
         #endregion
 
-        #region 矩形
+        #region Rect
 
         /// <summary>
         /// UV偏移
@@ -163,7 +173,7 @@ namespace RedScarf.UguiFriend
 
         #endregion
 
-        #region 面
+        #region Plane
         /// <summary>
         /// 点到面上的投影点
         /// </summary>

@@ -31,13 +31,17 @@ namespace RedScarf.UguiFriend
 
         protected virtual void Update()
         {
-            Move();
-
-            if (contentRect!=null)
+            if (contentRect != null)
             {
-                var contentBounds=RectTransformUtility.CalculateRelativeRectTransformBounds(contentRect);
+                var contentBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(contentRect);
+                contentBounds.center = contentRect.localPosition;
                 var bounds = UguiMathf.GetBoundsIncludeChildren(transform);
+                bounds.center = transform.localPosition;
+                var newBounds = UguiMathf.LimitBounds(bounds, contentBounds);
+                transform.localPosition = newBounds.center;
             }
+
+            //Move();
         }
 
         protected virtual void Move()
@@ -52,6 +56,9 @@ namespace RedScarf.UguiFriend
                 {
                     transform.position = Vector3.Lerp(transform.position, targetPos, decelerationRate);
                 }
+
+
+
                 if (Vector3.Distance(transform.position, targetPos) < 0.1f)
                 {
                     transform.position = targetPos;
