@@ -26,7 +26,7 @@ namespace RedScarf.UguiFriend
 
                 var driveName = so.FindProperty("driveName");
                 propHeight = EditorGUI.GetPropertyHeight(driveName);
-                EditorGUI.LabelField(new Rect(position.x, position.y + height, position.width, propHeight), driveName.stringValue);
+                EditorGUI.LabelField(new Rect(position.x, position.y + height, position.width, propHeight), driveName.stringValue,EditorStyles.boldLabel);
                 height += propHeight;
 
                 EditorGUI.indentLevel++;

@@ -36,7 +36,7 @@ namespace RedScarf.UguiFriend
             if (contentRect!=null)
             {
                 var contentBounds=RectTransformUtility.CalculateRelativeRectTransformBounds(contentRect);
-                var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(transform);
+                var bounds = UguiMathf.GetBoundsIncludeChildren(transform);
             }
         }
 

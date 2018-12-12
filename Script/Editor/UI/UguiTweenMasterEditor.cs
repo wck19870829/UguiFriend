@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor.AnimatedValues;
 using UnityEditorInternal;
+using System;
 
 namespace RedScarf.UguiFriend
 {
@@ -38,7 +39,6 @@ namespace RedScarf.UguiFriend
                         if (selectReoList == null)
                         {
                             selectReoList = new ReorderableList(serializedObject, driveList);
-                            selectReoList.elementHeight = 100;
                             selectReoList.drawElementCallback=(rect,index,isActive, isFocused) => 
                             {
                                 EditorGUI.PropertyField(rect,selectReoList.serializedProperty.GetArrayElementAtIndex(index));
@@ -46,28 +46,26 @@ namespace RedScarf.UguiFriend
                             selectReoList.onRemoveCallback = (list) => 
                             {
                                 var removeName = master.DriveList[selectReoList.index].driveName;
-                                master.DriveList.RemoveAt(selectReoList.index);
-                                var destroyList = master.GetComponents<UguiTweenMasterDrive>();
-                                foreach (var drive in destroyList)
-                                {
-                                    if (drive.driveName== removeName)
-                                    {
-                                        DestroyImmediate(drive);
-                                    }
-                                }
+                                master.RemoveDrive(removeName);
+                                serializedObject.ApplyModifiedProperties();
                             };
                             selectReoList.onAddCallback = (list)=>
                             {
                                 UguiTweenMasterWindow.OpenWindow(component.objectReferenceValue,master);
                             };
+                            selectReoList.drawHeaderCallback = (rect) =>
+                            {
+                                EditorGUI.LabelField(rect,"");
+                            };
                         }
+
                         var elementHeight = 60;
                         for (var i = 0;i< selectReoList.serializedProperty.arraySize; i++)
                         {
                             var itemHeight = (int)EditorGUI.GetPropertyHeight(selectReoList.serializedProperty.GetArrayElementAtIndex(i));
                             elementHeight = Mathf.Max(elementHeight, itemHeight);
                         }
-                        selectReoList.elementHeight = elementHeight+10;
+                        selectReoList.elementHeight = elementHeight+EditorGUIUtility.singleLineHeight;
                         selectReoList.DoLayoutList();
                     },
                     Repaint

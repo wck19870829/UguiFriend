@@ -35,6 +35,10 @@ namespace RedScarf.UguiFriend
             if (reorderableList == null)
             {
                 reorderableList = new ReorderableList(preset.pathList, typeof(string));
+                reorderableList.drawHeaderCallback = (rect) =>
+                {
+                    EditorGUI.LabelField(rect,"");
+                };
                 reorderableList.drawElementCallback = (rect, index, isActive, isFocused) =>
                 {
                     EditorGUI.LabelField(rect, preset.pathList[index]);
@@ -63,6 +67,9 @@ namespace RedScarf.UguiFriend
             reorderableList.DoLayoutList();
 
             GUILayout.FlexibleSpace();
+
+            var message = "";
+            EditorGUILayout.HelpBox(message,MessageType.Info);
 
             if (GUILayout.Button("Save"))
             {

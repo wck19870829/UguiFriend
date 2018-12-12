@@ -29,6 +29,11 @@ namespace RedScarf.UguiFriend
         {
             animationCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
         }
+
+        public virtual void UpdateValue()
+        {
+
+        }
     }
 
     [Serializable]
@@ -47,6 +52,12 @@ namespace RedScarf.UguiFriend
         {
             fromValue = (from == null) ? default(T) : (T)from;
             toValue = (to == null) ? default(T) : (T)to;
+        }
+
+        public override void UpdateValue()
+        {
+            from = fromValue;
+            to = toValue;
         }
     }
 }

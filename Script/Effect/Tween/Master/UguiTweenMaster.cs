@@ -51,7 +51,7 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 移除一个驱动
+        /// 添加一个驱动
         /// </summary>
         /// <param name="driveName"></param>
         /// <returns></returns>
@@ -61,31 +61,67 @@ namespace RedScarf.UguiFriend
                 throw new Exception("Component is null.");
 
             var drive = m_DriveList.Find((x) => {return x.driveName == driveName; });
-            if (drive != null)
-                return drive;
+            if (drive == null)
+            {
+                var flags = BindingFlags.Public | BindingFlags.Instance;
+                var field = m_Component.GetType().GetField(driveName, flags);
+                if (field != null)
+                {
+                    var driveType=GetDriveType(field.FieldType);
+                    drive=gameObject.AddComponent(driveType) as UguiTweenMasterDrive;
+                    drive.driveType = UguiTweenMasterDrive.DriveType.Field;
+                }
+                else
+                {
+                    var prop = m_Component.GetType().GetProperty(driveName, flags);
+                    if (prop == null)
+                    {
+                        throw new Exception("Drive name is invalid.");
+                    }
+                    else
+                    {
+                        var driveType = GetDriveType(prop.PropertyType);
+                        drive = gameObject.AddComponent(driveType) as UguiTweenMasterDrive;
+                        drive.driveType = UguiTweenMasterDrive.DriveType.Property;
+                    }
+                }
+            }
+            drive.driveName = driveName;
+            m_DriveList.Add(drive);
 
             return drive;
         }
 
         /// <summary>
-        /// 添加一个驱动
+        /// 移除一个驱动
         /// </summary>
         /// <param name="driveName"></param>
         public void RemoveDrive(string driveName)
         {
-            m_DriveList.RemoveAll((x) =>
+            var removeList = m_DriveList.FindAll((x) =>
             {
                 return x.driveName == driveName;
             });
-            var drives = gameObject.GetComponents<UguiTweenMasterDrive>();
-            for (var i = 0; i < drives.Length; i++)
+            foreach (var item in removeList)
             {
-                var drive = drives[i];
-                if (drive.driveName == driveName)
-                {
-                    DestroyImmediate(drive);
-                }
+                m_DriveList.Remove(item);
+                DestroyImmediate(item);
             }
+        }
+
+        /// <summary>
+        /// 是否包含
+        /// </summary>
+        /// <param name="driveName"></param>
+        /// <returns></returns>
+        public bool ContainDrive(string driveName)
+        {
+            var index=m_DriveList.FindIndex((x) =>
+            {
+                return x.driveName == driveName;
+            });
+
+            return index >= 0 ? true : false;
         }
 
         public override void UpdateProgress(float progress)
@@ -96,12 +132,14 @@ namespace RedScarf.UguiFriend
                 {
                     if (drive == null) continue;
 
+                    drive.UpdateValue();
                     var progressValue= drive.animationCurve.Evaluate(progress);
+                    var flags = BindingFlags.Public | BindingFlags.Instance;
                     switch (drive.driveType)
                     {
                         case UguiTweenMasterDrive.DriveType.Field:
                             if (drive.fInfo == null)
-                                drive.fInfo = m_Component.GetType().GetField(drive.driveName);
+                                drive.fInfo = m_Component.GetType().GetField(drive.driveName, flags);
                             if (drive.fInfo != null)
                             {
                                 var value = driveLinkDict[drive.fInfo.FieldType].lerpFunc(drive.from, drive.to, progressValue);
@@ -111,7 +149,7 @@ namespace RedScarf.UguiFriend
 
                         case UguiTweenMasterDrive.DriveType.Property:
                             if (drive.pInfo == null)
-                                drive.pInfo = m_Component.GetType().GetProperty(drive.driveName);
+                                drive.pInfo = m_Component.GetType().GetProperty(drive.driveName, flags);
                             if (drive.pInfo != null)
                             {
                                 var value = driveLinkDict[drive.pInfo.PropertyType].lerpFunc(drive.from, drive.to, progressValue);

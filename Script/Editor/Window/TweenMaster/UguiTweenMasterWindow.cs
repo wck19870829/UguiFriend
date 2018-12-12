@@ -11,9 +11,7 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiTweenMasterWindow : EditorWindow
     {
-        static Dictionary<string, System.Type> fieldDict;
-        static Dictionary<string, System.Type> propDict;
-        static Dictionary<string, System.Type> driveAllDict;
+        static HashSet<string> driveAllSet;
         static Object cacheTarget;
         static UguiTweenMaster cacheMaster;
         protected Vector2 scrollPosition;
@@ -32,9 +30,7 @@ namespace RedScarf.UguiFriend
             cacheTarget = target;
             cacheMaster = master;
 
-            fieldDict = new Dictionary<string, System.Type>();
-            propDict = new Dictionary<string, System.Type>();
-            driveAllDict = new Dictionary<string, System.Type>();
+            driveAllSet = new HashSet<string>();
             var bindingAttr = BindingFlags.Instance | BindingFlags.Public;
 
             //属性
@@ -45,13 +41,9 @@ namespace RedScarf.UguiFriend
                 {
                     if (UguiTweenMaster.CanDrive(prop.PropertyType))
                     {
-                        propDict.Add(prop.Name, UguiTweenMaster.GetDriveType(prop.PropertyType));
+                        driveAllSet.Add(prop.Name);
                     }
                 }
-            }
-            foreach (var item in propDict)
-            {
-                driveAllDict.Add(item.Key,item.Value);
             }
 
             //字段
@@ -60,12 +52,8 @@ namespace RedScarf.UguiFriend
             {
                 if (UguiTweenMaster.CanDrive(field.FieldType))
                 {
-                    fieldDict.Add(field.Name, UguiTweenMaster.GetDriveType(field.FieldType));
+                    driveAllSet.Add(field.Name);
                 }
-            }
-            foreach (var item in fieldDict)
-            {
-                driveAllDict.Add(item.Key, item.Value);
             }
         }
 
@@ -80,47 +68,19 @@ namespace RedScarf.UguiFriend
             using(var scrollScope=new EditorGUILayout.ScrollViewScope(scrollPosition))
             {
                 scrollPosition = scrollScope.scrollPosition;
-                foreach (var item in driveAllDict)
+                foreach (var item in driveAllSet)
                 {
-                    var isSelect = false;
-                    foreach (var drive in cacheMaster.DriveList)
-                    {
-                        if (drive.driveName == item.Key)
-                        {
-                            isSelect = true;
-                        }
-                    }
-                    var newState = EditorGUILayout.ToggleLeft(item.Key, isSelect);
+                    var isSelect = cacheMaster.ContainDrive(item);
+                    var newState = EditorGUILayout.ToggleLeft(item, isSelect);
                     if (isSelect != newState)
                     {
                         if (newState)
                         {
-                            var driveConfig = cacheMaster.gameObject.AddComponent(item.Value) as UguiTweenMasterDrive;
-                            driveConfig.driveName = item.Key;
-                            if (fieldDict.ContainsKey(item.Key))
-                            {
-                                driveConfig.driveType = UguiTweenMasterDrive.DriveType.Field;
-                            }
-                            else if (propDict.ContainsKey(item.Key))
-                            {
-                                driveConfig.driveType = UguiTweenMasterDrive.DriveType.Property;
-                            }
-                            cacheMaster.DriveList.Add(driveConfig);
+                            cacheMaster.AddDrive(item);
                         }
                         else
                         {
-                            cacheMaster.DriveList.RemoveAll((x) =>
-                            {
-                                return x.driveName == item.Key;
-                            });
-                            var destroyList = cacheMaster.GetComponents<UguiTweenMasterDrive>();
-                            foreach (var drive in destroyList)
-                            {
-                                if (drive.driveName==item.Key)
-                                {
-                                    DestroyImmediate(drive);
-                                }
-                            }
+                            cacheMaster.RemoveDrive(item);
                         }
                     }
                 }

@@ -35,6 +35,53 @@ namespace RedScarf.UguiFriend
             return outDir;
         }
 
+        #region Bounds
+
+        /// <summary>
+        /// 获取Bounds(包含子物体)
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="includeInactive"></param>
+        /// <returns></returns>
+        public static Bounds GetBoundsIncludeChildren(Transform target, bool includeInactive = false)
+        {
+            var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(target);
+            var children = target.GetComponentsInChildren<Transform>(includeInactive);
+            foreach (var child in children)
+            {
+                var childBounds= RectTransformUtility.CalculateRelativeRectTransformBounds(child);
+                bounds.Encapsulate(childBounds);
+            }
+
+            return bounds;
+        }
+
+        /// <summary>
+        /// 限制在Bounds在另外一个Bounds中
+        /// </summary>
+        /// <param name="bounds"></param>
+        /// <param name="limitRect"></param>
+        /// <returns></returns>
+        public static Bounds LimitBounds(Bounds bounds,Bounds limit)
+        {
+            var minX = Mathf.Clamp(bounds.min.x, limit.min.x, limit.max.x);
+            var minY = Mathf.Clamp(bounds.min.y, limit.min.y, limit.max.y);
+            var minZ = Mathf.Clamp(bounds.min.z, limit.min.z, limit.max.z);
+            var maxX = Mathf.Clamp(bounds.max.x, limit.min.x, limit.max.x);
+            var maxY = Mathf.Clamp(bounds.max.y, limit.min.y, limit.max.y);
+            var maxZ = Mathf.Clamp(bounds.max.z, limit.min.z, limit.max.z);
+
+            var newBounds = new Bounds();
+            newBounds.SetMinMax(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
+            var minOffset = newBounds.min - bounds.min;
+            var maxOffset = newBounds.max - bounds.max;
+            var offset=(newBounds.center-bounds.center).normalized*(minOffset.sqrMagnitude - maxOffset.sqrMagnitude) * 0.5f;
+
+            return newBounds;
+        }
+
+        #endregion
+
         #region 矩形
 
         /// <summary>
@@ -115,7 +162,6 @@ namespace RedScarf.UguiFriend
         }
 
         #endregion
-
 
         #region 面
         /// <summary>
