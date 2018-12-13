@@ -8,7 +8,7 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 拖拽
     /// </summary>
-    public class UguiDragObject : UIBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+    public class UguiDragObject : UIBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler,IDropHandler
     {
         public RectTransform contentRect;
         [Range(0,1)]public float decelerationRate = 0.1f;
@@ -122,6 +122,11 @@ namespace RedScarf.UguiFriend
             {
                 OnEndDragEvent.Invoke();
             }
+        }
+
+        public void OnDrop(PointerEventData eventData)
+        {
+
         }
     }
 }
