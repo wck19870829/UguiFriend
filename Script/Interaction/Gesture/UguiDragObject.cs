@@ -31,17 +31,23 @@ namespace RedScarf.UguiFriend
 
         protected virtual void Update()
         {
+            Move();
+        }
+
+        private void OnDrawGizmos()
+        {
             if (contentRect != null)
             {
-                var contentBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(contentRect);
-                contentBounds.center = contentRect.localPosition;
-                var bounds = UguiMathf.GetBoundsIncludeChildren(transform);
-                bounds.center = transform.localPosition;
-                var newBounds = UguiMathf.LimitBounds(bounds, contentBounds);
-                transform.localPosition = newBounds.center;
-            }
+                var contentBounds = UguiMathf.GetBounds(contentRect,Space.World);
 
-            //Move();
+                Gizmos.DrawWireCube(contentBounds.center,contentBounds.size);
+
+                var bounds = UguiMathf.GetGlobalBoundsIncludeChildren((RectTransform)transform);
+
+                Gizmos.DrawWireCube(bounds.center, bounds.size);
+
+                var newBounds = UguiMathf.LimitBounds(bounds, contentBounds);
+            }
         }
 
         protected virtual void Move()
@@ -57,7 +63,13 @@ namespace RedScarf.UguiFriend
                     transform.position = Vector3.Lerp(transform.position, targetPos, decelerationRate);
                 }
 
-
+                if (contentRect != null)
+                {
+                    var contentBounds = UguiMathf.GetBounds(contentRect, Space.World);
+                    var bounds = UguiMathf.GetGlobalBoundsIncludeChildren((RectTransform)transform);
+                    var newBounds = UguiMathf.LimitBounds(bounds, contentBounds);
+                    transform.position = newBounds.center;
+                }
 
                 if (Vector3.Distance(transform.position, targetPos) < 0.1f)
                 {

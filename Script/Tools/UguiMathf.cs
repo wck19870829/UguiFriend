@@ -38,18 +38,45 @@ namespace RedScarf.UguiFriend
         #region Bounds
 
         /// <summary>
+        /// 获取Bounds
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="space"></param>
+        /// <returns></returns>
+        public static Bounds GetBounds(RectTransform target, Space space)
+        {
+            var corners = new Vector3[4];
+            if (space == Space.World)
+            {
+                target.GetWorldCorners(corners);
+            }
+            else
+            {
+                target.GetLocalCorners(corners);
+            }
+            var bounds = new Bounds(corners[0], Vector3.zero);
+            foreach (var point in corners)
+            {
+                bounds.Encapsulate(point);
+            }
+
+            return bounds;
+        }
+
+        /// <summary>
         /// 获取Bounds(包含子物体)
         /// </summary>
         /// <param name="target"></param>
         /// <param name="includeInactive"></param>
         /// <returns></returns>
-        public static Bounds GetBoundsIncludeChildren(Transform target, bool includeInactive = false)
+        public static Bounds GetGlobalBoundsIncludeChildren(RectTransform target, bool includeInactive = false)
         {
-            var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(target);
-            var children = target.GetComponentsInChildren<Transform>(includeInactive);
+            var bounds = GetBounds(target, Space.World);
+
+            var children = target.GetComponentsInChildren<RectTransform>(includeInactive);
             foreach (var child in children)
             {
-                var childBounds= RectTransformUtility.CalculateRelativeRectTransformBounds(child);
+                var childBounds = GetBounds(child, Space.World);
                 bounds.Encapsulate(childBounds);
             }
 
@@ -64,32 +91,25 @@ namespace RedScarf.UguiFriend
         /// <returns></returns>
         public static Bounds LimitBounds(Bounds bounds,Bounds content)
         {
-            var minX = Mathf.Clamp(bounds.min.x, content.min.x, content.max.x);
-            var minY = Mathf.Clamp(bounds.min.y, content.min.y, content.max.y);
-            var minZ = Mathf.Clamp(bounds.min.z, content.min.z, content.max.z);
-            var maxX = Mathf.Clamp(bounds.max.x, content.min.x, content.max.x);
-            var maxY = Mathf.Clamp(bounds.max.y, content.min.y, content.max.y);
-            var maxZ = Mathf.Clamp(bounds.max.z, content.min.z, content.max.z);
+            //限制尺寸
+            var sizeX = Mathf.Min(content.size.x, bounds.size.x);
+            var sizeY = Mathf.Min(content.size.y, bounds.size.y);
+            var sizeZ = Mathf.Min(content.size.z, bounds.size.z);
+            bounds.size = new Vector3(sizeX,sizeY,sizeZ);
 
-            var newBounds = new Bounds();
-            newBounds.SetMinMax(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
-            newBounds.size = new Vector3
-                            (
-                                Mathf.Min(newBounds.size.x, content.size.x), 
-                                Mathf.Min(newBounds.size.y, content.size.y),
-                                Mathf.Min(newBounds.size.z, content.size.z)
-                            );
+            //外框并集
             var outBounds = content;
-            outBounds.Encapsulate(newBounds);
-            var newCenter = newBounds.center;
-            newCenter.x+= (outBounds.size.x - content.size.x)*Mathf.Sign(content.center.x-newBounds.center.x);
-            newCenter.y+= (outBounds.size.y - content.size.y) * Mathf.Sign(content.center.y - newBounds.center.y);
-            newCenter.z+= (outBounds.size.z - content.size.z) * Mathf.Sign(content.center.z - newBounds.center.z);
-            newBounds.center = newCenter;
+            outBounds.Encapsulate(bounds);
 
-            return newBounds;
+            //偏移
+            var offsetX = Mathf.Sign(content.center.x - bounds.center.x) * Mathf.Abs(outBounds.size.x - content.size.x);
+            var offsetY = Mathf.Sign(content.center.y - bounds.center.y) * Mathf.Abs(outBounds.size.y - content.size.y);
+            var offsetZ = Mathf.Sign(content.center.z - bounds.center.z) * Mathf.Abs(outBounds.size.z - content.size.z);
+            bounds.center += new Vector3(offsetX,offsetY,offsetZ);
+
+            return bounds;
         }
-
+        
         #endregion
 
         #region Rect
