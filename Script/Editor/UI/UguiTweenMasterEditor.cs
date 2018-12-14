@@ -16,6 +16,13 @@ namespace RedScarf.UguiFriend
         protected AnimBool unselectAnimBool;
         protected Vector2 driveScrollPos;
         protected ReorderableList selectReoList;
+        protected UnityEngine.Object cacheTarget;
+
+        protected override void OnEnable()
+        {
+            cacheTarget = serializedObject.FindProperty("m_Component").objectReferenceValue;
+            base.OnEnable();
+        }
 
         public override void OnInspectorGUI()
         {
@@ -29,6 +36,10 @@ namespace RedScarf.UguiFriend
 
             base.OnInspectorGUI();
 
+            if(cacheTarget!= component.objectReferenceValue|| component.objectReferenceValue==null)
+            {
+                master.RemoveAllDrive();
+            }
             if (component.objectReferenceValue != null)
             {
                 //绘制需要驱动的属性和字段

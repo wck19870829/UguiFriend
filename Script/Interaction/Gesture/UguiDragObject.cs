@@ -14,7 +14,6 @@ namespace RedScarf.UguiFriend
         [Range(0,1)]public float decelerationRate = 0.1f;
         protected Vector2 cacheScreenPos;
         protected RectTransform m_RectTransform;
-        protected Canvas m_Canvas;
         protected Vector3 targetPos;
         protected bool m_IsDrag;
         protected bool m_IsRunning;
@@ -38,15 +37,22 @@ namespace RedScarf.UguiFriend
         {
             if (contentRect != null)
             {
-                var contentBounds = UguiMathf.GetBounds(contentRect,Space.World);
+                var bounds=UguiMathf.GetBounds(contentRect,Space.World);
+                var bounds2= UguiMathf.GetBounds(transform as RectTransform, Space.World);
 
-                Gizmos.DrawWireCube(contentBounds.center,contentBounds.size);
+                Gizmos.DrawWireCube(bounds.center,bounds.size);
+                Gizmos.DrawWireCube(bounds2.center, bounds2.size);
+                return;
 
-                var bounds = UguiMathf.GetGlobalBoundsIncludeChildren((RectTransform)transform);
+                //var contentBounds = UguiMathf.GetBounds(contentRect,Space.World);
 
-                Gizmos.DrawWireCube(bounds.center, bounds.size);
+                //Gizmos.DrawWireCube(contentBounds.center,contentBounds.size);
 
-                var newBounds = UguiMathf.LimitBounds(bounds, contentBounds);
+                //var bounds = UguiMathf.GetGlobalBoundsIncludeChildren((RectTransform)transform);
+
+                //Gizmos.DrawWireCube(bounds.center, bounds.size);
+
+                //var newBounds = UguiMathf.LimitBounds(bounds, contentBounds);
             }
         }
 
@@ -92,8 +98,7 @@ namespace RedScarf.UguiFriend
             m_IsDrag = true;
             m_IsRunning = true;
             m_RectTransform = GetComponent<RectTransform>();
-            m_Canvas = GetComponentInParent<Canvas>();
-            cacheScreenPos = RectTransformUtility.WorldToScreenPoint(m_Canvas.worldCamera, transform.position);
+            cacheScreenPos = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, transform.position);
 
             if (OnBeginDragEvent != null)
             {
@@ -103,8 +108,10 @@ namespace RedScarf.UguiFriend
 
         public void OnDrag(PointerEventData eventData)
         {
+            m_IsDrag = true;
+            m_IsRunning = true;
             cacheScreenPos += eventData.delta;
-            RectTransformUtility.ScreenPointToWorldPointInRectangle(m_RectTransform, cacheScreenPos, m_Canvas.rootCanvas.worldCamera, out targetPos);
+            RectTransformUtility.ScreenPointToWorldPointInRectangle(m_RectTransform, cacheScreenPos, eventData.pressEventCamera, out targetPos);
 
             if (OnDragEvent != null)
             {
@@ -116,7 +123,7 @@ namespace RedScarf.UguiFriend
         {
             m_IsDrag = false;
             cacheScreenPos += eventData.delta*10;
-            RectTransformUtility.ScreenPointToWorldPointInRectangle(m_RectTransform, cacheScreenPos, m_Canvas.rootCanvas.worldCamera, out targetPos);
+            RectTransformUtility.ScreenPointToWorldPointInRectangle(m_RectTransform, cacheScreenPos, eventData.pressEventCamera, out targetPos);
 
             if (OnEndDragEvent != null)
             {

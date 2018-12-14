@@ -110,6 +110,20 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 移除所有驱动
+        /// </summary>
+        public void RemoveAllDrive()
+        {
+            if (m_DriveList == null) return;
+
+            foreach (var item in m_DriveList)
+            {
+                DestroyImmediate(item);
+            }
+            m_DriveList.Clear();
+        }
+
+        /// <summary>
         /// 是否包含
         /// </summary>
         /// <param name="driveName"></param>
