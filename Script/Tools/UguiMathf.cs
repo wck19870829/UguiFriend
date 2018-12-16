@@ -2,6 +2,7 @@
 using System.Collections;
 using System;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 namespace RedScarf.UguiFriend
 {
@@ -21,6 +22,79 @@ namespace RedScarf.UguiFriend
             vector2List = new List<Vector2>(listInitSize);
             vector3List = new List<Vector3>(listInitSize);
         }
+
+        /// <summary>
+        /// 获取中心点
+        /// </summary>
+        /// <param name="points"></param>
+        /// <returns></returns>
+        public static Vector2 GetCenter(List<Vector2>points)
+        {
+            if (points == null)
+                throw new Exception("Points is null.");
+            if (points.Count == 0)
+                throw new Exception("Points'count is zero.");
+
+            if (points.Count == 1)
+                return points[0];
+
+            var xMin = points[0].x;
+            var xMax = xMin;
+            var yMin = points[0].y;
+            var yMax = yMin;
+            foreach (var point in points)
+            {
+                xMin = Mathf.Min(xMin, point.x);
+                xMax = Mathf.Max(xMax, point.x);
+                yMin = Mathf.Min(yMin, point.y);
+                yMax = Mathf.Max(yMax, point.y);
+            }
+
+            var center = new Vector3(
+                        Mathf.Lerp(xMin, xMax, 0.5f),
+                        Mathf.Lerp(yMin, yMax, 0.5f)
+                        );
+            return center;
+        }
+
+        /// <summary>
+        /// 获取中心点
+        /// </summary>
+        /// <param name="points"></param>
+        /// <returns></returns>
+        public static Vector3 GetCenter(List<Vector3>points)
+        {
+            if (points == null)
+                throw new Exception("Points is null.");
+            if (points.Count == 0)
+                throw new Exception("Points'count is zero.");
+
+            if (points.Count == 1)
+                return points[0];
+
+            var xMin = points[0].x;
+            var xMax = xMin;
+            var yMin= points[0].y;
+            var yMax = yMin;
+            var zMin= points[0].z;
+            var zMax = zMin;
+            foreach (var point in points)
+            {
+                xMin = Mathf.Min(xMin, point.x);
+                xMax = Mathf.Max(xMax, point.x);
+                yMin = Mathf.Min(yMin, point.y);
+                yMax = Mathf.Max(yMax, point.y);
+                zMin = Mathf.Min(zMin, point.z);
+                zMax = Mathf.Max(zMax, point.z);
+            }
+
+            var center= new Vector3(
+                        Mathf.Lerp(xMin,xMax,0.5f),
+                        Mathf.Lerp(yMin, yMax, 0.5f),
+                        Mathf.Lerp(zMin, zMax, 0.5f)
+                        );
+            return center;
+        } 
 
         /// <summary>
         /// 旋转向量
@@ -66,17 +140,31 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 获取Bounds(包含子物体)
         /// </summary>
-        /// <param name="target"></param>
-        /// <param name="includeInactive"></param>
+        /// <param name="target">目标</param>
+        /// <param name="includeInactive">是否包含未激活物体</param>
         /// <returns></returns>
-        public static Bounds GetGlobalBoundsIncludeChildren(RectTransform target, bool includeInactive = false)
+        public static Bounds GetGlobalBoundsIncludeChildren(RectTransform target, bool includeInactive=false)
         {
             var bounds = GetBounds(target, Space.World);
 
             var children = target.GetComponentsInChildren<RectTransform>(includeInactive);
             foreach (var child in children)
             {
+                var mask = child.GetComponent<Mask>();
+                if (mask != null && mask.showMaskGraphic == false) continue;
+
                 var childBounds = GetBounds(child, Space.World);
+                var parentMask = child.GetComponentInParent<Mask>();
+                if (parentMask != null)
+                {
+                    var maskBounds = GetBounds(parentMask.rectTransform, Space.World);
+                    var overlap = BoundsOverlap(maskBounds, childBounds);
+                    if (overlap != null)
+                    {
+                        bounds.Encapsulate((Bounds)overlap);
+                    }
+                    continue;
+                }
                 bounds.Encapsulate(childBounds);
             }
 
@@ -110,6 +198,32 @@ namespace RedScarf.UguiFriend
             return bounds;
         }
         
+        /// <summary>
+        /// 获取两个Bounds交集,无交集返回null
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static Bounds? BoundsOverlap(Bounds a,Bounds b)
+        {
+            if (a.Intersects(b))
+            {
+                var xMin = Mathf.Max(a.min.x, b.min.x);
+                var yMin = Mathf.Max(a.min.y, b.min.y);
+                var zMin = Mathf.Max(a.min.z, b.min.z);
+                var xMax= Mathf.Min(a.max.x, b.max.x);
+                var yMax = Mathf.Min(a.max.y, b.max.y);
+                var zMax = Mathf.Min(a.max.z, b.max.z);
+
+                var bounds = new Bounds();
+                bounds.SetMinMax(new Vector3(xMin,yMin,zMin),new Vector3(xMax,yMax,zMax));
+
+                return bounds;
+            }
+
+            return null;
+        }
+
         #endregion
 
         #region Rect

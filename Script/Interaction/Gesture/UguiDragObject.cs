@@ -12,77 +12,47 @@ namespace RedScarf.UguiFriend
     {
         public RectTransform contentRect;
         [Range(0,1)]public float decelerationRate = 0.1f;
-        protected Vector2 cacheScreenPos;
-        protected RectTransform m_RectTransform;
-        protected Vector3 targetPos;
+        protected Vector2 screenPosOffset;
         protected bool m_IsDrag;
         protected bool m_IsRunning;
 
-        public Action OnBeginDragEvent;
-        public Action OnDragEvent;
-        public Action OnEndDragEvent;
-
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-            targetPos = transform.position;
-        }
+        public Action<PointerEventData> OnBeginDragEvent;
+        public Action<PointerEventData> OnDragEvent;
+        public Action<PointerEventData> OnEndDragEvent;
+        public Action<PointerEventData> OnDrapEvent;
 
         protected virtual void Update()
         {
             Move();
         }
 
-        private void OnDrawGizmos()
-        {
-            if (contentRect != null)
-            {
-                var bounds=UguiMathf.GetBounds(contentRect,Space.World);
-                var bounds2= UguiMathf.GetBounds(transform as RectTransform, Space.World);
-
-                Gizmos.DrawWireCube(bounds.center,bounds.size);
-                Gizmos.DrawWireCube(bounds2.center, bounds2.size);
-                return;
-
-                //var contentBounds = UguiMathf.GetBounds(contentRect,Space.World);
-
-                //Gizmos.DrawWireCube(contentBounds.center,contentBounds.size);
-
-                //var bounds = UguiMathf.GetGlobalBoundsIncludeChildren((RectTransform)transform);
-
-                //Gizmos.DrawWireCube(bounds.center, bounds.size);
-
-                //var newBounds = UguiMathf.LimitBounds(bounds, contentBounds);
-            }
-        }
-
         protected virtual void Move()
         {
-            if (m_IsRunning)
-            {
-                if (m_IsDrag)
-                {
-                    transform.position = Vector3.Lerp(transform.position, targetPos, 0.6f);
-                }
-                else
-                {
-                    transform.position = Vector3.Lerp(transform.position, targetPos, decelerationRate);
-                }
+            //if (m_IsRunning)
+            //{
+            //    if (m_IsDrag)
+            //    {
+            //        transform.position = Vector3.Lerp(transform.position, targetPos, 0.6f);
+            //    }
+            //    else
+            //    {
+            //        transform.position = Vector3.Lerp(transform.position, targetPos, decelerationRate);
+            //    }
 
-                if (contentRect != null)
-                {
-                    var contentBounds = UguiMathf.GetBounds(contentRect, Space.World);
-                    var bounds = UguiMathf.GetGlobalBoundsIncludeChildren((RectTransform)transform);
-                    var newBounds = UguiMathf.LimitBounds(bounds, contentBounds);
-                    transform.position = newBounds.center;
-                }
+            //    if (Vector3.Distance(transform.position, targetPos) < 0.1f)
+            //    {
+            //        transform.position = targetPos;
+            //        m_IsRunning = false;
+            //    }
+            //}
 
-                if (Vector3.Distance(transform.position, targetPos) < 0.1f)
-                {
-                    transform.position = targetPos;
-                    m_IsRunning = false;
-                }
-            }
+            //if (contentRect != null)
+            //{
+            //    var contentBounds = UguiMathf.GetBounds(contentRect, Space.World);
+            //    var bounds = UguiMathf.GetGlobalBoundsIncludeChildren((RectTransform)transform,false);
+            //    var newBounds = UguiMathf.LimitBounds(bounds, contentBounds);
+            //    transform.position = newBounds.center;
+            //}
         }
 
         /// <summary>
@@ -96,13 +66,11 @@ namespace RedScarf.UguiFriend
         public void OnBeginDrag(PointerEventData eventData)
         {
             m_IsDrag = true;
-            m_IsRunning = true;
-            m_RectTransform = GetComponent<RectTransform>();
-            cacheScreenPos = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, transform.position);
+
 
             if (OnBeginDragEvent != null)
             {
-                OnBeginDragEvent.Invoke();
+                OnBeginDragEvent.Invoke(eventData);
             }
         }
 
@@ -110,30 +78,35 @@ namespace RedScarf.UguiFriend
         {
             m_IsDrag = true;
             m_IsRunning = true;
-            cacheScreenPos += eventData.delta;
-            RectTransformUtility.ScreenPointToWorldPointInRectangle(m_RectTransform, cacheScreenPos, eventData.pressEventCamera, out targetPos);
+            //RectTransformUtility.ScreenPointToWorldPointInRectangle(transform as RectTransform, cacheScreenPos, eventData.pressEventCamera, out targetPos);
+
+            Debug.Log(eventData);
+
+
 
             if (OnDragEvent != null)
             {
-                OnDragEvent.Invoke();
+                OnDragEvent.Invoke(eventData);
             }
         }
 
         public void OnEndDrag(PointerEventData eventData)
         {
             m_IsDrag = false;
-            cacheScreenPos += eventData.delta*10;
-            RectTransformUtility.ScreenPointToWorldPointInRectangle(m_RectTransform, cacheScreenPos, eventData.pressEventCamera, out targetPos);
+            //RectTransformUtility.ScreenPointToWorldPointInRectangle(transform as RectTransform, cacheScreenPos, eventData.pressEventCamera, out targetPos);
 
             if (OnEndDragEvent != null)
             {
-                OnEndDragEvent.Invoke();
+                OnEndDragEvent.Invoke(eventData);
             }
         }
 
         public void OnDrop(PointerEventData eventData)
         {
-
+            if (OnDrapEvent!=null)
+            {
+                OnDragEvent.Invoke(eventData);
+            }
         }
     }
 }

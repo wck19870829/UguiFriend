@@ -16,58 +16,29 @@ namespace RedScarf.UguiFriend
         public int maxWidth=9999;
         public int maxHeight=9999;
 
-        protected Vector3 offset;
-        protected int closestPointIndex;               //顶点序号(顺时针)
-        protected List<Vector3> pointList;
+        protected Vector2 screenOffset;
+
+        private void OnDrawGizmos()
+        {
+            var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(transform as RectTransform);
+            Gizmos.DrawWireCube(bounds.center,bounds.size);
+        }
 
         public void OnBeginDrag(PointerEventData eventData)
         {
-            if (target != null)
-            {
-                var targetBounds = UguiMathf.GetBounds(target, Space.World);
-                var bounds = UguiMathf.GetBounds((RectTransform)transform,Space.World);
-                var distList = new List<float>
-                                {
-                                    Vector3.Distance(pointList[0],bounds.center),
-                                    Vector3.Distance(pointList[1], bounds.center),
-                                    Vector3.Distance(pointList[2], bounds.center),
-                                    Vector3.Distance(pointList[3], bounds.center)
-                                };
-                var minDist = Mathf.Min
-                            (
-                                distList[0],
-                                distList[1],
-                                distList[2],
-                                distList[3]
-                            );
-                closestPointIndex = distList.IndexOf(minDist);
-                offset = pointList[closestPointIndex] - bounds.center;
-            }
+            var screenPoint = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, transform.position);
+            screenOffset = screenPoint-eventData.position;
         }
 
         public void OnDrag(PointerEventData eventData)
         {
             if (target != null)
             {
-                switch (closestPointIndex)
-                {
-                    case 0:
-                        //pointList[closestPointIndex]
-                        break;
 
-                    case 1:
-
-                        break;
-
-                    case 2:
-
-                        break;
-
-                    case 3:
-
-                        break;
-                }
             }
+            Vector3 worldPos;
+            RectTransformUtility.ScreenPointToWorldPointInRectangle(transform as RectTransform, eventData.position+screenOffset, eventData.pressEventCamera, out worldPos);
+            transform.position = worldPos;
         }
 
         public void OnEndDrag(PointerEventData eventData)
