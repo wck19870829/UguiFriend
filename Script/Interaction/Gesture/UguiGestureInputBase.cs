@@ -100,7 +100,7 @@ namespace RedScarf.UguiFriend
             public Vector3 prev;
             public Vector3 current;
 
-            public WorldPointInfo(Vector2 prev, Vector2 current)
+            public WorldPointInfo(Vector3 prev, Vector3 current)
             {
                 this.prev = prev;
                 this.current = current;
