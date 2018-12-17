@@ -5,55 +5,24 @@ using System.Collections.Generic;
 
 namespace RedScarf.UguiFriend
 {
+    [DisallowMultipleComponent]
     /// <summary>
     /// 旋转物体
     /// </summary>
-    public class UguiRotateObject : UIBehaviour,IPointerDownHandler,IPointerUpHandler
+    public class UguiRotateObject : UguiGestureInputBase
     {
-        protected List<PointerEventData> pointerDataList;
-        protected List<Vector2> deltaList;
-        protected List<Vector2> positionList;
-
-        protected override void Awake()
+        protected override void DoChange()
         {
-            base.Awake();
-            pointerDataList = new List<PointerEventData>();
-            deltaList = new List<Vector2>();
-            positionList = new List<Vector2>();
-        }
-
-        protected virtual void Update()
-        {
-            deltaList.Clear();
-            positionList.Clear();
-            if (pointerDataList.Count>0)
+            var eulerAnglesOffset = Vector3.zero;
+            foreach (var item in worldPointInfoList)
             {
-                if (pointerDataList.Count == 1)
-                {
-                    //一个点绕中心点旋转
-
-                }
-                else
-                {
-                    //多点绕多点中心点旋转
-                    foreach (var pointer in pointerDataList)
-                    {
-                        positionList.Add(pointer.position);
-                        deltaList.Add(pointer.delta);
-                    }
-                    var center = UguiMathf.GetCenter(positionList);
-                }
+                var prevDir = item.prev-worldCenter;
+                var currentDir = item.current - worldCenter;
+                var rotation = Quaternion.FromToRotation(prevDir, currentDir);
+                eulerAnglesOffset += rotation.eulerAngles;
             }
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            pointerDataList.Remove(eventData);
-        }
-
-        public void OnPointerDown(PointerEventData eventData)
-        {
-            pointerDataList.Add(eventData);
+            eulerAnglesOffset /= worldPointInfoList.Count;
+            transform.eulerAngles = transform.eulerAngles + eulerAnglesOffset;
         }
     }
 }

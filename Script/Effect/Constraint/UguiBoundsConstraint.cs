@@ -5,9 +5,9 @@ using UnityEngine.EventSystems;
 namespace RedScarf.UguiFriend
 {
     /// <summary>
-    /// 变换约束
+    /// 边界约束
     /// </summary>
-    public class UguiTransformConstraint : UIBehaviour
+    public class UguiBoundsConstraint : UIBehaviour
     {
         [SerializeField]protected MoveEffect m_MoveEffect;
 

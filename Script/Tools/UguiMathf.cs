@@ -956,6 +956,16 @@ namespace RedScarf.UguiFriend
                 throw new Exception("查找错误.");
             }
 
+            /// <summary>
+            /// 获取最近的点
+            /// </summary>
+            /// <param name="point"></param>
+            /// <returns></returns>
+            public Vector3 GetClosestPoint(Vector3 point)
+            {
+                return Vector3.zero;
+            }
+
             [Serializable]
             /// <summary>
             /// 贝塞尔曲线线段
