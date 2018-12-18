@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.EventSystems;
+using System;
 
 namespace RedScarf.UguiFriend
 {
@@ -9,28 +10,30 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiBoundsConstraint : UIBehaviour
     {
-        [SerializeField]protected MoveEffect m_MoveEffect;
+        [SerializeField] protected RectTransform m_Content;
 
-        public MoveEffect Effect
+        private void Update()
         {
-            get
+            if (m_Content!=null)
             {
-                return m_MoveEffect;
-            }
-            set
-            {
-                m_MoveEffect = value;
+                var safeBounds = GetGlobalSafeBounds();
+                transform.position = safeBounds.center;
             }
         }
 
         /// <summary>
-        /// 效果
+        /// 获取全局坐标系安全边界
         /// </summary>
-        public enum MoveEffect
+        /// <returns></returns>
+        public Bounds GetGlobalSafeBounds()
         {
-            None,
-            Momentum,
-            MomentumAndSpring,
+            if (m_Content == null)
+                throw new Exception("Content is null.");
+
+            var contentBounds = UguiMathf.GetBounds(m_Content, Space.World);
+            var bounds = UguiMathf.GetGlobalBoundsIncludeChildren(transform as RectTransform);
+            bounds = UguiMathf.LimitBounds(bounds, contentBounds);
+            return bounds;
         }
     }
 }

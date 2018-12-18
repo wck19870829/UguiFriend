@@ -305,6 +305,24 @@ namespace RedScarf.UguiFriend
             return combine;
         }
 
+        /// <summary>
+        /// 限制矩形在另外一个矩形中
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public static Rect LimitRect(Rect rect,Rect content)
+        {
+            var width = Mathf.Min(Mathf.Abs(rect.width),Mathf.Abs(content.width));
+            var height = Mathf.Min(Mathf.Abs(rect.height), Mathf.Abs(content.height));
+            rect.xMin = Mathf.Clamp(rect.xMin,content.xMin, content.xMax-width);
+            rect.yMin = Mathf.Clamp(rect.yMin, content.yMin, content.yMax - height);
+            rect.xMax = rect.xMin + width;
+            rect.yMax = rect.yMin + height;
+
+            return rect;
+        }
+
         #endregion
 
         #region Plane
