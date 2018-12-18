@@ -11,6 +11,7 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiGrid : GridLayoutGroup, IUguiContent
     {
+        [SerializeField]protected UguiObject m_PrefabSourec;
         protected List<UguiObject> m_Children;
         protected Action m_OnReposition;
 
@@ -42,7 +43,19 @@ namespace RedScarf.UguiFriend
         public virtual void Set(List<UguiObjectData> dataList)
         {
             UguiObjectPool.Instance.Push(m_Children);
-            m_Children = UguiObjectPool.Instance.Get(dataList);
+            UguiTools.DestroyChildren(gameObject);
+            UguiObjectPool.Instance.Get(m_Children,dataList, transform);
+        }
+
+        public void Set(List<UguiObjectData> dataList, UguiObject prefabSource)
+        {
+            if (prefabSource == null)
+                throw new Exception("Prefab is null.");
+
+            var prefabType = prefabSource.GetType();
+            UguiObjectPool.Instance.Push(m_Children);
+            UguiTools.DestroyChildren(gameObject);
+            UguiObjectPool.Instance.Get(m_Children, dataList, prefabSource, transform);
         }
 
         public virtual void Reposition()

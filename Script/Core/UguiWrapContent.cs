@@ -321,11 +321,15 @@ namespace RedScarf.UguiFriend
 
         public virtual void Set(List<UguiObjectData> dataList)
         {
-            UguiObjectPool.Instance.Push(m_Children);
-            m_Children = UguiObjectPool.Instance.Get(dataList);
+
         }
 
         public virtual void Reposition()
+        {
+
+        }
+
+        public void Set(List<UguiObjectData> dataList, UguiObject prefab)
         {
 
         }

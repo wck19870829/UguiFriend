@@ -16,10 +16,17 @@ namespace RedScarf.UguiFriend
         List<UguiObject> Children { get; }
 
         /// <summary>
-        /// 设置子元素数据
+        /// 设置数据填充实体
         /// </summary>
         /// <param name="dataList"></param>
         void Set(List<UguiObjectData> dataList);
+
+        /// <summary>
+        /// 由指定预设填充实体
+        /// </summary>
+        /// <param name="dataList">数据集合</param>
+        /// <param name="prefabSource">预设引用</param>
+        void Set(List<UguiObjectData> dataList, UguiObject prefabSource);
 
         /// <summary>
         /// 复位
