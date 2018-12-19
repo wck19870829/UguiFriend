@@ -32,6 +32,7 @@ namespace RedScarf.UguiFriend
 
             obj.transform.SetParent(content);
             obj.transform.localPosition = Vector3.zero;
+            obj.Data = null;
         }
 
         /// <summary>
@@ -116,8 +117,25 @@ namespace RedScarf.UguiFriend
             if (prefabSource == null)
                 throw new Exception("Prefab source is null.");
 
-            var prefabType = prefabSource.GetType();
-            var obj = Get(prefabType, parent);
+            var objType = prefabSource.GetType();
+            UguiObject obj = null;
+            //优先池中获取
+            if (poolDict.ContainsKey(objType))
+            {
+                if (poolDict[objType].Count > 0)
+                {
+                    obj = poolDict[objType].Pop();
+                }
+            }
+            if (obj==null)
+            {
+                //实例新的
+                obj=GameObject.Instantiate<UguiObject>(prefabSource);
+            }
+            obj.transform.SetParent(parent);
+            obj.transform.localScale = Vector3.one;
+            obj.transform.localPosition = Vector3.zero;
+            obj.transform.localEulerAngles = Vector3.zero;
             obj.Data = data;
 
             return obj;

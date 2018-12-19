@@ -77,6 +77,7 @@ namespace RedScarf.UguiFriend
         public static void Register(UguiObject obj)
         {
             if (obj == null) return;
+            if (string.IsNullOrEmpty(obj.Guid)) return;
 
             if (!s_ObjectDict.ContainsKey(obj.Guid))
             {
@@ -95,8 +96,12 @@ namespace RedScarf.UguiFriend
         public static void Unregister(UguiObject obj)
         {
             if (obj == null) return;
+            if (string.IsNullOrEmpty(obj.Guid)) return;
 
-            s_ObjectDict.Remove(obj.Guid);
+            if (s_ObjectDict.ContainsKey(obj.Guid))
+            {
+                s_ObjectDict.Remove(obj.Guid);
+            }
         }
 
         /// <summary>

@@ -3,6 +3,7 @@ using System.Collections;
 
 namespace RedScarf.UguiFriend
 {
+    [UguiBinding(typeof(UguiDialogueBoxData))]
     /// <summary>
     /// 对话窗
     /// </summary>
@@ -12,5 +13,10 @@ namespace RedScarf.UguiFriend
         {
 
         }
+    }
+
+    public class UguiDialogueBoxData : UguiObjectData
+    {
+
     }
 }

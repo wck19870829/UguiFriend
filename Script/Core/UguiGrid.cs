@@ -44,18 +44,14 @@ namespace RedScarf.UguiFriend
         {
             UguiObjectPool.Instance.Push(m_Children);
             UguiTools.DestroyChildren(gameObject);
-            UguiObjectPool.Instance.Get(m_Children,dataList, transform);
-        }
-
-        public void Set(List<UguiObjectData> dataList, UguiObject prefabSource)
-        {
-            if (prefabSource == null)
-                throw new Exception("Prefab is null.");
-
-            var prefabType = prefabSource.GetType();
-            UguiObjectPool.Instance.Push(m_Children);
-            UguiTools.DestroyChildren(gameObject);
-            UguiObjectPool.Instance.Get(m_Children, dataList, prefabSource, transform);
+            if (m_PrefabSourec==null)
+            {
+                UguiObjectPool.Instance.Get(m_Children, dataList, transform);
+            }
+            else
+            {
+                UguiObjectPool.Instance.Get(m_Children, dataList, m_PrefabSourec, transform);
+            }
         }
 
         public virtual void Reposition()
