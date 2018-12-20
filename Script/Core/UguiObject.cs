@@ -47,6 +47,7 @@ namespace RedScarf.UguiFriend
             {
                 if (value == null)
                 {
+                    //为null取消注册
                     UguiObjectManager.Unregister(this);
                     m_Data = null;
                 }
@@ -79,6 +80,17 @@ namespace RedScarf.UguiFriend
                 }
 
                 return string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// 画布
+        /// </summary>
+        public Canvas Canvas
+        {
+            get
+            {
+                return m_Canvas;
             }
         }
 
@@ -137,6 +149,27 @@ namespace RedScarf.UguiFriend
         public virtual void GotoStep(UguiObjectData data)
         {
 
+        }
+
+        /// <summary>
+        /// 是否在屏幕中
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static bool ScreenContains(UguiObject obj)
+        {
+            if (obj.Canvas != null)
+            {
+                var bounds = UguiMathf.GetGlobalBoundsIncludeChildren(obj.transform as RectTransform, false);
+                var rect=UguiMathf.GetScreenRect(bounds, obj.Canvas.rootCanvas.worldCamera);
+                var screenRect = new Rect(0,0,Screen.width,Screen.height);
+
+                return UguiMathf.RectOverlap(rect, screenRect)==null
+                        ?false
+                        :true;
+            }
+
+            return false;
         }
     }
 }

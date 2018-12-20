@@ -1,12 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEditor;
-using UnityEditor.UI;
 
 namespace RedScarf.UguiFriend
 {
-    [CustomEditor(typeof(UguiGrid))]
-    public class UguiGridEditor : GridLayoutGroupEditor
+    [CustomEditor(typeof(UguiLayoutGroup),true)]
+    public class UguiLayoutGroupEditor : Editor
     {
         public override void OnInspectorGUI()
         {
@@ -14,8 +13,6 @@ namespace RedScarf.UguiFriend
             EditorGUILayout.PropertyField(prefabSource);
 
             serializedObject.ApplyModifiedProperties();
-
-            base.OnInspectorGUI();
         }
     }
 }

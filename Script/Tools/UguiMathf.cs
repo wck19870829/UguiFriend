@@ -243,6 +243,26 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 获取在屏幕上的投影矩形
+        /// </summary>
+        /// <param name="bounds"></param>
+        /// <param name="camera"></param>
+        /// <returns></returns>
+        public static Rect GetScreenRect(Bounds bounds,Camera camera)
+        {
+            var p1=RectTransformUtility.WorldToScreenPoint(camera, bounds.min);
+            var p2= RectTransformUtility.WorldToScreenPoint(camera, bounds.max);
+            var points = new List<Vector2>
+            {
+                p1,
+                p2
+            };
+            var screenRect = GetRect(points);
+
+            return screenRect;
+        }
+
+        /// <summary>
         /// 获取包含所有点的矩形
         /// </summary>
         /// <param name="points"></param>

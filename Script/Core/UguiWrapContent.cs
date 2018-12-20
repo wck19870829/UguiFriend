@@ -15,7 +15,7 @@ namespace RedScarf.UguiFriend
     /// 1.如果使用效果（如位移特效，旋转特效，缩放特效），需子物体实现IUguiChildControl接口
     /// 2.如果使用颜色改变效果，需子物体挂载UguiColorTint组件
     /// </summary>
-    public class UguiWrapContent : UIBehaviour,IUguiContent
+    public class UguiWrapContent : UIBehaviour
     {
         protected readonly Vector2 contentDefaultPivot = new Vector2(0,1);
 

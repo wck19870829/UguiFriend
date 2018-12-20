@@ -7,7 +7,7 @@ namespace RedScarf.UguiFriend.Demo
     [UguiBinding(typeof(PanelAData))]
     public class PanelA : UguiObject
     {
-        [SerializeField] private UguiGrid m_Grid;
+        [SerializeField] private UguiGridLayoutGroup m_Grid;
 
         private void Update()
         {

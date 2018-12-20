@@ -15,6 +15,78 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public static class UguiTools
     {
+        public static List<UguiObject> objTempList;
+        public static Dictionary<string, UguiObject> objTempDict;
+        public static Dictionary<string,UguiObjectData> objDataTempSet;
+        public static List<UguiObjectData> objDataTempList;
+
+        static UguiTools()
+        {
+            objTempList = new List<UguiObject>();
+            objTempDict = new Dictionary<string, UguiObject>();
+            objDataTempSet = new Dictionary<string, UguiObjectData>();
+            objDataTempList = new List<UguiObjectData>();
+        }
+
+        /// <summary>
+        /// 填充数据
+        /// </summary>
+        /// <param name="children"></param>
+        /// <param name="content"></param>
+        /// <param name="dataList"></param>
+        /// <param name="prefabSource"></param>
+        public static void SetChildrenDatas(List<UguiObject>children,Transform content,List<UguiObjectData>dataList,UguiObject prefabSource)
+        {
+            //继续使用的对象复用,未使用中的对象放入池中,最后补齐新增加的对象
+            objDataTempSet.Clear();
+            objDataTempList.Clear();
+            objTempList.Clear();
+            foreach (var data in dataList)
+            {
+                objDataTempSet.Add(data.guid, data);
+            }
+            foreach (var child in children)
+            {
+                if (!objDataTempSet.ContainsKey(child.Guid))
+                {
+                    objTempList.Add(child);
+                }
+                else
+                {
+                    objDataTempList.Add(objDataTempSet[child.Guid]);
+                }
+            }
+            foreach (var removeChild in objTempList)
+            {
+                children.Remove(removeChild);
+            }
+            UguiObjectPool.Instance.Push(objTempList);
+            DestroyChildren(content.gameObject);
+
+            if (prefabSource == null)
+            {
+                UguiObjectPool.Instance.Get(objTempList, objDataTempList, content);
+            }
+            else
+            {
+                UguiObjectPool.Instance.Get(objTempList, objDataTempList, prefabSource, content);
+            }
+            children.AddRange(objTempList);
+            objTempList.Clear();
+            objDataTempList.Clear();
+            objTempDict.Clear();
+            foreach (var child in children)
+            {
+                objTempDict.Add(child.Guid, child);
+            }
+            children.Clear();
+            foreach (var data in dataList)
+            {
+                children.Add(objTempDict[data.guid]);
+            }
+            objTempDict.Clear();
+        }
+
         /// <summary>
         /// 销毁所有子元素
         /// </summary>
