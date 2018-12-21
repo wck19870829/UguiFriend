@@ -26,7 +26,6 @@ namespace RedScarf.UguiFriend
             base.OnTransformParentChanged();
 
             m_Canvas = GetComponentInParent<Canvas>();
-            Debug.Log("OnTransformParentChanged");
         }
 
         protected override void OnRectTransformDimensionsChange()

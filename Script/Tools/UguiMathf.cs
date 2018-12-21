@@ -257,9 +257,24 @@ namespace RedScarf.UguiFriend
                 p1,
                 p2
             };
-            var screenRect = GetRect(points);
+            var rect = GetRect(points);
 
-            return screenRect;
+            return rect;
+        }
+
+        /// <summary>
+        /// 屏幕坐标转视图坐标
+        /// </summary>
+        /// <param name="screenPoint"></param>
+        /// <returns></returns>
+        public static Vector2 ScreenPoint2ViewportPoint(Vector2 screenPoint)
+        {
+            var viewportPoint = new Vector2(
+                                screenPoint.x/Screen.width,
+                                screenPoint.y/Screen.height
+                                );
+
+            return viewportPoint;
         }
 
         /// <summary>

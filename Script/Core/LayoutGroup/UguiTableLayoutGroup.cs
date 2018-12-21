@@ -15,17 +15,22 @@ namespace RedScarf.UguiFriend
     {
         public override void CalculateLayoutInputVertical()
         {
-            throw new NotImplementedException();
+
         }
 
         public override void SetLayoutHorizontal()
         {
-            throw new NotImplementedException();
+
         }
 
         public override void SetLayoutVertical()
         {
-            throw new NotImplementedException();
+
+        }
+
+        protected override void UpdateChildrenLocalPosition()
+        {
+
         }
     }
 }

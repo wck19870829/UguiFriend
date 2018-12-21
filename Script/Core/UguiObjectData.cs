@@ -20,6 +20,11 @@ namespace RedScarf.UguiFriend
         public string tag;
         public int layer;
 
+        public UguiObjectData()
+        {
+            guid = Guid.NewGuid().ToString();
+        }
+
         /// <summary>
         /// 深度复制
         /// </summary>
