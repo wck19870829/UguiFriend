@@ -28,7 +28,7 @@ namespace RedScarf.UguiFriend
 
         }
 
-        protected override void UpdateChildrenLocalPosition()
+        public override void UpdateChildrenLocalPosition()
         {
 
         }

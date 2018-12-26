@@ -25,7 +25,7 @@ namespace RedScarf.UguiFriend
 
         public override void SetLayoutHorizontal()
         {
-
+            
         }
 
         public override void SetLayoutVertical()
@@ -33,7 +33,7 @@ namespace RedScarf.UguiFriend
 
         }
 
-        protected override void UpdateChildrenLocalPosition()
+        public override void UpdateChildrenLocalPosition()
         {
             switch (m_StartAxis)
             {
@@ -60,34 +60,6 @@ namespace RedScarf.UguiFriend
 
                     break;
             }
-
-            var fixedCount = int.MaxValue;
-            m_ChildrenLocalPositionList.Clear();
-            for (var i=0;i<m_childrenDataList.Count;i++)
-            {
-
-            }
-        }
-
-        public enum Axis
-        {
-            Horizontal = 0,
-            Vertical = 1
-        }
-
-        public enum Corner
-        {
-            UpperLeft = 0,
-            UpperRight = 1,
-            LowerLeft = 2,
-            LowerRight = 3
-        }
-
-        public enum Constraint
-        {
-            Flexible = 0,
-            FixedColumnCount = 1,
-            FixedRowCount = 2
         }
     }
 }
