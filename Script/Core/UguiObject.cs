@@ -14,6 +14,7 @@ namespace RedScarf.UguiFriend
     {
         protected UguiObjectData m_Data;
         protected Canvas m_Canvas;
+        protected RectTransform m_RectTransform;
 
         protected override void OnDestroy()
         {
@@ -31,6 +32,20 @@ namespace RedScarf.UguiFriend
         protected override void OnRectTransformDimensionsChange()
         {
             base.OnRectTransformDimensionsChange();
+        }
+
+        /// <summary>
+        /// 矩形变换组件
+        /// </summary>
+        public RectTransform RectTransform
+        {
+            get
+            {
+                if (m_RectTransform == null)
+                    m_RectTransform = GetComponent<RectTransform>();
+
+                return m_RectTransform;
+            }
         }
 
         /// <summary>

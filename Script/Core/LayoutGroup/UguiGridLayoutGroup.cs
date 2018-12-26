@@ -16,7 +16,7 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected Vector2 m_CellSize;
         [SerializeField] protected Vector2 m_Spacing;
         [SerializeField] protected Constraint m_Constraint;
-        [SerializeField] protected int m_ConstraintCount;
+        [SerializeField] protected int m_FlexibleCount;
 
         public override void CalculateLayoutInputVertical()
         {
@@ -33,32 +33,48 @@ namespace RedScarf.UguiFriend
 
         }
 
+        protected override void ProcessItemAfterCreated(UguiObject obj)
+        {
+            obj.RectTransform.sizeDelta = m_CellSize;
+        }
+
         public override void UpdateChildrenLocalPosition()
         {
-            switch (m_StartAxis)
+            var flexibleCount = int.MaxValue;
+            if (m_Constraint == Constraint.FixedColumnCount || m_Constraint == Constraint.FixedRowCount)
+                flexibleCount = m_FlexibleCount;
+            if(flexibleCount<=0)
+                flexibleCount = int.MaxValue;
+
+            m_ChildrenLocalPositionList.Clear();
+            var len = m_ChildrenLocalPositionList.Count;
+            var origin = new Vector2();
+
+            if (m_StartAxis==Axis.Horizontal)
             {
-                case Axis.Horizontal:
-
-                    break;
-
-                case Axis.Vertical:
-
-                    break;
+                //横向排序
+                for (var i=0;i< len; i++)
+                {
+                    var hIndex = i % flexibleCount;
+                    var vIndex = i / flexibleCount;
+                    var localPos = new Vector2(
+                                    origin.x+hIndex*m_CellSize.x+hIndex*m_Spacing.x,
+                                    origin.y + vIndex * m_CellSize.y + vIndex * m_Spacing.y);
+                    m_ChildrenLocalPositionList.Add(localPos);
+                }
             }
-
-            switch (m_Constraint)
+            else
             {
-                case Constraint.FixedColumnCount:
-
-                    break;
-
-                case Constraint.FixedRowCount:
-
-                    break;
-
-                case Constraint.Flexible:
-
-                    break;
+                //纵向排序
+                for (var i = 0; i < len; i++)
+                {
+                    var hIndex = i / flexibleCount;
+                    var vIndex = i % flexibleCount;
+                    var localPos = new Vector2(
+                                    origin.x + hIndex * m_CellSize.x + hIndex * m_Spacing.x,
+                                    origin.y + vIndex * m_CellSize.y + vIndex * m_Spacing.y);
+                    m_ChildrenLocalPositionList.Add(localPos);
+                }
             }
         }
     }

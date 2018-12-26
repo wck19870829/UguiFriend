@@ -18,8 +18,8 @@ namespace RedScarf.UguiFriend
         protected List<UguiObjectData> m_ChildrenDataList;
         protected Canvas m_Canvas;
 
-        public Action<UguiObject> OnItemCreate;
-        public Action OnReposition;
+        public Action<UguiObject> OnItemCreate;                         //创建出新的子元素
+        public Action OnReposition;                                     //复位回调
 
         protected UguiLayoutGroup()
         {
@@ -65,6 +65,8 @@ namespace RedScarf.UguiFriend
                                 : UguiObjectPool.Instance.Get(data, m_PrefabSource, transform);
                         m_InSightChildDict.Add(data.guid, obj);
 
+                        ProcessItemAfterCreated(obj);
+
                         if (OnItemCreate != null)
                         {
                             OnItemCreate.Invoke(obj);
@@ -89,6 +91,15 @@ namespace RedScarf.UguiFriend
         /// 更新子元素局部坐标位置信息
         /// </summary>
         public abstract void UpdateChildrenLocalPosition();
+
+        /// <summary>
+        /// 创建后处理新建子元素
+        /// </summary>
+        /// <param name="obj"></param>
+        protected virtual void ProcessItemAfterCreated(UguiObject obj)
+        {
+
+        }
 
         /// <summary>
         /// 子元素数据
@@ -121,6 +132,11 @@ namespace RedScarf.UguiFriend
         public virtual void Reposition()
         {
 
+
+            if (OnReposition!=null)
+            {
+                OnReposition.Invoke();
+            }
         }
 
         public enum Axis
