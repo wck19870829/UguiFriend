@@ -5,12 +5,28 @@ using UnityEditor.UI;
 
 namespace RedScarf.UguiFriend
 {
-    [CustomEditor(typeof(UguiGridLayoutGroup))]
+    [CustomEditor(typeof(UguiGridLayoutGroup),true)]
     public class UguiGridLayoutGroupEditor : UguiLayoutGroupEditor
     {
-        public override void OnInspectorGUI()
+        protected override void DrawHead()
         {
-            base.OnInspectorGUI();
+            base.DrawHead();
+
+            var cellSize = serializedObject.FindProperty("m_CellSize");
+            EditorGUILayout.PropertyField(cellSize);
+
+            var spacing = serializedObject.FindProperty("m_Spacing");
+            EditorGUILayout.PropertyField(spacing);
+
+            var constraint = serializedObject.FindProperty("m_Constraint");
+            EditorGUILayout.PropertyField(constraint);
+
+            if (constraint.intValue == (int)UguiGridLayoutGroup.Constraint.FixedColumnCount
+                || constraint.intValue == (int)UguiGridLayoutGroup.Constraint.FixedRowCount)
+            {
+                var flexibleCount = serializedObject.FindProperty("m_FlexibleCount");
+                EditorGUILayout.PropertyField(flexibleCount);
+            }
         }
     }
 }

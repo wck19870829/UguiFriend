@@ -13,12 +13,18 @@ namespace RedScarf.UguiFriend
     {
         [SerializeField] protected UguiObject m_PrefabSource;
         [SerializeField] protected Rect m_ViewPortDisplayRect;          //视图坐标系显示区域,显示区域内的物体才会被创建更新
+
+        [SerializeField] protected float m_RemoveDelay;                 //移除延迟,可以在此延迟中做动画等
+
         protected List<Vector3> m_ChildrenLocalPositionList;
         protected Dictionary<string, UguiObject> m_InSightChildDict;    //视图中可见的子物体
         protected List<UguiObjectData> m_ChildrenDataList;
         protected Canvas m_Canvas;
+        protected HashSet<string> tempSet;
+        protected HashSet<UguiObject> removeSet;
 
-        public Action<UguiObject> OnItemCreate;                         //创建出新的子元素
+        public Action<UguiObject> OnRemoveItem;                         //移除子元素          
+        public Action<UguiObject> OnCreateItem;                         //创建出新的子元素
         public Action OnReposition;                                     //复位回调
 
         protected UguiLayoutGroup()
@@ -26,6 +32,8 @@ namespace RedScarf.UguiFriend
             m_InSightChildDict = new Dictionary<string, UguiObject>();
             m_ViewPortDisplayRect = Rect.MinMaxRect(-0.2f, -0.2f, 1.2f, 1.2f);
             m_ChildrenLocalPositionList = new List<Vector3>();
+            tempSet = new HashSet<string>();
+            removeSet = new HashSet<UguiObject>();
         }
 
         protected virtual void Update()
@@ -63,28 +71,59 @@ namespace RedScarf.UguiFriend
                         var obj = (m_PrefabSource == null)
                                 ? UguiObjectPool.Instance.Get(data, transform)
                                 : UguiObjectPool.Instance.Get(data, m_PrefabSource, transform);
+                        obj.transform.position = worldPoint;
                         m_InSightChildDict.Add(data.guid, obj);
 
                         ProcessItemAfterCreated(obj);
 
-                        if (OnItemCreate != null)
+                        if (OnCreateItem != null)
                         {
-                            OnItemCreate.Invoke(obj);
+                            OnCreateItem.Invoke(obj);
                         }
                     }
                     m_InSightChildDict[data.guid].transform.position = worldPoint;
                 }
                 else
                 {
-                    //超出了显示区域外放入到池中
+                    //超出了显示区域外隐藏
                     if (m_InSightChildDict.ContainsKey(data.guid))
                     {
                         var obj = m_InSightChildDict[data.guid];
-                        m_InSightChildDict.Remove(data.guid);
-                        UguiObjectPool.Instance.Push(obj);
+                        if (!removeSet.Contains(obj))
+                        {
+                            removeSet.Add(obj);
+                        }
                     }
                 }
             }
+
+            foreach (var obj in removeSet)
+            {
+                StartCoroutine(RemoveItemDelay(obj));
+            }
+            removeSet.Clear();
+        }
+
+        IEnumerator RemoveItemDelay(UguiObject obj)
+        {
+            try
+            {
+                m_InSightChildDict.Remove(obj.Guid);
+
+                if (OnRemoveItem != null)
+                {
+                    OnRemoveItem.Invoke(obj);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e);
+            }
+
+            yield return new WaitForSeconds(m_RemoveDelay);
+
+            removeSet.Remove(obj);
+            UguiObjectPool.Instance.Push(obj);
         }
 
         /// <summary>
@@ -123,6 +162,23 @@ namespace RedScarf.UguiFriend
         public virtual void Set(List<UguiObjectData> childrenDataList)
         {
             m_ChildrenDataList = childrenDataList;
+            m_ChildrenLocalPositionList.Clear();
+            tempSet.Clear();
+            foreach (var data in m_ChildrenDataList)
+            {
+                tempSet.Add(data.guid);
+            }
+            foreach (var item in m_InSightChildDict)
+            {
+                if (!tempSet.Contains(item.Key))
+                {
+                    if (!removeSet.Contains(item.Value))
+                    {
+                        removeSet.Add(item.Value);
+                    }
+                }
+            }
+
             UpdateChildrenLocalPosition();
         }
 

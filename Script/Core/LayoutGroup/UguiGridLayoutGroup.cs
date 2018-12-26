@@ -18,6 +18,12 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected Constraint m_Constraint;
         [SerializeField] protected int m_FlexibleCount;
 
+        protected UguiGridLayoutGroup()
+        {
+            m_CellSize = new Vector2(100,100);
+            m_Spacing = new Vector2();
+        }
+
         public override void CalculateLayoutInputVertical()
         {
 
@@ -40,14 +46,15 @@ namespace RedScarf.UguiFriend
 
         public override void UpdateChildrenLocalPosition()
         {
+            var now = DateTime.Now;
+
             var flexibleCount = int.MaxValue;
             if (m_Constraint == Constraint.FixedColumnCount || m_Constraint == Constraint.FixedRowCount)
                 flexibleCount = m_FlexibleCount;
             if(flexibleCount<=0)
                 flexibleCount = int.MaxValue;
 
-            m_ChildrenLocalPositionList.Clear();
-            var len = m_ChildrenLocalPositionList.Count;
+            var len = m_ChildrenDataList.Count;
             var origin = new Vector2();
 
             if (m_StartAxis==Axis.Horizontal)
@@ -76,6 +83,8 @@ namespace RedScarf.UguiFriend
                     m_ChildrenLocalPositionList.Add(localPos);
                 }
             }
+
+            Debug.Log((DateTime.Now-now).TotalMilliseconds);
         }
     }
 }

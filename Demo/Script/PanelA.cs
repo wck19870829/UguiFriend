@@ -13,14 +13,23 @@ namespace RedScarf.UguiFriend.Demo
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                var data = new PanelAData();
-                data.dataList = new List<UguiObjectData>();
-                for (var i=0;i<1000;i++)
+                if (Data == null)
                 {
-                    var itemA = new ItemAData();
-                    data.dataList.Add(itemA);
+                    var data = new PanelAData();
+                    data.dataList = new List<UguiObjectData>();
+                    for (var i = 0; i < 10000; i++)
+                    {
+                        var itemA = new ItemAData();
+                        data.dataList.Add(itemA);
+                    }
+                    Data = data;
                 }
-                Data = data;
+                else
+                {
+                    var dataList = (Data as PanelAData).dataList;
+                    dataList[0] = new ItemAData();
+                    Data = Data;
+                }
             }
         }
 
