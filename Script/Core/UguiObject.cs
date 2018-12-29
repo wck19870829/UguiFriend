@@ -15,6 +15,12 @@ namespace RedScarf.UguiFriend
         protected UguiObjectData m_Data;
         protected Canvas m_Canvas;
         protected RectTransform m_RectTransform;
+        protected internal bool m_Dirty;
+
+        protected UguiObject()
+        {
+            m_Dirty = true;
+        }
 
         protected override void OnDestroy()
         {
@@ -113,22 +119,19 @@ namespace RedScarf.UguiFriend
         /// </summary>
         public void SetDirty()
         {
-            StopCoroutine("RefreshViewDelay");
-            StartCoroutine("RefreshViewDelay");
+            m_Dirty = true;
         }
 
         /// <summary>
-        /// 立即刷新界面
+        /// 强制立即刷新界面
         /// </summary>
         public void RefreshViewImmediate()
         {
-            RefreshView();
-        }
-
-        IEnumerator RefreshViewDelay()
-        {
-            yield return new WaitForEndOfFrame();
-            RefreshView();
+            if (m_Data != null)
+            {
+                RefreshView();
+            }
+            m_Dirty = false;
         }
 
         /// <summary>
@@ -137,7 +140,7 @@ namespace RedScarf.UguiFriend
         protected abstract void RefreshView();
 
         /// <summary>
-        /// 快照
+        /// 快照,实质为深度复制对象数据
         /// </summary>
         /// <returns></returns>
         public UguiObjectData Snapshoot()
@@ -163,27 +166,6 @@ namespace RedScarf.UguiFriend
         public virtual void GotoStep(UguiObjectData data)
         {
 
-        }
-
-        /// <summary>
-        /// 是否在屏幕中
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public static bool ScreenContains(UguiObject obj)
-        {
-            if (obj.Canvas != null)
-            {
-                var bounds = UguiMathf.GetGlobalBoundsIncludeChildren(obj.transform as RectTransform, false);
-                var rect=UguiMathf.GetScreenRect(bounds, obj.Canvas.rootCanvas.worldCamera);
-                var screenRect = new Rect(0,0,Screen.width,Screen.height);
-
-                return UguiMathf.RectOverlap(rect, screenRect)==null
-                        ?false
-                        :true;
-            }
-
-            return false;
         }
     }
 }

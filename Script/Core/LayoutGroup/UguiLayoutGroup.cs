@@ -9,8 +9,10 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 布局容器基类
     /// </summary>
-    public abstract class UguiLayoutGroup : LayoutGroup
+    public abstract class UguiLayoutGroup : LayoutGroup, IUguiObjectLayoutGroup
     {
+        protected const float reserveTimePerFrame = 10;                 //每帧计算时间上限(毫秒)
+
         [SerializeField] protected UguiObject m_PrefabSource;
         [SerializeField] protected Rect m_ViewPortDisplayRect;          //视图坐标系显示区域,显示区域内的物体才会被创建更新
 

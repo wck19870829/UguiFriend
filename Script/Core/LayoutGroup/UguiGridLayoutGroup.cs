@@ -46,8 +46,6 @@ namespace RedScarf.UguiFriend
 
         public override void UpdateChildrenLocalPosition()
         {
-            var now = DateTime.Now;
-
             var flexibleCount = int.MaxValue;
             if (m_Constraint == Constraint.FixedColumnCount || m_Constraint == Constraint.FixedRowCount)
                 flexibleCount = m_FlexibleCount;
@@ -83,8 +81,6 @@ namespace RedScarf.UguiFriend
                     m_ChildrenLocalPositionList.Add(localPos);
                 }
             }
-
-            Debug.Log((DateTime.Now-now).TotalMilliseconds);
         }
     }
 }

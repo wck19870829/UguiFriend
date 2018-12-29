@@ -207,7 +207,7 @@ namespace RedScarf.UguiFriend
         {
             poolDict = new Dictionary<Type, Stack<UguiObject>>();
             content = UguiTools.AddChild<Transform>("Content",transform);
-            transform.position = new Vector3(999999,999999,999999);
+            transform.position = new Vector3(99999,99999,99999);
         }
     }
 }

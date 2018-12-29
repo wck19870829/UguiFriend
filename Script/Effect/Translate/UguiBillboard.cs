@@ -33,7 +33,7 @@ namespace RedScarf.UguiFriend
         protected void SetRotation(Camera cam)
         {
             var camBack = -cam.transform.forward;
-            var plane = new Plane(cam.transform.position, -camBack);
+            var plane = new Plane(transform.position+camBack.normalized, -camBack);
             var ray = new Ray(transform.position, camBack);
             float dist;
             plane.Raycast(ray, out dist);

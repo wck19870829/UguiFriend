@@ -8,7 +8,8 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 管理器
     /// </summary>
-    public sealed class UguiObjectManager
+    public sealed class UguiObjectManager:UguiSingleton<UguiObjectManager>,
+        IUguiSingletonCreate<UguiObjectManager>
     {
         public static Func<UguiObjectData, UguiObject> onCreateByData;
         public static Func<Type, UguiObject> onCreateByType;
@@ -43,6 +44,17 @@ namespace RedScarf.UguiFriend
                 }
 
                 Debug.LogErrorFormat("数据绑定实体错误:{0}", type);
+            }
+        }
+
+        void LateUpdate()
+        {
+            foreach (var obj in s_ObjectDict.Values)
+            {
+                if (obj.m_Dirty)
+                {
+                    obj.RefreshViewImmediate();
+                }
             }
         }
 
@@ -105,7 +117,22 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 实体列表
+        /// 查找
+        /// </summary>
+        /// <param name="guid"></param>
+        /// <returns></returns>
+        public static UguiObject Find(string guid)
+        {
+            if (s_ObjectDict.ContainsKey(guid))
+            {
+                return s_ObjectDict[guid];
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// 对象列表
         /// </summary>
         public static Dictionary<string, UguiObject> ObjectDict
         {
@@ -183,6 +210,11 @@ namespace RedScarf.UguiFriend
             }
 
             return s_DataMappingDict[dataType];
+        }
+
+        public void OnSingletonCreate(UguiObjectManager instance)
+        {
+            DontDestroyOnLoad(gameObject);
         }
     }
 }
