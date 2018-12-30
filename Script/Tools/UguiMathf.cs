@@ -558,7 +558,7 @@ namespace RedScarf.UguiFriend
             }
 
             /// <summary>
-            /// 点到直线距离
+            /// 点到直线距离(有可能在延长线上投影)
             /// </summary>
             /// <param name="point"></param>
             /// <returns></returns>
@@ -571,6 +571,25 @@ namespace RedScarf.UguiFriend
             }
 
             /// <summary>
+            /// 点到线段最小距离
+            /// </summary>
+            /// <param name="point"></param>
+            /// <returns></returns>
+            public float ClosestDistance(Vector2 point)
+            {
+                var cross = (m_End.x - m_Start.x) * (point.x - m_Start.x) + (m_End.y - m_Start.y) * (point.y - m_Start.y);
+                if (cross <= 0) return Mathf.Sqrt((point.x - m_Start.x) * (point.x - m_Start.x) + (point.x - m_Start.y) * (point.x - m_Start.y));
+
+                var d2 = (m_End.x - m_Start.x) * (m_End.x - m_Start.x) + (m_End.y - m_Start.y) * (m_End.y - m_Start.y);
+                if (cross >= d2) return Mathf.Sqrt((point.x - m_End.x) * (point.x - m_End.x) + (point.x - m_End.y) * (point.x - m_End.y));
+
+                var r = cross / d2;
+                var px = m_Start.x + (m_End.x - m_Start.x) * r;
+                var py = m_Start.y + (m_End.y - m_Start.y) * r;
+                return Mathf.Sqrt((point.x - px) * (point.x - px) + (py - m_Start.y) * (py - m_Start.y));
+            }
+
+            /// <summary>
             /// 获取点到线上的投射点
             /// </summary>
             /// <param name="point"></param>
@@ -579,10 +598,20 @@ namespace RedScarf.UguiFriend
             {
                 var normal = m_End - m_Start;
                 var vector = point - m_Start;
-                var projectVector = (Vector2)Vector3.Project(vector, normal);
+                var projectVector = (Vector2)Vector3.Project(vector, normal.normalized);
                 var projectPoint = m_Start + projectVector;
 
                 return projectPoint;
+            }
+
+            /// <summary>
+            /// 判断点是否在直线上
+            /// </summary>
+            /// <param name="point"></param>
+            /// <returns></returns>
+            public bool PointIsInLine(Vector2 point)
+            {
+                return false;
             }
         }
 

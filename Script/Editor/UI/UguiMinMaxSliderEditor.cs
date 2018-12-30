@@ -18,14 +18,17 @@ namespace RedScarf.UguiFriend
             var sliderBlockB=serializedObject.FindProperty("m_SliderBlockB");
             EditorGUILayout.PropertyField(sliderBlockB);
 
+            var limitLineStart = serializedObject.FindProperty("m_LimitLineStart");
+            EditorGUILayout.PropertyField(limitLineStart);
+
+            var limitLineEnd = serializedObject.FindProperty("m_LimitLineEnd");
+            EditorGUILayout.PropertyField(limitLineEnd);
+
             var fillRect = serializedObject.FindProperty("m_FillRect");
             EditorGUILayout.PropertyField(fillRect);
 
             var handleRect=serializedObject.FindProperty("m_HandleRect");
             EditorGUILayout.PropertyField(handleRect);
-
-            var direction=serializedObject.FindProperty("m_Direction");
-            EditorGUILayout.PropertyField(direction);
 
             var minValue=serializedObject.FindProperty("m_MinValue");
             EditorGUILayout.PropertyField(minValue);

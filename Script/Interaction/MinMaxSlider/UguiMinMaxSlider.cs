@@ -17,9 +17,10 @@ namespace RedScarf.UguiFriend
     {
         [SerializeField] protected RectTransform m_SliderBlockA;
         [SerializeField] protected RectTransform m_SliderBlockB;
+        [SerializeField] protected RectTransform m_LimitLineStart;
+        [SerializeField] protected RectTransform m_LimitLineEnd;
         [SerializeField] protected RectTransform m_FillRect;
         [SerializeField] protected RectTransform m_HandleRect;
-        [SerializeField] protected Direction m_Direction;
         [SerializeField] protected float m_MinValue;
         [SerializeField] protected float m_MaxValue;
         [SerializeField] protected bool m_WholeNUmbers;
@@ -63,32 +64,35 @@ namespace RedScarf.UguiFriend
         {
             base.OnPointerDown(eventData);
 
-            Vector3 worldPosA;
-            RectTransformUtility.ScreenPointToWorldPointInRectangle(m_SliderBlockA, eventData.pointerCurrentRaycast.screenPosition, eventData.pressEventCamera, out worldPosA);
-            Vector3 worldPosB;
-            RectTransformUtility.ScreenPointToWorldPointInRectangle(m_SliderBlockB, eventData.pointerCurrentRaycast.screenPosition, eventData.pressEventCamera, out worldPosB);
+            var screenPointA = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, m_SliderBlockA.position);
+            var screenPointB = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, m_SliderBlockB.position);
+            var distA = Vector2.Distance(screenPointA, eventData.position);
+            var distB = Vector2.Distance(screenPointB, eventData.position);
 
-            var distA = Vector3.Distance(worldPosA, m_SliderBlockA.position);
-            var distB = Vector3.Distance(worldPosB, m_SliderBlockB.position);
-
-            currentTarget = distA > distB ? m_SliderBlockA : m_SliderBlockB;
+            currentTarget = distA < distB ? m_SliderBlockA : m_SliderBlockB;
             UpdateBlockPosition(eventData);
         }
 
         protected void UpdateBlockPosition(PointerEventData eventData)
         {
             if (currentTarget == null) return;
-            if (m_HandleRect == null) return;
+            if (m_LimitLineStart == null || m_LimitLineEnd == null) return;
+
+            var limitPointStart = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, m_LimitLineStart.position);
+            var limitPointEnd = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, m_LimitLineEnd.position);
+            var screenLimitLine = new UguiMathf.Line2(limitPointStart, limitPointEnd);
+            var screenPoint = screenLimitLine.ProjectPoint(eventData.position);
 
             Vector3 worldPos;
-            RectTransformUtility.ScreenPointToWorldPointInRectangle(currentTarget, eventData.pointerCurrentRaycast.screenPosition, eventData.pressEventCamera, out worldPos);
-            currentTarget.position = worldPos;
-        }
+            if(RectTransformUtility.ScreenPointToWorldPointInRectangle(transform as RectTransform, screenPoint, eventData.pressEventCamera, out worldPos))
+            {
+                currentTarget.position = worldPos;
 
-        public enum Direction
-        {
-            Horizontal,
-            Vertical
+                if (OnValueChange != null)
+                {
+                    //OnValueChange.Invoke();
+                }
+            }
         }
     }
 }
