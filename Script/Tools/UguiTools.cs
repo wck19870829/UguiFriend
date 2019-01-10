@@ -29,6 +29,48 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 是否为有效数字
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static bool IsValidNumber(Vector2 value)
+        {
+            var isNaN = float.IsNaN(value.x) || 
+                        float.IsNaN(value.y);
+
+            return !isNaN;
+        }
+
+        /// <summary>
+        /// 是否为有效数字
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static bool IsValidNumber(Vector3 value)
+        {
+            var isNaN = float.IsNaN(value.x) || 
+                        float.IsNaN(value.y) || 
+                        float.IsNaN(value.z);
+
+            return !isNaN;
+        }
+
+        /// <summary>
+        /// 是否为有效数字
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static bool IsValidNumber(Vector4 value)
+        {
+            var isNaN = float.IsNaN(value.x) ||
+                        float.IsNaN(value.y) ||
+                        float.IsNaN(value.z)||
+                        float.IsNaN(value.w);
+
+            return !isNaN;
+        }
+
+        /// <summary>
         /// 填充数据
         /// </summary>
         /// <param name="children"></param>

@@ -12,11 +12,11 @@ namespace RedScarf.UguiFriend
         {
             base.OnInspectorGUI();
 
-            var sliderBlockA=serializedObject.FindProperty("m_SliderBlockA");
-            EditorGUILayout.PropertyField(sliderBlockA);
+            var sliderBlockMin = serializedObject.FindProperty("m_SliderBlockMin");
+            EditorGUILayout.PropertyField(sliderBlockMin);
 
-            var sliderBlockB=serializedObject.FindProperty("m_SliderBlockB");
-            EditorGUILayout.PropertyField(sliderBlockB);
+            var sliderBlockMax = serializedObject.FindProperty("m_SliderBlockMax");
+            EditorGUILayout.PropertyField(sliderBlockMax);
 
             var handleSlideArea = serializedObject.FindProperty("m_HandleSlideArea");
             EditorGUILayout.PropertyField(handleSlideArea);
@@ -26,6 +26,15 @@ namespace RedScarf.UguiFriend
 
             var maxValue = serializedObject.FindProperty("m_MaxValue");
             EditorGUILayout.PropertyField(maxValue);
+
+            var minLimit = serializedObject.FindProperty("m_MinLimit");
+            EditorGUILayout.PropertyField(minLimit);
+
+            var maxLimit = serializedObject.FindProperty("m_MaxLimit");
+            EditorGUILayout.PropertyField(maxLimit);
+
+            var direction = serializedObject.FindProperty("m_Direction");
+            EditorGUILayout.PropertyField(direction);
 
             var wholeNUmbers = serializedObject.FindProperty("m_WholeNUmbers");
             EditorGUILayout.PropertyField(wholeNUmbers);

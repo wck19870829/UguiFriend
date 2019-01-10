@@ -15,17 +15,17 @@ namespace RedScarf.UguiFriend
         IDragHandler,
         ICanvasElement
     {
-        [SerializeField] protected RectTransform m_SliderBlockA;
-        [SerializeField] protected RectTransform m_SliderBlockB;
+        [SerializeField] protected RectTransform m_SliderBlockMin;
+        [SerializeField] protected RectTransform m_SliderBlockMax;
         [SerializeField] protected RectTransform m_HandleSlideArea;
         [SerializeField] protected float m_MinValue;
         [SerializeField] protected float m_MaxValue;
         [SerializeField] protected float m_MinLimit;
         [SerializeField] protected float m_MaxLimit;
         [SerializeField] protected bool m_WholeNUmbers;
-        [SerializeField] protected Direction m_Direction;
+        [SerializeField] protected Direction m_Direction=Direction.Auto;
 
-        protected RectTransform currentTarget;
+        protected RectTransform selectSlider;
 
         public Action OnValueChange;
 
@@ -35,11 +35,16 @@ namespace RedScarf.UguiFriend
             m_WholeNUmbers = true;
         }
 
-        protected override void Awake()
+        protected override void OnEnable()
         {
-            base.Awake();
+            base.OnEnable();
 
-            Set(m_MinValue, m_MaxValue, m_MinLimit, m_MaxLimit);
+            Set(m_MinValue, m_MaxValue);
+        }
+
+        void Update()
+        {
+            Set(m_MinValue, m_MaxValue);
         }
 
         public void GraphicUpdateComplete()
@@ -71,27 +76,46 @@ namespace RedScarf.UguiFriend
         {
             base.OnPointerDown(eventData);
 
-            var screenPointA = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, m_SliderBlockA.position);
-            var screenPointB = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, m_SliderBlockB.position);
-            var distA = Vector2.Distance(screenPointA, eventData.position);
-            var distB = Vector2.Distance(screenPointB, eventData.position);
+            var minSliderPoint = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, m_SliderBlockMin.position);
+            var maxSliderPoint = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, m_SliderBlockMax.position);
+            var minSliderDist = Vector2.Distance(eventData.position,minSliderPoint);
+            var maxSliderDist = Vector2.Distance(eventData.position,maxSliderPoint);
 
-            currentTarget = distA < distB ? m_SliderBlockA : m_SliderBlockB;
+            selectSlider = minSliderDist < maxSliderDist
+                        ? m_SliderBlockMin
+                        : m_SliderBlockMax;
+
             UpdateBlockPosition(eventData);
         }
 
         protected void UpdateBlockPosition(PointerEventData eventData)
         {
-            if (currentTarget == null) return;
+            var screenPointA = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, m_SliderBlockMin.position);
+            var screenPointB = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, m_SliderBlockMax.position);
+            var distA = Vector2.Distance(screenPointA, eventData.position);
+            var distB = Vector2.Distance(screenPointB, eventData.position);
 
             var localPoint = Vector2.zero;
             if (RectTransformUtility.ScreenPointToLocalPointInRectangle(m_HandleSlideArea, eventData.position, eventData.pressEventCamera, out localPoint))
             {
-                var minValue = m_MinValue;
-                var maxValue = m_MaxValue;
-                minValue=maxValue=localPoint[(int)m_Direction];
+                if (selectSlider == null) return;
+                if (!UguiTools.IsValidNumber(localPoint)) return;
 
-                Set(minValue,maxValue);
+                localPoint -= m_HandleSlideArea.rect.position;
+                var percent=localPoint[(int)m_Direction] / m_HandleSlideArea.rect.size[(int)m_Direction];
+                var value = percent * (m_MaxLimit-m_MinLimit);
+                if (selectSlider == m_SliderBlockMin)
+                {
+                    m_MinValue = Mathf.Clamp(value,m_MinLimit, m_MaxLimit);
+                    m_MinValue = Mathf.Min(m_MaxValue,m_MinValue);
+                }
+                else
+                {
+                    m_MaxValue = Mathf.Clamp(value, m_MinLimit, m_MaxLimit);
+                    m_MaxValue = Mathf.Max(m_MaxValue, m_MinValue);
+                }
+
+                Set(m_MinValue,m_MaxValue);
             }
         }
 
@@ -114,16 +138,37 @@ namespace RedScarf.UguiFriend
         /// <param name="maxLimit"></param>
         public void Set(float minValue, float maxValue, float minLimit, float maxLimit)
         {
+            if (m_HandleSlideArea == null) return;
+            if (m_SliderBlockMax == null || m_SliderBlockMin == null) return;
+            if (minLimit == maxLimit)
+            {
+                throw new Exception("Min limit is equal to the max limit!");
+            }
+
+            if (m_Direction == Direction.Auto)
+            {
+                m_Direction = m_HandleSlideArea.rect.size.x >= m_HandleSlideArea.rect.size.y
+                            ? Direction.Horizontal
+                            : Direction.Vertical;
+            }
+
             minLimit = Mathf.Min(minLimit, maxLimit);
+            maxValue = Mathf.Clamp(maxValue,minLimit,maxLimit);
             minValue = Mathf.Clamp(minValue, minLimit, maxLimit);
-            maxValue = Mathf.Clamp(maxValue, minLimit, maxLimit);
+            minValue = Mathf.Min(maxValue,minValue);
             m_MinValue = minValue;
             m_MaxValue = maxValue;
             m_MinLimit = minLimit;
             m_MaxLimit = maxLimit;
 
-            SetSliderPos(m_SliderBlockA, m_HandleSlideArea,m_MinValue);
-            SetSliderPos(m_SliderBlockB, m_HandleSlideArea, m_MaxValue);
+            if (m_WholeNUmbers)
+            {
+                m_MinValue = Mathf.RoundToInt(m_MinValue);
+                m_MaxValue = Mathf.RoundToInt(m_MaxValue);
+            }
+
+            SetSliderPos(m_SliderBlockMin, m_HandleSlideArea,m_MinValue);
+            SetSliderPos(m_SliderBlockMax, m_HandleSlideArea, m_MaxValue);
 
             if (OnValueChange != null)
             {
@@ -138,11 +183,9 @@ namespace RedScarf.UguiFriend
             value = Mathf.Clamp(value, m_MinValue, m_MaxValue);
             var percent = (value - m_MinLimit) / (m_MaxLimit - m_MinLimit);
 
-            var anchorMin = Vector2.zero;
-            var anchorMax = Vector2.one;
-            anchorMin[(int)m_Direction] = anchorMax[(int)m_Direction] = percent;
-            slider.anchorMin = anchorMin;
-            slider.anchorMax = anchorMax;
+            var localPos = slider.localPosition;
+            localPos[(int)m_Direction] = percent * slideArea.rect.size[(int)m_Direction]+slideArea.rect.position[(int)m_Direction];
+            slider.localPosition = localPos;
         }
 
         /// <summary>
@@ -171,7 +214,8 @@ namespace RedScarf.UguiFriend
         public enum Direction
         {
             Horizontal=0,
-            Vertical=1
+            Vertical=1,
+            Auto=3
         }
     }
 }
