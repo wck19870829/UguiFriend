@@ -18,24 +18,9 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected Vector2 m_Spacing;
         [SerializeField] protected int m_FlexibleCount=5;
 
-        public override void CalculateLayoutInputVertical()
-        {
-
-        }
-
-        public override void SetLayoutHorizontal()
-        {
-
-        }
-
-        public override void SetLayoutVertical()
-        {
-
-        }
-
         public override void UpdateChildrenLocalPosition()
         {
-            var len = m_ChildrenDataList.Count;
+            var len = m_ChildDataList.Count;
             var origin = new Vector2();
 
             var flexibleCount = Math.Max(m_FlexibleCount, 1);

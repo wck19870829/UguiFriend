@@ -38,7 +38,7 @@ namespace RedScarf.UguiFriend.Demo
             var data = Data as PanelAData;
             if (data != null)
             {
-                m_Grid.Set(data.dataList);
+                //m_Grid.Set(data.dataList);
             }
         }
     }

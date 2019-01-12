@@ -57,7 +57,7 @@ namespace RedScarf.UguiFriend
         /// <summary>
         /// 数据
         /// </summary>
-        public UguiObjectData Data
+        public virtual UguiObjectData Data
         {
             get
             {
@@ -82,9 +82,15 @@ namespace RedScarf.UguiFriend
                     m_Data = value;
                     UguiObjectManager.Register(this);
 
+                    OnSetData(m_Data);
                     SetDirty();
                 }
             }
+        }
+
+        protected virtual void OnSetData(UguiObjectData newData)
+        {
+
         }
 
         /// <summary>

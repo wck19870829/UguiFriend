@@ -24,21 +24,6 @@ namespace RedScarf.UguiFriend
             m_Spacing = new Vector2();
         }
 
-        public override void CalculateLayoutInputVertical()
-        {
-
-        }
-
-        public override void SetLayoutHorizontal()
-        {
-            
-        }
-
-        public override void SetLayoutVertical()
-        {
-
-        }
-
         protected override void ProcessItemAfterCreated(UguiObject obj)
         {
             obj.RectTransform.sizeDelta = m_CellSize;
@@ -52,7 +37,7 @@ namespace RedScarf.UguiFriend
             if(flexibleCount<=0)
                 flexibleCount = int.MaxValue;
 
-            var len = m_ChildrenDataList.Count;
+            var len = m_ChildDataList.Count;
             var origin = new Vector2();
 
             if (m_StartAxis==Axis.Horizontal)
@@ -82,5 +67,9 @@ namespace RedScarf.UguiFriend
                 }
             }
         }
+
+        public Vector2 Spacing { get { return m_Spacing; } }
+
+        public Vector2 CellSize { get { return m_CellSize; } }
     }
 }

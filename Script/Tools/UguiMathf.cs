@@ -24,6 +24,52 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 返回最小的日期
+        /// </summary>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public static DateTime Min(params DateTime[] values)
+        {
+            try
+            {
+                var value = values[0];
+                for (var i=0;i<values.Length;i++)
+                {
+                    value = values[i] < value ? values[i] : value;
+                }
+
+                return value;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// 返回最大的日期
+        /// </summary>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public static DateTime Max(params DateTime[] values)
+        {
+            try
+            {
+                var value = values[0];
+                for (var i = 0; i < values.Length; i++)
+                {
+                    value = values[i] > value ? values[i] : value;
+                }
+
+                return value;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.ToString());
+            }
+        }
+
+        /// <summary>
         /// 获取中心点
         /// </summary>
         /// <param name="points"></param>

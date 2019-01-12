@@ -18,11 +18,15 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected RectTransform m_SliderBlockMin;
         [SerializeField] protected RectTransform m_SliderBlockMax;
         [SerializeField] protected RectTransform m_HandleSlideArea;
+        [SerializeField] protected Text m_MinValueText;
+        [SerializeField] protected Text m_MaxValueText;
+        [SerializeField] protected Text m_MinLimitText;
+        [SerializeField] protected Text m_MaxLimitText;
         [SerializeField] protected float m_MinValue;
         [SerializeField] protected float m_MaxValue;
         [SerializeField] protected float m_MinLimit;
         [SerializeField] protected float m_MaxLimit;
-        [SerializeField] protected bool m_WholeNUmbers;
+        [SerializeField] protected bool m_WholeNumbers;
         [SerializeField] protected Direction m_Direction=Direction.Auto;
 
         protected RectTransform selectSlider;
@@ -32,18 +36,13 @@ namespace RedScarf.UguiFriend
         protected UguiMinMaxSlider()
         {
             m_MinLimit = m_MaxValue = 10;
-            m_WholeNUmbers = true;
+            m_WholeNumbers = true;
         }
 
         protected override void OnEnable()
         {
             base.OnEnable();
 
-            Set(m_MinValue, m_MaxValue);
-        }
-
-        void Update()
-        {
             Set(m_MinValue, m_MaxValue);
         }
 
@@ -140,10 +139,6 @@ namespace RedScarf.UguiFriend
         {
             if (m_HandleSlideArea == null) return;
             if (m_SliderBlockMax == null || m_SliderBlockMin == null) return;
-            if (minLimit == maxLimit)
-            {
-                throw new Exception("Min limit is equal to the max limit!");
-            }
 
             if (m_Direction == Direction.Auto)
             {
@@ -161,14 +156,25 @@ namespace RedScarf.UguiFriend
             m_MinLimit = minLimit;
             m_MaxLimit = maxLimit;
 
-            if (m_WholeNUmbers)
+            if (m_WholeNumbers)
             {
                 m_MinValue = Mathf.RoundToInt(m_MinValue);
                 m_MaxValue = Mathf.RoundToInt(m_MaxValue);
+                m_MinLimit = Mathf.RoundToInt(m_MinLimit);
+                m_MaxLimit = Mathf.RoundToInt(m_MaxLimit);
+            }
+
+            if (minLimit == maxLimit)
+            {
+                throw new Exception("Min limit is equal to the max limit!");
             }
 
             SetSliderPos(m_SliderBlockMin, m_HandleSlideArea,m_MinValue);
             SetSliderPos(m_SliderBlockMax, m_HandleSlideArea, m_MaxValue);
+            if (m_MinValueText != null) m_MinValueText.text = m_MinValue.ToString();
+            if (m_MaxValueText != null) m_MaxValueText.text = m_MaxValue.ToString();
+            if (m_MinLimitText != null) m_MinLimitText.text = m_MinLimit.ToString();
+            if (m_MaxLimitText != null) m_MaxLimitText.text = m_MaxLimit.ToString();
 
             if (OnValueChange != null)
             {

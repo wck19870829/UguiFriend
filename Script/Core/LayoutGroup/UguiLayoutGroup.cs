@@ -3,27 +3,28 @@ using System.Collections;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System;
+using UnityEngine.EventSystems;
 
 namespace RedScarf.UguiFriend
 {
     /// <summary>
     /// 布局容器基类
     /// </summary>
-    public abstract class UguiLayoutGroup : LayoutGroup, IUguiObjectLayoutGroup
+    public abstract class UguiLayoutGroup :UIBehaviour,IUguiObjectLayoutGroup
     {
         protected const float reserveTimePerFrame = 10;                 //每帧计算时间上限(毫秒)
 
-        [SerializeField] protected UguiObject m_PrefabSource;
+        [SerializeField] protected UguiObject m_ItemPrefabSource;
         [SerializeField] protected Rect m_ViewPortDisplayRect;          //视图坐标系显示区域,显示区域内的物体才会被创建更新
 
         [SerializeField] protected float m_RemoveDelay;                 //移除延迟,可以在此延迟中做动画等
 
         protected List<Vector3> m_ChildrenLocalPositionList;
         protected Dictionary<string, UguiObject> m_InSightChildDict;    //视图中可见的子物体
-        protected List<UguiObjectData> m_ChildrenDataList;
-        protected Canvas m_Canvas;
         protected HashSet<string> tempSet;
         protected HashSet<UguiObject> removeSet;
+        protected List<UguiObjectData> m_ChildDataList;
+        protected Canvas m_Canvas;
 
         public Action<UguiObject> OnRemoveItem;                         //移除子元素          
         public Action<UguiObject> OnCreateItem;                         //创建出新的子元素
@@ -38,24 +39,17 @@ namespace RedScarf.UguiFriend
             removeSet = new HashSet<UguiObject>();
         }
 
-        protected virtual void Update()
+        protected virtual void LateUpdate()
         {
-            UpdateViews();
-        }
-
-        protected override void OnTransformParentChanged()
-        {
-            base.OnTransformParentChanged();
-            m_Canvas = GetComponentInParent<Canvas>();
+            RefreshView();
         }
 
         /// <summary>
         /// 刷新视图
         /// </summary>
-        protected virtual void UpdateViews()
+        protected void RefreshView()
         {
-            if (m_Canvas == null)
-                m_Canvas = GetComponentInParent<Canvas>();
+            if (m_Canvas == null) m_Canvas = GetComponentInParent<Canvas>();
             if (m_Canvas == null) return;
 
             for (var i = 0; i < m_ChildrenLocalPositionList.Count; i++)
@@ -63,18 +57,18 @@ namespace RedScarf.UguiFriend
                 var worldPoint = transform.TransformPoint(m_ChildrenLocalPositionList[i]);
                 var screenPoint = RectTransformUtility.WorldToScreenPoint(m_Canvas.rootCanvas.worldCamera, worldPoint);
                 var viewportPoint = UguiMathf.ScreenPoint2ViewportPoint(screenPoint);
-                var data = m_ChildrenDataList[i];
+                var childData = m_ChildDataList[i];
                 if (m_ViewPortDisplayRect.Contains(viewportPoint))
                 {
                     //在显示框中创建更新等
-                    if (!m_InSightChildDict.ContainsKey(data.guid))
+                    if (!m_InSightChildDict.ContainsKey(childData.guid))
                     {
                         //数据预测位置在显示框内,显示框中无对应的显示对象,那么创建新的
-                        var obj = (m_PrefabSource == null)
-                                ? UguiObjectPool.Instance.Get(data, transform)
-                                : UguiObjectPool.Instance.Get(data, m_PrefabSource, transform);
+                        var obj = (m_ItemPrefabSource == null)
+                                ? UguiObjectPool.Instance.Get(childData, transform)
+                                : UguiObjectPool.Instance.Get(childData, m_ItemPrefabSource, transform);
                         obj.transform.position = worldPoint;
-                        m_InSightChildDict.Add(data.guid, obj);
+                        m_InSightChildDict.Add(childData.guid, obj);
 
                         ProcessItemAfterCreated(obj);
 
@@ -83,14 +77,14 @@ namespace RedScarf.UguiFriend
                             OnCreateItem.Invoke(obj);
                         }
                     }
-                    m_InSightChildDict[data.guid].transform.position = worldPoint;
+                    m_InSightChildDict[childData.guid].transform.position = worldPoint;
                 }
                 else
                 {
                     //超出了显示区域外隐藏
-                    if (m_InSightChildDict.ContainsKey(data.guid))
+                    if (m_InSightChildDict.ContainsKey(childData.guid))
                     {
-                        var obj = m_InSightChildDict[data.guid];
+                        var obj = m_InSightChildDict[childData.guid];
                         if (!removeSet.Contains(obj))
                         {
                             removeSet.Add(obj);
@@ -133,42 +127,14 @@ namespace RedScarf.UguiFriend
         /// </summary>
         public abstract void UpdateChildrenLocalPosition();
 
-        /// <summary>
-        /// 创建后处理新建子元素
-        /// </summary>
-        /// <param name="obj"></param>
-        protected virtual void ProcessItemAfterCreated(UguiObject obj)
+        protected void Set(List<UguiObjectData> childDataList)
         {
-
-        }
-
-        /// <summary>
-        /// 子元素数据
-        /// </summary>
-        public virtual List<UguiObjectData> ChildrenDataList
-        {
-            get
-            {
-                return m_ChildrenDataList;
-            }
-            set
-            {
-                Set(value);
-            }
-        }
-
-        /// <summary>
-        /// 设置子元素数据
-        /// </summary>
-        /// <param name="childrenDataList"></param>
-        public virtual void Set(List<UguiObjectData> childrenDataList)
-        {
-            m_ChildrenDataList = childrenDataList;
+            m_ChildDataList = childDataList;
             m_ChildrenLocalPositionList.Clear();
             tempSet.Clear();
-            foreach (var data in m_ChildrenDataList)
+            foreach (var childData in childDataList)
             {
-                tempSet.Add(data.guid);
+                tempSet.Add(childData.guid);
             }
             foreach (var item in m_InSightChildDict)
             {
@@ -182,6 +148,23 @@ namespace RedScarf.UguiFriend
             }
 
             UpdateChildrenLocalPosition();
+        }
+
+        /// <summary>
+        /// 创建后处理新建子元素
+        /// </summary>
+        /// <param name="obj"></param>
+        protected virtual void ProcessItemAfterCreated(UguiObject obj)
+        {
+
+        }
+
+        public UguiObject ItemPrefabSource
+        {
+            get
+            {
+                return m_ItemPrefabSource;
+            }
         }
 
         /// <summary>

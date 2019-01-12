@@ -21,6 +21,18 @@ namespace RedScarf.UguiFriend
             var handleSlideArea = serializedObject.FindProperty("m_HandleSlideArea");
             EditorGUILayout.PropertyField(handleSlideArea);
 
+            var minValueText = serializedObject.FindProperty("m_MinValueText");
+            EditorGUILayout.PropertyField(minValueText);
+
+            var maxValueText = serializedObject.FindProperty("m_MaxValueText");
+            EditorGUILayout.PropertyField(maxValueText);
+
+            var minLimitText = serializedObject.FindProperty("m_MinLimitText");
+            EditorGUILayout.PropertyField(minLimitText);
+
+            var maxLimitText = serializedObject.FindProperty("m_MaxLimitText");
+            EditorGUILayout.PropertyField(maxLimitText);
+
             var minValue=serializedObject.FindProperty("m_MinValue");
             EditorGUILayout.PropertyField(minValue);
 
@@ -36,8 +48,8 @@ namespace RedScarf.UguiFriend
             var direction = serializedObject.FindProperty("m_Direction");
             EditorGUILayout.PropertyField(direction);
 
-            var wholeNUmbers = serializedObject.FindProperty("m_WholeNUmbers");
-            EditorGUILayout.PropertyField(wholeNUmbers);
+            var wholeNumbers = serializedObject.FindProperty("m_WholeNumbers");
+            EditorGUILayout.PropertyField(wholeNumbers);
 
             serializedObject.ApplyModifiedProperties();
         }
