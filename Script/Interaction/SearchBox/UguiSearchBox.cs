@@ -11,12 +11,13 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 搜索框
     /// </summary>
-    public class UguiSearchBox : UIBehaviour
+    public class UguiSearchBox : Selectable
     {
         protected const string cacheKey = "UguiSearchHistory";
 
         [SerializeField] protected Button m_SubmitButton;                                       //搜索按钮
         [SerializeField] protected Button m_ClearAllHistoryButton;                              //清除所有历史记录
+        [SerializeField] protected Button m_CloseHistoryButton;                                 //关闭历史记录按钮
         [SerializeField] protected InputField m_InputField;
         [SerializeField] protected RectTransform m_HistoryContent;
         [SerializeField] protected GridLayoutGroup m_HistoryGrid;
@@ -33,19 +34,66 @@ namespace RedScarf.UguiFriend
             m_HistoryList = new List<string>();
         }
 
-        protected override void Awake()
+        protected override void Start()
         {
-            base.Awake();
+            base.Start();
 
-            m_InputField.onEndEdit.AddListener(OnEndEdit);
+            var inputTrigger = m_InputField.GetComponent<EventTrigger>();
+            if (inputTrigger == null)
+                m_InputField.gameObject.AddComponent<EventTrigger>();
+            var selectEntry = new EventTrigger.Entry();
+            selectEntry.eventID = EventTriggerType.Select;
+            selectEntry.callback.AddListener(SelectInputField);
+            inputTrigger.triggers.Add(selectEntry);
+            var deselectEntry = new EventTrigger.Entry();
+            deselectEntry.eventID = EventTriggerType.Deselect;
+            deselectEntry.callback.AddListener(DeselectInputField);
+            inputTrigger.triggers.Add(deselectEntry);
+
             m_SubmitButton.onClick.AddListener(OnSubmitButtonClick);
             if (m_ClearAllHistoryButton)
                 m_ClearAllHistoryButton.onClick.AddListener(OnClearAllHistoryButtonClick);
+            if (m_CloseHistoryButton)
+                m_CloseHistoryButton.onClick.AddListener(OnCloseHistory);
         }
 
-        protected virtual void OnEndEdit(string text)
+        protected override void OnEnable()
         {
-            Search(m_InputField.text);
+            base.OnEnable();
+            m_InputField.text = "";
+            CloseHistory();
+        }
+
+        protected virtual void OnCloseHistory()
+        {
+            CloseHistory();
+        }
+
+        protected virtual void SelectInputField(BaseEventData eventData)
+        {
+            OpenHistory();
+        }
+
+        protected virtual void DeselectInputField(BaseEventData eventData)
+        {
+            Debug.Log(EventSystem.current.currentSelectedGameObject);
+
+            return;
+
+            var pointerEventData = eventData as PointerEventData;
+            if (pointerEventData!=null)
+            {
+                Debug.Log(pointerEventData.pointerPressRaycast.gameObject);
+            }
+            if (eventData.selectedObject)
+            {
+                Debug.Log(eventData.selectedObject.name);
+                var selectParent=eventData.selectedObject.GetComponentInParent<UguiSearchBox>();
+                if (selectParent==null||selectParent!=this)
+                {
+                    CloseHistory();
+                }
+            }
         }
 
         protected virtual void OnSubmitButtonClick()
@@ -90,31 +138,8 @@ namespace RedScarf.UguiFriend
             if (string.IsNullOrEmpty(text))
                 return;
 
-            RefreshView();
-            CloseHistory();
-
-            if (OnSearch != null)
-            {
-                OnSearch.Invoke(text);
-            }
-        }
-
-        /// <summary>
-        /// 缓存历史记录
-        /// </summary>
-        protected virtual void CacheHistory()
-        {
-            var cacheHistory = PlayerPrefs.GetString(cacheKey);
-            var sr = new StringReader(cacheHistory);
-            m_HistoryList.Clear();
-            while (true)
-            {
-                var line = sr.ReadLine();
-                if (string.IsNullOrEmpty(line))
-                    break;
-
-                m_HistoryList.Add(line);
-            }
+            //插入新数据
+            m_HistoryList.Insert(0,text);
 
             //删除无效搜索
             m_HistoryList.RemoveAll(
@@ -123,15 +148,15 @@ namespace RedScarf.UguiFriend
                 return string.IsNullOrEmpty(x);
             });
 
-            ////如果历史记录中有相同搜索,那么删除旧搜索
-            //var findIndex = m_HistoryList.IndexOf(text);
-            //if (findIndex>=0)
-            //{
-            //    m_HistoryList.RemoveAt(findIndex);
-            //}
-
-            ////新搜索置顶
-            //m_HistoryList.Insert(0, text);
+            //删除重复搜索
+            for (var i = m_HistoryList.Count - 1; i >= 0; i--)
+            {
+                var findIndex = m_HistoryList.IndexOf(m_HistoryList[i]);
+                if (findIndex >= 0 && findIndex < i)
+                {
+                    m_HistoryList.RemoveAt(i);
+                }
+            }
 
             //删除超过缓存数量上限的搜索
             var removeCount = m_HistoryList.Count - m_CacheCount;
@@ -140,6 +165,44 @@ namespace RedScarf.UguiFriend
                 m_HistoryList.RemoveRange(m_CacheCount, removeCount);
             }
 
+            m_InputField.text = text;
+            RefreshView();
+            CloseHistory();
+
+            Debug.LogFormat("Search:{0}",text);
+
+            if (OnSearch != null)
+            {
+                OnSearch.Invoke(text);
+            }
+        }
+
+        /// <summary>
+        /// 加载历史记录
+        /// </summary>
+        protected virtual void LoadHistory()
+        {
+            if (m_CacheHistory)
+            {
+                m_HistoryList.Clear();
+                var cacheHistory = PlayerPrefs.GetString(cacheKey);
+                var sr = new StringReader(cacheHistory);
+                while (true)
+                {
+                    var line = sr.ReadLine();
+                    if (string.IsNullOrEmpty(line))
+                        break;
+
+                    m_HistoryList.Add(line);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 缓存历史记录
+        /// </summary>
+        protected virtual void CacheHistory()
+        {
             var sw = new StringWriter();
             foreach (var history in m_HistoryList)
             {
@@ -150,11 +213,6 @@ namespace RedScarf.UguiFriend
 
         protected virtual void RefreshView()
         {
-            m_HistoryList.RemoveAll(
-                (x) =>
-                {
-                    return string.IsNullOrEmpty(x);
-                });
             if (m_CacheHistory)
                 CacheHistory();
 
@@ -179,12 +237,6 @@ namespace RedScarf.UguiFriend
                 var cellSize= (m_HistoryItemPrefabSource.transform as RectTransform).rect.size;
                 cellSize.x = (transform as RectTransform).rect.width;
                 m_HistoryGrid.cellSize = cellSize;
-
-                var scrollRect = m_HistoryGrid.GetComponentInParent<ScrollRect>();
-                if (scrollRect)
-                {
-
-                }
             }
         }
 
@@ -196,6 +248,7 @@ namespace RedScarf.UguiFriend
             PlayerPrefs.DeleteKey(cacheKey);
             m_HistoryList.Clear();
             RefreshView();
+            CloseHistory();
         }
 
         /// <summary>
@@ -205,9 +258,22 @@ namespace RedScarf.UguiFriend
         {
             if (m_HistoryContent)
             {
-                m_HistoryContent.gameObject.SetActive(true);
+                if (!m_HistoryContent.gameObject.activeSelf)
+                {
+                    m_HistoryContent.gameObject.SetActive(true);
 
+                    if (m_HistoryGrid)
+                    {
+                        var scrollRect = m_HistoryGrid.GetComponentInParent<ScrollRect>();
+                        if (scrollRect)
+                        {
+                            scrollRect.normalizedPosition = new Vector2(0, 1);
+                        }
+                    }
+                }
             }
+            LoadHistory();
+            RefreshView();
         }
 
         /// <summary>
@@ -217,7 +283,8 @@ namespace RedScarf.UguiFriend
         {
             if (m_HistoryContent)
             {
-                m_HistoryContent.gameObject.SetActive(false);
+                if(m_HistoryContent.gameObject.activeSelf)
+                    m_HistoryContent.gameObject.SetActive(false);
             }
         }
     }

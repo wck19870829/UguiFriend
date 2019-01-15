@@ -40,7 +40,11 @@ namespace RedScarf.UguiFriend
 
         public virtual void OnPointerClick(PointerEventData eventData)
         {
-            
+            var searchBox = GetComponentInParent<UguiSearchBox>();
+            if (searchBox)
+            {
+                searchBox.Search(m_SearchText);
+            }
         }
     }
 }
