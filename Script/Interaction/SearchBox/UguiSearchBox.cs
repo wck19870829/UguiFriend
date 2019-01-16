@@ -23,7 +23,8 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected GridLayoutGroup m_HistoryGrid;
         [SerializeField] protected UguiSearchBoxHistoryItem m_HistoryItemPrefabSource;
         [SerializeField] protected bool m_CacheHistory = true;                                  //缓存历史记录到本地
-        [SerializeField] protected int m_CacheCount = 10;                                       //缓存几条历史记录
+        [SerializeField][Range(1,20)] protected int m_CacheCount = 10;                          //缓存几条历史记录
+        [SerializeField] protected bool m_AutoCloseHistoryWhenDeselect=true;                    //当取消选择时自动关闭历史记录
 
         protected List<string> m_HistoryList;
 
@@ -43,12 +44,15 @@ namespace RedScarf.UguiFriend
                 m_InputField.gameObject.AddComponent<EventTrigger>();
             var selectEntry = new EventTrigger.Entry();
             selectEntry.eventID = EventTriggerType.Select;
-            selectEntry.callback.AddListener(SelectInputField);
+            selectEntry.callback.AddListener(OnInputFieldSelect);
             inputTrigger.triggers.Add(selectEntry);
             var deselectEntry = new EventTrigger.Entry();
             deselectEntry.eventID = EventTriggerType.Deselect;
-            deselectEntry.callback.AddListener(DeselectInputField);
+            deselectEntry.callback.AddListener(OnInputFieldDeselect);
             inputTrigger.triggers.Add(deselectEntry);
+            var submitEntry= new EventTrigger.Entry();
+            submitEntry.eventID = EventTriggerType.Submit;
+            submitEntry.callback.AddListener(OnInputFieldSubmit);
 
             m_SubmitButton.onClick.AddListener(OnSubmitButtonClick);
             if (m_ClearAllHistoryButton)
@@ -64,36 +68,59 @@ namespace RedScarf.UguiFriend
             CloseHistory();
         }
 
+        protected override void DoStateTransition(SelectionState state, bool instant)
+        {
+            base.DoStateTransition(state, instant);
+
+            var selectableArr = GetComponentsInChildren<Selectable>(true);
+            foreach (var selectable in selectableArr)
+            {
+                selectable.interactable = interactable;
+            }
+            if (state == SelectionState.Disabled)
+            {
+                CloseHistory();
+            }
+        }
+
         protected virtual void OnCloseHistory()
         {
             CloseHistory();
         }
 
-        protected virtual void SelectInputField(BaseEventData eventData)
+        protected virtual void OnInputFieldSelect(BaseEventData eventData)
         {
             OpenHistory();
         }
 
-        protected virtual void DeselectInputField(BaseEventData eventData)
+        protected virtual void OnInputFieldDeselect(BaseEventData eventData)
         {
-            Debug.Log(EventSystem.current.currentSelectedGameObject);
-
-            return;
-
             var pointerEventData = eventData as PointerEventData;
             if (pointerEventData!=null)
             {
-                Debug.Log(pointerEventData.pointerPressRaycast.gameObject);
-            }
-            if (eventData.selectedObject)
-            {
-                Debug.Log(eventData.selectedObject.name);
-                var selectParent=eventData.selectedObject.GetComponentInParent<UguiSearchBox>();
-                if (selectParent==null||selectParent!=this)
+                if (m_AutoCloseHistoryWhenDeselect)
                 {
-                    CloseHistory();
+                    var raycastResults = new List<RaycastResult>();
+                    EventSystem.current.RaycastAll((PointerEventData)eventData, raycastResults);
+                    if (raycastResults.Count == 0)
+                    {
+                        CloseHistory();
+                    }
+                    else
+                    {
+                        var top = raycastResults[0].gameObject;
+                        if (top.GetComponentInParent<UguiSearchBox>() != this)
+                        {
+                            CloseHistory();
+                        }
+                    }
                 }
             }
+        }
+
+        protected virtual void OnInputFieldSubmit(BaseEventData eventData)
+        {
+            Search(m_InputField.text);
         }
 
         protected virtual void OnSubmitButtonClick()
@@ -135,6 +162,8 @@ namespace RedScarf.UguiFriend
         /// <param name="text"></param>
         public virtual void Search(string text)
         {
+            CloseHistory();
+
             if (string.IsNullOrEmpty(text))
                 return;
 
@@ -167,9 +196,6 @@ namespace RedScarf.UguiFriend
 
             m_InputField.text = text;
             RefreshView();
-            CloseHistory();
-
-            Debug.LogFormat("Search:{0}",text);
 
             if (OnSearch != null)
             {

@@ -12,6 +12,8 @@ namespace RedScarf.UguiFriend
         {
             base.OnInspectorGUI();
 
+            EditorGUILayout.Space();
+
             var sliderBlockMin = serializedObject.FindProperty("m_SliderBlockMin");
             EditorGUILayout.PropertyField(sliderBlockMin);
 

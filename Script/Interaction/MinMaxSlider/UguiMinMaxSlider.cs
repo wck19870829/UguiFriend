@@ -10,7 +10,6 @@ namespace RedScarf.UguiFriend
     /// 区间滑块
     /// </summary>
     public class UguiMinMaxSlider : Selectable,
-        IEventSystemHandler,
         IInitializePotentialDragHandler,
         IDragHandler,
         ICanvasElement
@@ -58,7 +57,18 @@ namespace RedScarf.UguiFriend
 
         public void OnInitializePotentialDrag(PointerEventData eventData)
         {
+            base.OnPointerDown(eventData);
 
+            var minSliderPoint = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, m_SliderBlockMin.position);
+            var maxSliderPoint = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, m_SliderBlockMax.position);
+            var minSliderDist = Vector2.Distance(eventData.position, minSliderPoint);
+            var maxSliderDist = Vector2.Distance(eventData.position, maxSliderPoint);
+
+            selectSlider = minSliderDist < maxSliderDist
+                        ? m_SliderBlockMin
+                        : m_SliderBlockMax;
+
+            UpdateBlockPosition(eventData);
         }
 
         public void Rebuild(CanvasUpdate executing)
@@ -68,22 +78,6 @@ namespace RedScarf.UguiFriend
 
         public void OnDrag(PointerEventData eventData)
         {
-            UpdateBlockPosition(eventData);
-        }
-
-        public override void OnPointerDown(PointerEventData eventData)
-        {
-            base.OnPointerDown(eventData);
-
-            var minSliderPoint = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, m_SliderBlockMin.position);
-            var maxSliderPoint = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, m_SliderBlockMax.position);
-            var minSliderDist = Vector2.Distance(eventData.position,minSliderPoint);
-            var maxSliderDist = Vector2.Distance(eventData.position,maxSliderPoint);
-
-            selectSlider = minSliderDist < maxSliderDist
-                        ? m_SliderBlockMin
-                        : m_SliderBlockMax;
-
             UpdateBlockPosition(eventData);
         }
 
