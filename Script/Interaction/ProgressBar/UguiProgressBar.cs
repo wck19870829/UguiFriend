@@ -11,8 +11,7 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiProgressBar : UIBehaviour
     {
-        [Range(0.01f,1f)]
-        [SerializeField] protected float m_Speed=0.1f;
+        [SerializeField] [Range(0.01f, 1f)] protected float m_Speed=0.1f;
         [SerializeField] protected Image m_Bar;
         [SerializeField] protected Text m_DetailText;
         protected ProgressStyle m_ProgressStyle;

@@ -12,10 +12,17 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public abstract class UguiObject : UIBehaviour
     {
+        protected const string openStateName = "Open";
+        protected const string closeStateName = "Close";
+
+        protected Animator m_Animator;
         protected UguiObjectData m_Data;
         protected Canvas m_Canvas;
         protected RectTransform m_RectTransform;
         protected internal bool m_Dirty;
+
+        public Action<UguiObject> OnCloseComplete;
+        public Action<UguiObject> OnOpenComplete;
 
         protected UguiObject()
         {
@@ -28,16 +35,55 @@ namespace RedScarf.UguiFriend
             UguiObjectManager.Unregister(this);
         }
 
-        protected override void OnTransformParentChanged()
+        /// <summary>
+        /// 打开
+        /// </summary>
+        public virtual void Open()
         {
-            base.OnTransformParentChanged();
-
-            m_Canvas = GetComponentInParent<Canvas>();
+            if (!gameObject.activeSelf)
+            {
+                gameObject.SetActive(true);
+            }
+            Play(openStateName);
         }
 
-        protected override void OnRectTransformDimensionsChange()
+        /// <summary>
+        /// 关闭
+        /// </summary>
+        public virtual void Close()
         {
-            base.OnRectTransformDimensionsChange();
+            if (!Play(closeStateName))
+            {
+                if (gameObject.activeSelf)
+                {
+                    gameObject.SetActive(false);
+                    InvokeCloseComplete();
+                }
+            }
+        }
+
+        /// <summary>
+        /// 播放动画
+        /// </summary>
+        /// <param name="stateName"></param>
+        /// <returns></returns>
+        public virtual bool Play(string stateName)
+        {
+            if (m_Animator == null)
+                m_Animator = GetComponent<Animator>();
+            if (m_Animator == null) return false;
+
+            m_Animator.Play(stateName,0,0);
+            return true;
+        }
+
+        /// <summary>
+        /// 关闭完成
+        /// </summary>
+        public void InvokeCloseComplete()
+        {
+            if (OnCloseComplete != null)
+                OnCloseComplete.Invoke(this);
         }
 
         /// <summary>
