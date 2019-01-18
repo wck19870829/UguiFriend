@@ -142,6 +142,34 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 是否在屏幕视图坐标中
+        /// </summary>
+        /// <param name="worldPoint"></param>
+        /// <param name="canvas"></param>
+        /// <param name="viewRect"></param>
+        /// <returns></returns>
+        public static bool InScreenViewRect(Vector3 worldPoint, Canvas canvas, Rect viewRect)
+        {
+            if (canvas == null)
+                throw new Exception("Canvas is null.");
+
+            Camera cam = null;
+            if (canvas.rootCanvas.worldCamera != null)
+            {
+                if (canvas.rootCanvas.renderMode == RenderMode.ScreenSpaceCamera || 
+                    canvas.rootCanvas.renderMode == RenderMode.WorldSpace)
+                {
+                    cam = canvas.rootCanvas.worldCamera;
+                }
+            }
+
+            var screenPoint = RectTransformUtility.WorldToScreenPoint(cam, worldPoint);
+            var viewportPoint = UguiMathf.ScreenPoint2ViewportPoint(screenPoint);
+
+            return viewRect.Contains(viewportPoint);
+        }
+
+        /// <summary>
         /// 获取全局坐标系ui元素尺寸
         /// </summary>
         /// <param name="content"></param>

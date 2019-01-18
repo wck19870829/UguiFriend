@@ -15,7 +15,7 @@ namespace RedScarf.UguiFriend
 
         protected UguiOutsideScreenRecoverer()
         {
-            m_ViewPortDisplayRect = Rect.MinMaxRect(-0.2f, -0.2f, 1.2f, 1.2f);
+            m_ViewPortDisplayRect = Rect.MinMaxRect(-0.2f, -0.2f, 1.2f, 1.2f); 
         }
 
         protected override void Check()
@@ -27,10 +27,7 @@ namespace RedScarf.UguiFriend
             m_RemoveList.Clear();
             foreach (var child in m_ChildSet)
             {
-                var worldPoint = child.transform.position;
-                var screenPoint = RectTransformUtility.WorldToScreenPoint(m_Canvas.rootCanvas.worldCamera, worldPoint);
-                var viewportPoint = UguiMathf.ScreenPoint2ViewportPoint(screenPoint);
-                if (!m_ViewPortDisplayRect.Contains(viewportPoint))
+                if(!UguiTools.InScreenViewRect(child.transform.position, m_Canvas, m_ViewPortDisplayRect))
                 {
                     m_RemoveList.Add(child);
                 }
@@ -48,6 +45,18 @@ namespace RedScarf.UguiFriend
                 }
             }
             m_RemoveList.Clear();
+        }
+
+        public Rect ViewPortDisplayRect
+        {
+            get
+            {
+                return m_ViewPortDisplayRect;
+            }
+            set
+            {
+                m_ViewPortDisplayRect = value;
+            }
         }
     }
 }
