@@ -18,9 +18,8 @@ namespace RedScarf.UguiFriend
         protected UguiOutsideScreenRecovererObject m_Recoverer;
         protected List<Vector3> m_ChildrenLocalPositionList;
         protected Dictionary<string, UguiObject> m_InSightChildDict;    //视图中可见的子物体
-        protected HashSet<string> tempSet;
-        protected HashSet<UguiObject> removeSet;
         protected List<UguiObjectData> m_ChildDataList;
+        protected Dictionary<string, UguiObjectData> m_ChildDataDict;
         protected Canvas m_Canvas;
 
         [SerializeField] protected string m_RemoveAnimState;            //移除时播放动画
@@ -34,8 +33,8 @@ namespace RedScarf.UguiFriend
         {
             m_InSightChildDict = new Dictionary<string, UguiObject>();
             m_ChildrenLocalPositionList = new List<Vector3>();
-            tempSet = new HashSet<string>();
-            removeSet = new HashSet<UguiObject>();
+            m_ChildDataDict = new Dictionary<string, UguiObjectData>();
+            m_ChildDataList = new List<UguiObjectData>();
         }
 
         protected override void Start()
@@ -57,7 +56,8 @@ namespace RedScarf.UguiFriend
         /// </summary>
         protected void RefreshView()
         {
-            if (m_Canvas == null) m_Canvas = GetComponentInParent<Canvas>();
+            if (m_Canvas == null)
+                m_Canvas = GetComponentInParent<Canvas>();
             if (m_Canvas == null) return;
             if (m_Recoverer == null) return;
 
@@ -68,11 +68,12 @@ namespace RedScarf.UguiFriend
                 if (UguiTools.InScreenViewRect(worldPoint, m_Canvas.rootCanvas, viewPort))
                 {
                     var childData = m_ChildDataList[i];
-                    //在显示框中创建更新等
+                    //在显示框中创建更新
                     if (!m_InSightChildDict.ContainsKey(childData.guid))
                     {
                         //数据预测位置在显示框内,显示框中无对应的显示对象,那么创建新的
                         var obj = GetItemClone(childData);
+                        obj.transform.SetParent(transform);
                         obj.transform.position = worldPoint;
                         m_InSightChildDict.Add(childData.guid, obj);
 
@@ -83,15 +84,8 @@ namespace RedScarf.UguiFriend
                             OnCreateItem.Invoke(obj);
                         }
                     }
-                    m_InSightChildDict[childData.guid].transform.position = worldPoint;
                 }
             }
-
-            foreach (var obj in removeSet)
-            {
-                StartCoroutine(RemoveItemDelay(obj, m_RemoveDelay));
-            }
-            removeSet.Clear();
         }
 
         IEnumerator RemoveItemDelay(UguiObject obj,float delay)
@@ -112,7 +106,6 @@ namespace RedScarf.UguiFriend
 
             yield return new WaitForSeconds(delay);
 
-            removeSet.Remove(obj);
             UguiObjectPool.Instance.Push(obj);
         }
 
@@ -134,27 +127,34 @@ namespace RedScarf.UguiFriend
         /// 直接整体强制设置
         /// </summary>
         /// <param name="childDataList"></param>
-        protected void Set(List<UguiObjectData> childDataList)
+        public virtual void Set(List<UguiObjectData> childDataList)
         {
-            m_ChildDataList = childDataList;
             m_ChildrenLocalPositionList.Clear();
-            tempSet.Clear();
-            foreach (var childData in childDataList)
+            m_ChildDataDict.Clear();
+            m_ChildDataList.Clear();
+
+            m_ChildDataList.AddRange(childDataList);
+            foreach (var data in m_ChildDataList)
             {
-                tempSet.Add(childData.guid);
+                m_ChildDataDict.Add(data.guid,data);
             }
-            //foreach (var item in m_InSightChildDict)
-            //{
-            //    if (!tempSet.Contains(item.Key))
-            //    {
-            //        if (!removeSet.Contains(item.Value))
-            //        {
-            //            removeSet.Add(item.Value);
-            //        }
-            //    }
-            //}
+            var removeSet = new HashSet<string>();
+            foreach (var childKey in m_InSightChildDict.Keys)
+            {
+                if (!m_ChildDataDict.ContainsKey(childKey))
+                {
+                    removeSet.Add(childKey);
+                }
+            }
+            foreach (var item in removeSet)
+            {
+                UguiObjectPool.Instance.Push(m_InSightChildDict[item]);
+                m_InSightChildDict.Remove(item);
+            }
 
             UpdateChildrenLocalPosition();
+
+            RefreshView();
         }
 
         /// <summary>
@@ -181,7 +181,7 @@ namespace RedScarf.UguiFriend
         /// <param name="child"></param>
         protected virtual void OnItemRecycle(UguiObject child)
         {
-
+            m_InSightChildDict.Remove(child.Guid);
         }
 
         /// <summary>

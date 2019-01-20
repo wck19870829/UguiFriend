@@ -20,17 +20,14 @@ namespace RedScarf.UguiFriend
 
         protected virtual void DrawHead()
         {
-            var prefabSource = serializedObject.FindProperty("m_PrefabSource");
-            EditorGUILayout.PropertyField(prefabSource);
+            var itemPrefabSource = serializedObject.FindProperty("m_ItemPrefabSource");
+            EditorGUILayout.PropertyField(itemPrefabSource);
 
-            var viewPortDisplayRect = serializedObject.FindProperty("m_ViewPortDisplayRect");
-            EditorGUILayout.PropertyField(viewPortDisplayRect);
+            //var childAlignment = serializedObject.FindProperty("m_ChildAlignment");
+            //EditorGUILayout.PropertyField(childAlignment);
 
-            var childAlignment = serializedObject.FindProperty("m_ChildAlignment");
-            EditorGUILayout.PropertyField(childAlignment);
-
-            var padding = serializedObject.FindProperty("m_Padding");
-            EditorGUILayout.PropertyField(padding);
+            //var padding = serializedObject.FindProperty("m_Padding");
+            //EditorGUILayout.PropertyField(padding);
         }
 
         protected virtual void DrawFoot()

@@ -1,50 +1,27 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 namespace RedScarf.UguiFriend.Demo
 {
-    [UguiBinding(typeof(PanelAData))]
-    public class PanelA : UguiObject
+    public class PanelA : UIBehaviour
     {
-        [SerializeField] private UguiGridLayoutGroup m_Grid;
+        public UguiGridLayoutGroup m_Grid;
+        public int itemCount = 100; 
 
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                if (Data == null)
+                var dataList = new List<UguiObjectData>();
+                for (var i=0;i< itemCount; i++)
                 {
-                    var data = new PanelAData();
-                    data.dataList = new List<UguiObjectData>();
-                    for (var i = 0; i < 10000; i++)
-                    {
-                        var itemA = new ItemAData();
-                        data.dataList.Add(itemA);
-                    }
-                    Data = data;
+                    var data = new ItemAData();
+                    dataList.Add(data);
                 }
-                else
-                {
-                    var dataList = (Data as PanelAData).dataList;
-                    dataList[0] = new ItemAData();
-                    Data = Data;
-                }
+                m_Grid.Set(dataList);
             }
         }
-
-        protected override void RefreshView()
-        {
-            var data = Data as PanelAData;
-            if (data != null)
-            {
-                //m_Grid.Set(data.dataList);
-            }
-        }
-    }
-
-    public class PanelAData : UguiObjectData
-    {
-        public List<UguiObjectData> dataList;
     }
 }

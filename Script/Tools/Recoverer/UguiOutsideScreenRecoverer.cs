@@ -36,13 +36,14 @@ namespace RedScarf.UguiFriend
             {
                 m_ChildSet.Remove(child);
             }
-            if (OnRecycle != null)
+            foreach (var child in m_RemoveList)
             {
-                foreach (var child in m_RemoveList)
-                {
-                    ProcessItemBeforeRecycle(child);
+                ProcessItemBeforeRecycle(child);
+
+                if (OnRecycle != null)
                     OnRecycle.Invoke(child);
-                }
+
+                ProcessItemAfterRecycle(child);
             }
             m_RemoveList.Clear();
         }

@@ -8,7 +8,7 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiOutsideScreenRecovererObject : UguiOutsideScreenRecoverer<UguiObject>
     {
-        protected override void ProcessItemBeforeRecycle(UguiObject child)
+        protected override void ProcessItemAfterRecycle(UguiObject child)
         {
             UguiObjectPool.Instance.Push(child);
         }

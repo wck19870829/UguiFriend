@@ -43,7 +43,7 @@ namespace RedScarf.UguiFriend
                     }
                 }
 
-                Debug.LogErrorFormat("数据绑定实体错误:{0}", type);
+                //Debug.LogErrorFormat("数据绑定实体错误:{0}", type);
             }
         }
 

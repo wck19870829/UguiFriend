@@ -83,6 +83,15 @@ namespace RedScarf.UguiFriend
 
         }
 
+        /// <summary>
+        /// 回收之后处理
+        /// </summary>
+        /// <param name="child"></param>
+        protected virtual void ProcessItemAfterRecycle(T child)
+        {
+
+        }
+
         public HashSet<T> ChildSet
         {
             get
