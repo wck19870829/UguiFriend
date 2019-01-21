@@ -11,6 +11,7 @@ namespace RedScarf.UguiFriend
         where T:Component
     {
         [SerializeField] protected Rect m_ViewPortDisplayRect;          //视图坐标系显示区域,显示区域内的物体才会被创建更新
+        [SerializeField] protected RectTransform m_Bounds;
         protected Canvas m_Canvas;
 
         protected UguiOutsideScreenRecoverer()
@@ -25,11 +26,29 @@ namespace RedScarf.UguiFriend
             if (m_Canvas == null) return;
 
             m_RemoveList.Clear();
-            foreach (var child in m_ChildSet)
+            if (m_Bounds)
             {
-                if(!UguiTools.InScreenViewRect(child.transform.position, m_Canvas, m_ViewPortDisplayRect))
+                //限制在框内
+                foreach (var child in m_ChildSet)
                 {
-                    m_RemoveList.Add(child);
+                    var plane = new Plane(m_Bounds.transform.forward, m_Bounds.transform.position);
+                    var projectPoint=UguiMathf.GetProjectOnPlane(plane,child.transform.position);
+                    var localPoint = m_Bounds.parent.InverseTransformPoint(projectPoint);
+                    if (!m_Bounds.rect.Contains(localPoint))
+                    {
+                        m_RemoveList.Add(child);
+                    }
+                }
+            }
+            else
+            {
+                //相对于屏幕视图坐标
+                foreach (var child in m_ChildSet)
+                {
+                    if (!UguiTools.InScreenViewRect(child.transform.position, m_Canvas, m_ViewPortDisplayRect))
+                    {
+                        m_RemoveList.Add(child);
+                    }
                 }
             }
             foreach (var child in m_RemoveList)
@@ -58,6 +77,11 @@ namespace RedScarf.UguiFriend
             {
                 m_ViewPortDisplayRect = value;
             }
+        }
+
+        public enum ClipKind
+        {
+
         }
     }
 }
