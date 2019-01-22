@@ -11,7 +11,8 @@ namespace RedScarf.UguiFriend
         where T:Component
     {
         [SerializeField] protected Rect m_ViewPortDisplayRect;          //视图坐标系显示区域,显示区域内的物体才会被创建更新
-        [SerializeField] protected RectTransform m_Bounds;
+        [SerializeField] protected RectTransform m_RectLimit;
+        [SerializeField] protected ClipKind m_ClipKind;
         protected Canvas m_Canvas;
 
         protected UguiOutsideScreenRecoverer()
@@ -26,15 +27,15 @@ namespace RedScarf.UguiFriend
             if (m_Canvas == null) return;
 
             m_RemoveList.Clear();
-            if (m_Bounds)
+            if (m_RectLimit)
             {
                 //限制在框内
                 foreach (var child in m_ChildSet)
                 {
-                    var plane = new Plane(m_Bounds.transform.forward, m_Bounds.transform.position);
+                    var plane = new Plane(m_RectLimit.transform.forward, m_RectLimit.transform.position);
                     var projectPoint=UguiMathf.GetProjectOnPlane(plane,child.transform.position);
-                    var localPoint = m_Bounds.parent.InverseTransformPoint(projectPoint);
-                    if (!m_Bounds.rect.Contains(localPoint))
+                    var localPoint = m_RectLimit.parent.InverseTransformPoint(projectPoint);
+                    if (!m_RectLimit.rect.Contains(localPoint))
                     {
                         m_RemoveList.Add(child);
                     }
@@ -45,7 +46,7 @@ namespace RedScarf.UguiFriend
                 //相对于屏幕视图坐标
                 foreach (var child in m_ChildSet)
                 {
-                    if (!UguiTools.InScreenViewRect(child.transform.position, m_Canvas, m_ViewPortDisplayRect))
+                    if (!IsInLimit(child.transform.position))
                     {
                         m_RemoveList.Add(child);
                     }
@@ -79,9 +80,52 @@ namespace RedScarf.UguiFriend
             }
         }
 
+        /// <summary>
+        /// 是否在限制范围内
+        /// </summary>
+        /// <param name="worldPostion"></param>
+        /// <returns></returns>
+        public virtual bool IsInLimit(Vector3 worldPostion)
+        {
+            if (m_ClipKind==ClipKind.Viewport)
+            {
+                if (m_Canvas == null)
+                    m_Canvas = GetComponentInParent<Canvas>();
+
+                if (m_Canvas)
+                {
+                    return UguiTools.InScreenViewRect(worldPostion, m_Canvas, m_ViewPortDisplayRect);
+                }
+            }
+            else if (m_ClipKind == ClipKind.RectLimit)
+            {
+                if (m_RectLimit)
+                {
+                    var plane = new Plane(m_RectLimit.transform.forward, m_RectLimit.transform.position);
+                    var projectPoint = UguiMathf.GetProjectOnPlane(plane, worldPostion);
+                    var localPoint = m_RectLimit.parent.InverseTransformPoint(projectPoint);
+
+                    return m_RectLimit.rect.Contains(localPoint);
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 剪切类型
+        /// </summary>
         public enum ClipKind
         {
+            /// <summary>
+            /// 超出屏幕视图坐标外裁切
+            /// </summary>
+            Viewport=0,
 
+            /// <summary>
+            /// 超出物体范围外剪切
+            /// </summary>
+            RectLimit=1
         }
     }
 }

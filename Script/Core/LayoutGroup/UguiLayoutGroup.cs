@@ -25,8 +25,6 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected string m_RemoveAnimState;            //移除时播放动画
         [SerializeField] protected string m_AddAnimState;               //添加时播放动画
 
-        public Action<UguiObject> OnRemoveItem;                         //移除子元素          
-        public Action<UguiObject> OnCreateItem;                         //创建出新的子元素
         public Action OnReposition;                                     //复位回调
 
         protected UguiLayoutGroup()
@@ -79,34 +77,10 @@ namespace RedScarf.UguiFriend
 
                         ProcessItemAfterCreated(obj);
 
-                        if (OnCreateItem != null)
-                        {
-                            OnCreateItem.Invoke(obj);
-                        }
+
                     }
                 }
             }
-        }
-
-        IEnumerator RemoveItemDelay(UguiObject obj,float delay)
-        {
-            try
-            {
-                m_InSightChildDict.Remove(obj.Guid);
-
-                if (OnRemoveItem != null)
-                {
-                    OnRemoveItem.Invoke(obj);
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.Log(e);
-            }
-
-            yield return new WaitForSeconds(delay);
-
-            UguiObjectPool.Instance.Push(obj);
         }
 
         /// <summary>
