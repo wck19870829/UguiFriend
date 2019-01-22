@@ -417,7 +417,13 @@ namespace RedScarf.UguiFriend
         {
             var ray = new Ray(point, plane.normal);
             var enter = 0f;
-            plane.Raycast(ray, out enter);
+            var isEnter=plane.Raycast(ray, out enter);
+            if (isEnter == false && enter == 0)
+            {
+                //平行返回原始点
+                return point;
+            }
+
             var projectPoint = point + plane.normal.normalized * enter;
 
             return projectPoint;

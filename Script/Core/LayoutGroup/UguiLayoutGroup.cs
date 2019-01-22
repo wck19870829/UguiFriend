@@ -49,6 +49,15 @@ namespace RedScarf.UguiFriend
             RefreshView();
         }
 
+        private void OnDrawGizmos()
+        {
+            for (var i = 0; i < m_ChildrenLocalPositionList.Count; i++)
+            {
+                var worldPoint = transform.TransformPoint(m_ChildrenLocalPositionList[i]);
+                UnityEditor.Handles.SphereCap(0,worldPoint,Quaternion.identity,10);
+            }
+        }
+
         /// <summary>
         /// 刷新视图
         /// </summary>
@@ -63,7 +72,7 @@ namespace RedScarf.UguiFriend
             for (var i = 0; i < m_ChildrenLocalPositionList.Count; i++)
             {
                 var worldPoint = transform.TransformPoint(m_ChildrenLocalPositionList[i]);
-                if (UguiTools.InScreenViewRect(worldPoint, m_Canvas.rootCanvas, viewPort))
+                if (m_Recoverer.IsInLimit(worldPoint))
                 {
                     var childData = m_ChildDataList[i];
                     //在显示框中创建更新

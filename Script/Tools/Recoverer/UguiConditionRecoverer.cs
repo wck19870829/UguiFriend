@@ -10,16 +10,16 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public abstract class UguiConditionRecoverer : MonoBehaviour
     {
-        [SerializeField] public UpdateMode updateMode;
+        [SerializeField] protected UpdateMode m_UpdateMode;
 
         protected UguiConditionRecoverer()
         {
-            updateMode = UpdateMode.Update;
+            m_UpdateMode = UpdateMode.Update;
         }
 
         protected virtual void Start()
         {
-            if (updateMode == UpdateMode.StartOnly)
+            if (m_UpdateMode == UpdateMode.StartOnly)
             {
                 FindChildren();
             }
@@ -27,7 +27,7 @@ namespace RedScarf.UguiFriend
 
         protected virtual void Update()
         {
-            if(updateMode==UpdateMode.Update)
+            if(m_UpdateMode==UpdateMode.Update)
                 FindChildren();
 
             Check();
@@ -101,7 +101,7 @@ namespace RedScarf.UguiFriend
             set
             {
                 m_ChildSet = value;
-                updateMode = UpdateMode.Code;
+                m_UpdateMode = UpdateMode.Code;
             }
         }
     }
