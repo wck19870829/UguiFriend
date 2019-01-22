@@ -5,17 +5,17 @@ using System;
 namespace RedScarf.UguiFriend
 {
     /// <summary>
-    /// 屏幕越界回收器
+    /// 范围越界回收器
     /// </summary>
-    public abstract class UguiOutsideScreenRecoverer<T>: UguiConditionRecoverer<T>
+    public abstract class UguiAreaRecoverer<T>: UguiConditionRecoverer<T>
         where T:Component
     {
         [SerializeField] protected ClipKinds m_ClipKind;
         [SerializeField] protected Rect m_ViewPortDisplayRect;          //视图坐标系显示区域,显示区域内的物体才会被创建更新
-        [SerializeField] protected RectTransform m_RectLimit;
+        [SerializeField] protected RectTransform m_LimitObject;
         protected Canvas m_Canvas;
 
-        protected UguiOutsideScreenRecoverer()
+        protected UguiAreaRecoverer()
         {
             m_ViewPortDisplayRect = Rect.MinMaxRect(-0.2f, -0.2f, 1.2f, 1.2f);
             m_ClipKind = ClipKinds.ViewportLimit;
@@ -82,13 +82,22 @@ namespace RedScarf.UguiFriend
             }
             else if (m_ClipKind == ClipKinds.RectLimit)
             {
-                if (m_RectLimit)
+                if (m_LimitObject)
                 {
-                    var plane = new Plane(m_RectLimit.transform.forward, m_RectLimit.transform.position);
+                    var plane = new Plane(m_LimitObject.transform.forward, m_LimitObject.transform.position);
                     var projectPoint = UguiMathf.GetProjectOnPlane(plane, worldPostion);
-                    var localPoint = m_RectLimit.InverseTransformPoint(projectPoint);
+                    var localPoint = m_LimitObject.InverseTransformPoint(projectPoint);
 
-                    return m_RectLimit.rect.Contains(localPoint);
+                    return m_LimitObject.rect.Contains(localPoint);
+                }
+            }
+            else if (m_ClipKind==ClipKinds.Bounds)
+            {
+                if (m_LimitObject)
+                {
+                    var bounds=UguiMathf.GetBounds(m_LimitObject, Space.World);
+
+                    return bounds.Contains(worldPostion);
                 }
             }
 
@@ -108,11 +117,16 @@ namespace RedScarf.UguiFriend
             /// <summary>
             /// 超出物体范围外剪切
             /// </summary>
-            RectLimit=1
+            RectLimit=1,
+
+            /// <summary>
+            /// 超出边界范围外剪切
+            /// </summary>
+            Bounds=2
         }
     }
 
-    public abstract class UguiOutsideScreenRecoverer: UguiOutsideScreenRecoverer<Component>
+    public abstract class UguiAreaRecoverer: UguiAreaRecoverer<Component>
     {
 
     }

@@ -6,7 +6,7 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// Object屏幕越界回收器
     /// </summary>
-    public class UguiOutsideScreenRecovererObject : UguiOutsideScreenRecoverer<UguiObject>
+    public class UguiAreaRecovererObject : UguiAreaRecoverer<UguiObject>
     {
         protected override void ProcessItemAfterRecycle(UguiObject child)
         {

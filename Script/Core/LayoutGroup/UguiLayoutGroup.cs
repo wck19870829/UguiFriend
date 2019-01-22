@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 
 namespace RedScarf.UguiFriend
 {
-    [RequireComponent(typeof(UguiOutsideScreenRecovererObject))]
+    [RequireComponent(typeof(UguiAreaRecovererObject))]
     /// <summary>
     /// 布局容器基类
     /// </summary>
@@ -15,7 +15,7 @@ namespace RedScarf.UguiFriend
     {
         [SerializeField] protected UguiObject m_ItemPrefabSource;
         [SerializeField] protected float m_RemoveDelay=0.2f;            //移除延迟,可以在此延迟中做动画等
-        protected UguiOutsideScreenRecovererObject m_Recoverer;
+        protected UguiAreaRecovererObject m_Recoverer;
         protected List<Vector3> m_ChildrenLocalPositionList;
         protected Dictionary<string, UguiObject> m_InSightChildDict;    //视图中可见的子物体
         protected List<UguiObjectData> m_ChildDataList;
@@ -38,9 +38,9 @@ namespace RedScarf.UguiFriend
         protected override void Start()
         {
             base.Start();
-            m_Recoverer = GetComponent<UguiOutsideScreenRecovererObject>();
+            m_Recoverer = GetComponent<UguiAreaRecovererObject>();
             if (m_Recoverer == null)
-                m_Recoverer = gameObject.AddComponent<UguiOutsideScreenRecovererObject>();
+                m_Recoverer = gameObject.AddComponent<UguiAreaRecovererObject>();
             m_Recoverer.OnRecycle += OnItemRecycle;
         }
 

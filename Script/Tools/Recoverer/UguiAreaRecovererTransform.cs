@@ -6,7 +6,7 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// Transform屏幕越界回收器
     /// </summary>
-    public class UguiOutsideScreenRecovererTransform : UguiOutsideScreenRecoverer<Transform>
+    public class UguiOutsideScreenRecovererTransform : UguiAreaRecoverer<Transform>
     {
 
     }

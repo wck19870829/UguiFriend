@@ -7,20 +7,22 @@ namespace RedScarf.UguiFriend
 {
     public class UguiOutsideScreenRecovererEditor : UguiConditionRecovererEditor
     {
+        [CustomEditor(typeof(UguiAreaRecoverer),true)]
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
 
             var clipKind = serializedObject.FindProperty("m_ClipKind");
-            var select = (Enum)((UguiOutsideScreenRecoverer.ClipKinds)clipKind.intValue);
-            clipKind.intValue = (int)((UguiOutsideScreenRecoverer.ClipKinds)EditorGUILayout.EnumPopup("Clip Kind", select));
+            var select = (Enum)((UguiAreaRecoverer.ClipKinds)clipKind.intValue);
+            clipKind.intValue = (int)((UguiAreaRecoverer.ClipKinds)EditorGUILayout.EnumPopup("Clip Kind", select));
 
-            if(clipKind.intValue== (int)UguiOutsideScreenRecoverer.ClipKinds.RectLimit)
+            if(clipKind.intValue== (int)UguiAreaRecoverer.ClipKinds.RectLimit||
+                clipKind.intValue == (int)UguiAreaRecoverer.ClipKinds.Bounds)
             {
-                var rectLimit = serializedObject.FindProperty("m_RectLimit");
-                EditorGUILayout.PropertyField(rectLimit);
+                var limitObject = serializedObject.FindProperty("m_LimitObject");
+                EditorGUILayout.PropertyField(limitObject);
             }
-            else if (clipKind.intValue == (int)UguiOutsideScreenRecoverer.ClipKinds.ViewportLimit)
+            else if (clipKind.intValue == (int)UguiAreaRecoverer.ClipKinds.ViewportLimit)
             {
                 var viewPortDisplayRect = serializedObject.FindProperty("m_ViewPortDisplayRect");
                 EditorGUILayout.PropertyField(viewPortDisplayRect);

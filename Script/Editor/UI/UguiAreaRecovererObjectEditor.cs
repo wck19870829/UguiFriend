@@ -4,7 +4,7 @@ using UnityEditor;
 
 namespace RedScarf.UguiFriend
 {
-    [CustomEditor(typeof(UguiOutsideScreenRecovererObject),true)]
+    [CustomEditor(typeof(UguiAreaRecovererObject),true)]
     public class UguiOutsideScreenRecovererObjectEditor : UguiOutsideScreenRecovererEditor
     {
 
