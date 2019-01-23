@@ -20,7 +20,7 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected Material m_AreaMat;
         [SerializeField] protected Mask m_Mask;
         [SerializeField] protected List<Vector2> valueList;
-        [SerializeField]protected Vector2 m_ScrollPos;
+        [SerializeField] protected Vector2 m_ScrollPos;
         [SerializeField] protected List<Texture2D> texList;
         [SerializeField] protected List<RawImage> imageList;
         protected UguiMathf.Bezier[] m_Beziers;

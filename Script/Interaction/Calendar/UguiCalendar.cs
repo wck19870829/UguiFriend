@@ -3,28 +3,19 @@ using System.Collections;
 using UnityEngine.UI;
 using System;
 using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 namespace RedScarf.UguiFriend
 {
     /// <summary>
     /// 通用日历
     /// </summary>
-    public class UguiCalendar : UguiCalendar<UguiCalendarConfig>
+    public abstract class UguiCalendar :UIBehaviour
     {
-
-    }
-
-    /// <summary>
-    /// 日历基类
-    /// </summary>
-    /// <typeparam name="TConfig">配置文件类型</typeparam>
-    public class UguiCalendar<TConfig> : MonoBehaviour
-        where TConfig : UguiCalendarConfig, new()
-    {
-        const int daysOfWeek = 7;
-        const int dayLine = 6;
-        const int daysDisplayCount = daysOfWeek * dayLine;
-        const int daysDisplayCountTotal = daysDisplayCount * 3;
+        protected const int daysOfWeek = 7;
+        protected const int dayLine = 6;
+        protected const int daysDisplayCount = daysOfWeek * dayLine;
+        protected const int daysDisplayCountTotal = daysDisplayCount * 3;
 
         [Tooltip("Go to today when enable")]
         [SerializeField] protected bool gotoToday = true;
@@ -34,6 +25,7 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected Button prevMonthButton;
         [SerializeField] protected Text yearTitleText;
         [SerializeField] protected Text monthTitleText;
+
         [Range(0, 10)]
         [SerializeField] protected int dateSelectLimit = 1;             //日期选择数量上限，0为不能选择日期，1为单选，大于1为多选
 
@@ -45,12 +37,11 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected Button dateSelectorButton;
         [SerializeField] protected UguiDateSelector dateSelector;
 
-        protected TConfig m_Config;
-        List<DayOfWeek> dayOfWeekList;
-        HashSet<DateTime> dateSelectSet;
-        List<DateTime> dateSelectList;
-        int m_ViewYear;
-        int m_ViewMonth;
+        protected List<DayOfWeek> dayOfWeekList;
+        protected HashSet<DateTime> dateSelectSet;
+        protected List<DateTime> dateSelectList;
+        protected int m_ViewYear;
+        protected int m_ViewMonth;
 
         //日期选中状态改变事件
         public event Action<List<DateTime>> OnDateSelectChangeEvent;
@@ -87,11 +78,11 @@ namespace RedScarf.UguiFriend
 
         protected virtual void OnEnable()
         {
-            if (m_Config != null)
-            {
-                if (gotoToday)
-                    Goto(DateTime.Today.Year, DateTime.Today.Month);
-            }
+            //if (m_Config != null)
+            //{
+            //    if (gotoToday)
+            //        Goto(DateTime.Today.Year, DateTime.Today.Month);
+            //}
         }
 
         /// <summary>
@@ -99,44 +90,44 @@ namespace RedScarf.UguiFriend
         /// </summary>
         protected virtual void Init()
         {
-            m_Config = new TConfig();
+            //m_Config = new TConfig();
 
-            //创建星期图标
-            UguiTools.DestroyChildren(dayOfWeekGrid.gameObject);
-            dayOfWeekList = new List<DayOfWeek>(daysOfWeek);
-            if (dayOfWeekPrefab != null)
-            {
-                for (var i = 0; i < daysOfWeek; i++)
-                {
-                    var clone = GameObject.Instantiate<UguiCalendarDayOfWeek>(dayOfWeekPrefab);
-                    clone.transform.SetParent(dayOfWeekGrid.transform);
-                    var dayValue = (int)m_Config.weekBegins + i;
-                    var dayOfWeek = (dayValue < daysOfWeek) ?
-                                    (DayOfWeek)dayValue :
-                                    (DayOfWeek)Mathf.Abs(dayValue - daysOfWeek);
-                    dayOfWeekList.Add(dayOfWeek);
-                    clone.Set(dayOfWeek, m_Config);
-                    clone.gameObject.name = i.ToString();
-                }
-            }
-            else Debug.LogError("DayOfWeek prefab is null!");
+            ////创建星期图标
+            //UguiTools.DestroyChildren(dayOfWeekGrid.gameObject);
+            //dayOfWeekList = new List<DayOfWeek>(daysOfWeek);
+            //if (dayOfWeekPrefab != null)
+            //{
+            //    for (var i = 0; i < daysOfWeek; i++)
+            //    {
+            //        var clone = GameObject.Instantiate<UguiCalendarDayOfWeek>(dayOfWeekPrefab);
+            //        clone.transform.SetParent(dayOfWeekGrid.transform);
+            //        var dayValue = (int)m_Config.weekBegins + i;
+            //        var dayOfWeek = (dayValue < daysOfWeek) ?
+            //                        (DayOfWeek)dayValue :
+            //                        (DayOfWeek)Mathf.Abs(dayValue - daysOfWeek);
+            //        dayOfWeekList.Add(dayOfWeek);
+            //        clone.Set(dayOfWeek, m_Config);
+            //        clone.gameObject.name = i.ToString();
+            //    }
+            //}
+            //else Debug.LogError("DayOfWeek prefab is null!");
 
-            //创建日期
-            UguiTools.DestroyChildren(dayGrid.gameObject);
-            dayGrid.startAxis = GridLayoutGroup.Axis.Horizontal;
-            dayGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            dayGrid.constraintCount = daysOfWeek;
-            if (datePrefab != null)
-            {
-                for (var i = 0; i < daysDisplayCount; i++)
-                {
-                    var clone = GameObject.Instantiate<UguiCalendarDate>(datePrefab);
-                    clone.transform.SetParent(dayGrid.transform);
-                    clone.OnClickEvent -= OnDateClick;
-                    clone.OnClickEvent += OnDateClick;
-                }
-            }
-            else Debug.LogErrorFormat("Date prefab is null!");
+            ////创建日期
+            //UguiTools.DestroyChildren(dayGrid.gameObject);
+            //dayGrid.startAxis = GridLayoutGroup.Axis.Horizontal;
+            //dayGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            //dayGrid.constraintCount = daysOfWeek;
+            //if (datePrefab != null)
+            //{
+            //    for (var i = 0; i < daysDisplayCount; i++)
+            //    {
+            //        var clone = GameObject.Instantiate<UguiCalendarDate>(datePrefab);
+            //        clone.transform.SetParent(dayGrid.transform);
+            //        clone.OnClickEvent -= OnDateClick;
+            //        clone.OnClickEvent += OnDateClick;
+            //    }
+            //}
+            //else Debug.LogErrorFormat("Date prefab is null!");
         }
 
         /// <summary>
@@ -177,49 +168,7 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        /// <summary>
-        /// 重建视图
-        /// </summary>
-        protected virtual void Rebuild()
-        {
-            if (m_Config == null) return;
-            if (dayGrid == null) return;
-
-            if (monthTitleText != null) monthTitleText.text = m_ViewMonth.ToString();
-            if (yearTitleText != null) yearTitleText.text = m_ViewYear.ToString();
-
-            var start = new DateTime(m_ViewYear, m_ViewMonth, 1);
-            var end = start.AddMonths(1).AddDays(-1);
-            var startBlank = Mathf.Abs(dayOfWeekList.IndexOf(m_Config.weekBegins) - dayOfWeekList.IndexOf(start.DayOfWeek));
-            var startDate = start.AddDays(-startBlank);
-
-            //更新日期
-            var dateItemList = new List<UguiCalendarDateInfo>();
-            for (var i = 0; i < daysDisplayCount; i++)
-            {
-                var date = startDate.AddDays(i);
-                var mark = m_Config.GetMark(date);
-                var info = new UguiCalendarDateInfo(date, mark);
-                dateItemList.Add(info);
-            }
-            var dateItems = dayGrid.GetComponentsInChildren<UguiCalendarDate>();
-            for (var i = 0; i < daysDisplayCount; i++)
-            {
-                var dateItem = dateItems[i];
-                var info = dateItemList[i];
-                dateItem.Init(info, m_Config);
-                dateItem.name = GetDateStr(info.date.Year, info.date.Month, info.date.Day);
-                dateItem.IsSelect = dateSelectSet.Contains(info.date) ? true : false;
-                dateItem.IsToday = info.date == DateTime.Today ? true : false;
-                var isActive = (info.date >= start && info.date <= end) ? true : false;
-                dateItem.SetActiveState(isActive);
-            }
-
-            if (OnDateRebuildEvent != null)
-            {
-                OnDateRebuildEvent.Invoke(dateItems);
-            }
-        }
+        protected abstract void Rebuild();
 
         /// <summary>
         /// 日期点击
@@ -322,17 +271,6 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        /// <summary>
-        /// 配置文件
-        /// </summary>
-        public UguiCalendarConfig Config
-        {
-            get
-            {
-                return m_Config;
-            }
-        }
-
         #region 静态方法
 
         ///// <summary>
@@ -364,5 +302,70 @@ namespace RedScarf.UguiFriend
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// 日历基类
+    /// </summary>
+    /// <typeparam name="TConfig">配置文件类型</typeparam>
+    public abstract class UguiCalendar<TConfig> : UguiCalendar
+        where TConfig : UguiCalendarConfig, new()
+    {
+        protected TConfig m_Config;
+
+        /// <summary>
+        /// 配置文件
+        /// </summary>
+        public TConfig Config
+        {
+            get
+            {
+                return m_Config;
+            }
+        }
+
+        /// <summary>
+        /// 重建视图
+        /// </summary>
+        protected override void Rebuild()
+        {
+            if (m_Config == null) return;
+            if (dayGrid == null) return;
+
+            if (monthTitleText != null) monthTitleText.text = m_ViewMonth.ToString();
+            if (yearTitleText != null) yearTitleText.text = m_ViewYear.ToString();
+
+            var start = new DateTime(m_ViewYear, m_ViewMonth, 1);
+            var end = start.AddMonths(1).AddDays(-1);
+            var startBlank = Mathf.Abs(dayOfWeekList.IndexOf(m_Config.weekBegins) - dayOfWeekList.IndexOf(start.DayOfWeek));
+            var startDate = start.AddDays(-startBlank);
+
+            //更新日期
+            var dateItemList = new List<UguiCalendarDateInfo>();
+            for (var i = 0; i < daysDisplayCount; i++)
+            {
+                var date = startDate.AddDays(i);
+                var mark = m_Config.GetMark(date);
+                var info = new UguiCalendarDateInfo(date, mark);
+                dateItemList.Add(info);
+            }
+            var dateItems = dayGrid.GetComponentsInChildren<UguiCalendarDate>();
+            for (var i = 0; i < daysDisplayCount; i++)
+            {
+                var dateItem = dateItems[i];
+                var info = dateItemList[i];
+                dateItem.Init(info, m_Config);
+                dateItem.name = GetDateStr(info.date.Year, info.date.Month, info.date.Day);
+                dateItem.IsSelect = dateSelectSet.Contains(info.date) ? true : false;
+                dateItem.IsToday = info.date == DateTime.Today ? true : false;
+                var isActive = (info.date >= start && info.date <= end) ? true : false;
+                dateItem.SetActiveState(isActive);
+            }
+
+            //if (OnDateRebuildEvent != null)
+            //{
+            //    OnDateRebuildEvent.Invoke(dateItems);
+            //}
+        }
     }
 }

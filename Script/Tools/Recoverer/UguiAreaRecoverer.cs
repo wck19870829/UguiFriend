@@ -43,6 +43,8 @@ namespace RedScarf.UguiFriend
             {
                 ProcessItemBeforeRecycle(child);
 
+                Recycle<T>(child);
+
                 if (OnRecycle != null)
                     OnRecycle.Invoke(child);
 

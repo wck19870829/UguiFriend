@@ -36,6 +36,8 @@ namespace RedScarf.UguiFriend
         protected abstract void Check();
         protected abstract void FindChildren();
 
+        public abstract bool Recycle<Element>(Element child);
+
         /// <summary>
         /// 获取及更新模式
         /// </summary>
@@ -90,6 +92,19 @@ namespace RedScarf.UguiFriend
         protected virtual void ProcessItemAfterRecycle(T child)
         {
 
+        }
+
+        public override bool Recycle<Element>(Element child)
+        {
+            var obj = child as T;
+            if (obj)
+            {
+                m_ChildSet.Remove(obj);
+
+                return true;
+            }
+
+            return false;
         }
 
         public HashSet<T> ChildSet
