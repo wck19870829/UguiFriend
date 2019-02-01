@@ -60,10 +60,11 @@ namespace RedScarf.UguiFriend
             if (!m_Init)
             {
                 m_AreaRecoverer = GetComponent<UguiAreaRecovererObject>();
-                if (m_AreaRecoverer == null)
-                    m_AreaRecoverer = gameObject.AddComponent<UguiAreaRecovererObject>();
-                m_AreaRecoverer.OnRecycle -= OnItemRecycle;
-                m_AreaRecoverer.OnRecycle += OnItemRecycle;
+                if (m_AreaRecoverer != null)
+                {
+                    m_AreaRecoverer.OnRecycle -= OnItemRecycle;
+                    m_AreaRecoverer.OnRecycle += OnItemRecycle;
+                }
 
                 m_Init = true;
             }
@@ -77,23 +78,25 @@ namespace RedScarf.UguiFriend
             if (m_Canvas == null)
                 m_Canvas = GetComponentInParent<Canvas>();
             if (m_Canvas == null) return;
-            if (m_AreaRecoverer == null) return;
 
-            for (var i = 0; i < m_ChildrenLocalPositionList.Count; i++)
+            if (m_AreaRecoverer != null)
             {
-                var worldPoint = transform.TransformPoint(m_ChildrenLocalPositionList[i]);
-                if (m_AreaRecoverer.IsInLimit(worldPoint))
+                for (var i = 0; i < m_ChildrenLocalPositionList.Count; i++)
                 {
-                    var childData = m_ChildDataList[i];
-                    //在显示框中创建更新
-                    if (!m_AreaRecoverer.InAreaDict.ContainsKey(childData.guid))
+                    var worldPoint = transform.TransformPoint(m_ChildrenLocalPositionList[i]);
+                    if (m_AreaRecoverer.IsInLimit(worldPoint))
                     {
-                        //数据预测位置在显示框内,显示框中无对应的显示对象,那么创建新的
-                        var obj = GetItemClone(childData);
-                        obj.transform.SetParent(transform);
-                        obj.transform.position = worldPoint;
+                        var childData = m_ChildDataList[i];
+                        //在显示框中创建更新
+                        if (!m_AreaRecoverer.InAreaDict.ContainsKey(childData.guid))
+                        {
+                            //数据预测位置在显示框内,显示框中无对应的显示对象,那么创建新的
+                            var obj = GetItemClone(childData);
+                            obj.transform.SetParent(transform);
+                            obj.transform.position = worldPoint;
 
-                        ProcessItemAfterCreated(obj);
+                            ProcessItemAfterCreated(obj);
+                        }
                     }
                 }
             }
@@ -125,27 +128,34 @@ namespace RedScarf.UguiFriend
             m_ChildDataDict.Clear();
             m_ChildDataList.Clear();
 
-            m_ChildDataList.AddRange(childDataList);
-            foreach (var data in m_ChildDataList)
+            if (m_AreaRecoverer != null)
             {
-                m_ChildDataDict.Add(data.guid,data);
-            }
-            var removeSet = new HashSet<string>();
-            foreach (var childKey in m_AreaRecoverer.InAreaDict.Keys)
-            {
-                if (!m_ChildDataDict.ContainsKey(childKey))
+                m_ChildDataList.AddRange(childDataList);
+                foreach (var data in m_ChildDataList)
                 {
-                    removeSet.Add(childKey);
+                    m_ChildDataDict.Add(data.guid, data);
                 }
+                var removeSet = new HashSet<string>();
+                foreach (var childKey in m_AreaRecoverer.InAreaDict.Keys)
+                {
+                    if (!m_ChildDataDict.ContainsKey(childKey))
+                    {
+                        removeSet.Add(childKey);
+                    }
+                }
+                foreach (var item in removeSet)
+                {
+                    m_AreaRecoverer.Recycle(item);
+                }
+
+                UpdateChildrenLocalPosition();
+                RefreshView();
             }
-            foreach (var item in removeSet)
+            else
             {
-                m_AreaRecoverer.Recycle(item);
+                //创建所有元素
+
             }
-
-            UpdateChildrenLocalPosition();
-
-            RefreshView();
         }
 
         /// <summary>

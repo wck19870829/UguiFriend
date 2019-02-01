@@ -24,6 +24,23 @@ namespace RedScarf.UguiFriend
             serializedObject.ApplyModifiedProperties();
 
             base.OnInspectorGUI();
+
+            EditorGUILayout.Space();
+
+            var cacheState = GUI.enabled;
+            GUI.enabled = Application.isPlaying;
+            using (var scope = new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Storage"))
+                {
+                    suckEffect.Storage();
+                }
+                if (GUILayout.Button("TakeOut"))
+                {
+                    suckEffect.TakeOut();
+                }
+            }
+            GUI.enabled = cacheState;
         }
 
         protected virtual void OnSceneGUI()

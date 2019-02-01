@@ -34,6 +34,7 @@ namespace RedScarf.UguiFriend
 
         protected virtual void Update()
         {
+            this.color = Color.white;
             var duration = Mathf.Max(m_Duration,0.0001f);
             switch (m_State)
             {
@@ -64,18 +65,6 @@ namespace RedScarf.UguiFriend
                         this.texture = m_CacheTex;
                     }
                     break;
-            }
-        }
-
-        protected virtual void OnGUI()
-        {
-            if (Input.GetKeyDown(KeyCode.S))
-            {
-                Storage();
-            }
-            if (Input.GetKeyDown(KeyCode.T))
-            {
-                TakeOut();
             }
         }
 

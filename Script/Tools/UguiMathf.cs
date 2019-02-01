@@ -404,6 +404,46 @@ namespace RedScarf.UguiFriend
             return rect;
         }
 
+        /// <summary>
+        /// 填充容器
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="content"></param>
+        /// <param name="scaleMode"></param>
+        /// <returns></returns>
+        public static Rect RectScale(Rect rect,Rect content, ScaleMode scaleMode)
+        {
+            if (content.width == 0 || content.height == 0)
+                throw new Exception("无效的容器矩形:"+content);
+
+            rect = Rect.MinMaxRect(rect.xMin, rect.yMin, rect.xMax, rect.yMax);
+            content = Rect.MinMaxRect(content.xMin,content.yMin,content.xMax,content.yMax);
+            switch (scaleMode)
+            {
+                case ScaleMode.ScaleAndCrop:
+                    var ratio = Mathf.Max(rect.width/content.width, rect.height/content.height);
+                    rect.width *= ratio;
+                    rect.height *= ratio;
+                    rect.x=content.x-(rect.width - content.width) * 0.5f;
+                    rect.y = content.y - (rect.height - content.height) * 0.5f;
+                    break;
+
+                case ScaleMode.ScaleToFit:
+                    var ratio2 = Mathf.Min(rect.width / content.width, rect.height / content.height);
+                    rect.width *= ratio2;
+                    rect.height *= ratio2;
+                    rect.x = content.x - (rect.width - content.width) * 0.5f;
+                    rect.y = content.y - (rect.height - content.height) * 0.5f;
+                    break;
+
+                case ScaleMode.StretchToFill:
+                    rect = content;
+                    break;
+            }
+
+            return rect;
+        }
+
         #endregion
 
         #region Plane
