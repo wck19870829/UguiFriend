@@ -231,5 +231,26 @@ namespace RedScarf.UguiFriend
 
             return height;
         }
+
+        /// <summary>
+        /// 绘制方形
+        /// </summary>
+        /// <param name="rect"></param>
+        public static void DrawRect(Rect rect,Color color)
+        {
+            var cacheColor = Handles.color;
+            Handles.color = color;
+
+            var p1 = new Vector2(rect.xMin, rect.yMin);
+            var p2 = new Vector2(rect.xMax, rect.yMin);
+            var p3 = new Vector2(rect.xMax, rect.yMax);
+            var p4 = new Vector2(rect.xMin, rect.yMax);
+            Handles.DrawLine(p1,p2);
+            Handles.DrawLine(p2, p3);
+            Handles.DrawLine(p3, p4);
+            Handles.DrawLine(p4, p1);
+
+            Handles.color = cacheColor;
+        }
     }
 }

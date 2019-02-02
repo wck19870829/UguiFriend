@@ -405,6 +405,23 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 规格化矩形为width>=0,height>=0
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <returns></returns>
+        public static Rect RectNormalize(Rect rect)
+        {
+            rect = Rect.MinMaxRect(
+                    Mathf.Min(rect.xMin,rect.xMax),
+                    Mathf.Min(rect.yMin, rect.yMax),
+                    Mathf.Max(rect.xMin, rect.xMax),
+                    Mathf.Max(rect.yMin, rect.yMax)
+                    );
+
+            return rect;
+        }
+
+        /// <summary>
         /// 填充容器
         /// </summary>
         /// <param name="rect"></param>
@@ -416,22 +433,23 @@ namespace RedScarf.UguiFriend
             if (content.width == 0 || content.height == 0)
                 throw new Exception("无效的容器矩形:"+content);
 
-            rect = Rect.MinMaxRect(rect.xMin, rect.yMin, rect.xMax, rect.yMax);
-            content = Rect.MinMaxRect(content.xMin,content.yMin,content.xMax,content.yMax);
+            rect = RectNormalize(rect);
+            content = RectNormalize(content);
+
             switch (scaleMode)
             {
-                case ScaleMode.ScaleAndCrop:
+                case ScaleMode.ScaleToFit:
                     var ratio = Mathf.Max(rect.width/content.width, rect.height/content.height);
-                    rect.width *= ratio;
-                    rect.height *= ratio;
+                    rect.width /= ratio;
+                    rect.height /= ratio;
                     rect.x=content.x-(rect.width - content.width) * 0.5f;
                     rect.y = content.y - (rect.height - content.height) * 0.5f;
                     break;
 
-                case ScaleMode.ScaleToFit:
+                case ScaleMode.ScaleAndCrop:
                     var ratio2 = Mathf.Min(rect.width / content.width, rect.height / content.height);
-                    rect.width *= ratio2;
-                    rect.height *= ratio2;
+                    rect.width /= ratio2;
+                    rect.height /= ratio2;
                     rect.x = content.x - (rect.width - content.width) * 0.5f;
                     rect.y = content.y - (rect.height - content.height) * 0.5f;
                     break;

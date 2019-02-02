@@ -27,20 +27,20 @@ namespace RedScarf.UguiFriend
 
             EditorGUILayout.Space();
 
-            var cacheState = GUI.enabled;
-            GUI.enabled = Application.isPlaying;
-            using (var scope = new EditorGUILayout.HorizontalScope())
+            if (Application.isPlaying)
             {
-                if (GUILayout.Button("Storage"))
+                using (var scope = new EditorGUILayout.HorizontalScope())
                 {
-                    suckEffect.Storage();
-                }
-                if (GUILayout.Button("TakeOut"))
-                {
-                    suckEffect.TakeOut();
+                    if (GUILayout.Button("Storage"))
+                    {
+                        suckEffect.Storage();
+                    }
+                    if (GUILayout.Button("TakeOut"))
+                    {
+                        suckEffect.TakeOut();
+                    }
                 }
             }
-            GUI.enabled = cacheState;
         }
 
         protected virtual void OnSceneGUI()
@@ -50,6 +50,7 @@ namespace RedScarf.UguiFriend
             var cacheColor=Handles.color;
             Handles.color = new Color(0, 1, 0, 0.6f);
 
+            //绘制黑洞吸入点
             var blackHolePoint = serializedObject.FindProperty("m_BlackHolePoint");
             var worldPos = suckEffect.transform.TransformPoint(blackHolePoint.vector2Value);
             var controlPointSize = HandleUtility.GetHandleSize(worldPos) * 0.3f;

@@ -68,6 +68,10 @@ namespace RedScarf.UguiFriend
             }
         }
 
+        public Rect rect;
+        public Rect content;
+        public ScaleMode scaleMode;
+
         protected override void OnPopulateMesh(VertexHelper vh)
         {
             vh.Clear();
