@@ -46,15 +46,6 @@ namespace RedScarf.UguiFriend
             RefreshView();
         }
 
-        private void OnDrawGizmos()
-        {
-            for (var i = 0; i < m_ChildrenLocalPositionList.Count; i++)
-            {
-                var worldPoint = transform.TransformPoint(m_ChildrenLocalPositionList[i]);
-                UnityEditor.Handles.SphereCap(0,worldPoint,Quaternion.identity,10);
-            }
-        }
-
         protected virtual void Init()
         {
             if (!m_Init)
@@ -120,7 +111,7 @@ namespace RedScarf.UguiFriend
         /// 直接整体强制设置
         /// </summary>
         /// <param name="childDataList"></param>
-        public virtual void Set(List<UguiObjectData> childDataList)
+        public virtual void Set<T>(List<T> childDataList)where T:UguiObjectData
         {
             Init();
 

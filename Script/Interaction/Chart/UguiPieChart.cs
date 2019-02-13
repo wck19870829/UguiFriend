@@ -21,11 +21,13 @@ namespace RedScarf.UguiFriend
             isDirty = false;
         }
 
+#if UNITY_EDITOR
         protected override void OnValidate()
         {
             innerDiameter= Mathf.Max(innerDiameter, 0);
             externalDiameter = Mathf.Max(innerDiameter, externalDiameter);
         }
+#endif
     }
 
     [System.Serializable]

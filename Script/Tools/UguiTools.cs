@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace RedScarf.UguiFriend
@@ -26,6 +27,29 @@ namespace RedScarf.UguiFriend
             objTempDict = new Dictionary<string, UguiObject>();
             objDataTempSet = new Dictionary<string, UguiObjectData>();
             objDataTempList = new List<UguiObjectData>();
+        }
+
+        /// <summary>
+        /// 获取置顶的ui元素
+        /// </summary>
+        /// <param name="screenPosition"></param>
+        /// <returns></returns>
+        public static GameObject GetTopElement(Vector2 screenPosition)
+        {
+            var pointerInputModule = EventSystem.current.currentInputModule as PointerInputModule;
+            if (pointerInputModule)
+            {
+                var pointerEventData = new PointerEventData(EventSystem.current);
+                pointerEventData.position = screenPosition;
+                var raycastResults = new List<RaycastResult>();
+                EventSystem.current.RaycastAll(pointerEventData, raycastResults);
+                if (raycastResults.Count > 0)
+                {
+                    return raycastResults[0].gameObject;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>

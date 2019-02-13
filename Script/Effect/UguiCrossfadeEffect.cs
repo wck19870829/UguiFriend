@@ -36,12 +36,14 @@ namespace RedScarf.UguiFriend
                 throw new Exception("Content is null.");
         }
 
+#if UNITY_EDITOR
         protected override void OnValidate()
         {
             interval = Mathf.Max(interval,0.01f);
             fadeTime = interval * 0.5f;
             delay = Mathf.Max(delay,0);
         }
+#endif
 
         public virtual void Rebuild()
         {

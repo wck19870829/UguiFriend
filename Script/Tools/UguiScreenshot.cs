@@ -34,30 +34,32 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 截取UI元素
+        /// 截图
         /// </summary>
         /// <param name="tex">位图</param>
         /// <param name="target">渲染物体</param>
-        public void CaptureGraphic(ref Texture2D tex,Graphic target)
+        /// <param name="resolutionRatio">缩放倍率</param>
+        public void Capture(ref Texture2D tex,RectTransform target,float resolutionRatio=1)
         {
             if (target == null)
             {
                 throw new Exception("目标为空.");
             }
 
-            var screenWidth = Screen.width;
-            var screenHeight = Screen.height;
-            var targetRectTrans = target.rectTransform;
-            var targetWidth = (int)target.rectTransform.rect.width;
+            resolutionRatio = Mathf.Clamp(resolutionRatio,0.1f,5f);
+            var screenWidth = (int)(Screen.width*resolutionRatio);
+            var screenHeight = (int)(Screen.height*resolutionRatio);
+            var targetRectTrans = target;
+            var targetWidth = (int)targetRectTrans.rect.width;
             var targetHeight = (int)targetRectTrans.rect.height;
             var maxTextureSize = (float)SystemInfo.maxTextureSize;
             var texSizeRotio = Mathf.Min(
-                                Mathf.Min(maxTextureSize / targetWidth,(float)screenWidth/ targetWidth, 1),
-                                Mathf.Min(maxTextureSize / targetHeight,(float)screenHeight/targetHeight ,1)
+                                Mathf.Min(maxTextureSize / targetWidth,(float)screenWidth/ targetWidth, resolutionRatio),
+                                Mathf.Min(maxTextureSize / targetHeight,(float)screenHeight/targetHeight , resolutionRatio)
                                 );
             var texWidth = (int)(targetWidth * texSizeRotio);
             var texHeight = (int)(targetHeight * texSizeRotio);
-            var rootCanvas = target.canvas.rootCanvas;
+            var rootCanvas = target.GetComponentInParent<Canvas>().rootCanvas;
             var rootScaler = rootCanvas.GetComponent<CanvasScaler>();
 
             m_Canvas.renderMode = RenderMode.ScreenSpaceCamera;

@@ -15,12 +15,14 @@ namespace RedScarf.UguiFriend
             m_To = 1;
         }
 
+#if UNITY_EDITOR
         protected override void OnValidate()
         {
             base.OnValidate();
             m_From = Mathf.Clamp(m_From,0,1);
             m_To= Mathf.Clamp(m_To, 0, 1);
         }
+#endif
 
         protected override float RefrashView(float from, float to, float t)
         {

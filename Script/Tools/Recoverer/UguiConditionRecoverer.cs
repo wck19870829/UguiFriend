@@ -71,7 +71,7 @@ namespace RedScarf.UguiFriend
             for (var i=0;i< len;i++)
             {
                 var child= cacheTransform.GetChild(i).GetComponent<T>();
-                if(child)
+                if(child&&!m_ChildSet.Contains(child))
                     m_ChildSet.Add(child);
             }
         }

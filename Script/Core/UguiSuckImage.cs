@@ -155,7 +155,7 @@ namespace RedScarf.UguiFriend
             {
                 //截图
                 m_CacheTex = this.texture;
-                UguiScreenshot.Instance.CaptureGraphic(ref m_ScreenShot, this);
+                UguiScreenshot.Instance.Capture(ref m_ScreenShot,rectTransform);
                 this.texture = m_ScreenShot;
 
                 //缓存子物体状态

@@ -23,7 +23,8 @@ namespace RedScarf.UguiFriend
             m_InAreaDict.Clear();
             foreach (var child in m_ChildSet)
             {
-                m_InAreaDict.Add(child.Guid, child);
+                if(!m_InAreaDict.ContainsKey(child.Guid))
+                    m_InAreaDict.Add(child.Guid, child);
             }
         }
 
