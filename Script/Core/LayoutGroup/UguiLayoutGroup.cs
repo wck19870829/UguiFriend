@@ -111,7 +111,7 @@ namespace RedScarf.UguiFriend
         /// 直接整体强制设置
         /// </summary>
         /// <param name="childDataList"></param>
-        public virtual void Set<T>(List<T> childDataList)where T:UguiObjectData
+        public virtual void Set(List<UguiObjectData> childDataList)
         {
             Init();
 
