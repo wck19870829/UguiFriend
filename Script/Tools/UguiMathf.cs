@@ -155,6 +155,67 @@ namespace RedScarf.UguiFriend
             return outDir;
         }
 
+        #region RectTransform
+
+        /// <summary>
+        /// 重置尺寸
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="pivot"></param>
+        /// <param name="localPoint"></param>
+        /// <param name="minWidth"></param>
+        /// <param name="minHeight"></param>
+        /// <param name="maxWidth"></param>
+        /// <param name="maxHeight"></param>
+        /// <returns></returns>
+        public static Vector2 ResizeRectTransform(RectTransform target,UguiPivot pivot,Vector2 localPoint, int minWidth, int minHeight, int maxWidth,int maxHeight)
+        {
+            if (!target)
+                throw new Exception("Target is null.");
+
+            switch (pivot)
+            {
+                case UguiPivot.Bottom:
+
+                    break;
+                case UguiPivot.BottomLeft:
+
+                    break;
+
+                case UguiPivot.BottomRight:
+
+                    break;
+
+                case UguiPivot.Center:
+
+                    break;
+
+                case UguiPivot.Left:
+
+                    break;
+
+                case UguiPivot.Right:
+
+                    break;
+
+                case UguiPivot.Top:
+
+                    break;
+
+                case UguiPivot.TopLeft:
+
+                    break;
+
+                case UguiPivot.TopRight:
+
+                    break;
+            }
+
+            return localPoint;
+        }
+
+        #endregion
+
         #region Bounds
 
         /// <summary>

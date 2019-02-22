@@ -498,6 +498,7 @@ namespace RedScarf.UguiFriend
         public static T AddChild<T>(string name,Transform parent=null)where T:Component
         {
             var go = new GameObject(name);
+            go.AddComponent<RectTransform>();
             if (parent != null)
                 go.transform.SetParent(parent);
 

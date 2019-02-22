@@ -2,26 +2,31 @@
 using System.Collections;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using System;
+using UnityEngine.UI;
 
 namespace RedScarf.UguiFriend
 {
+    [RequireComponent(typeof(Graphic))]
     /// <summary>
     /// 拖拽改变尺寸
     /// </summary>
     public class UguiDragResize : UIBehaviour,IBeginDragHandler,IDragHandler,IEndDragHandler
     {
-        public RectTransform target;
+        [SerializeField]protected UguiPivot m_Pivot;
+        [SerializeField]protected RectTransform m_Target;
         public int minWidth=100;
         public int minHeight=100;
         public int maxWidth=9999;
         public int maxHeight=9999;
 
+        protected RectTransform m_RectTransform;
         protected Vector2 screenOffset;
 
-        private void OnDrawGizmos()
+        protected override void Awake()
         {
-            var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(transform as RectTransform);
-            Gizmos.DrawWireCube(bounds.center,bounds.size);
+            base.Awake();
+            m_RectTransform = transform as RectTransform;
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -30,20 +35,56 @@ namespace RedScarf.UguiFriend
             screenOffset = screenPoint-eventData.position;
         }
 
-        public void OnDrag(PointerEventData eventData)
+        public virtual void OnDrag(PointerEventData eventData)
         {
-            if (target != null)
+            if (m_Target != null)
             {
-
+                transform.localPosition = UguiMathf.ResizeRectTransform(m_Target, m_Pivot, transform.localPosition, minWidth, minHeight, maxWidth, maxHeight);
             }
-            Vector3 worldPos;
-            RectTransformUtility.ScreenPointToWorldPointInRectangle(transform as RectTransform, eventData.position+screenOffset, eventData.pressEventCamera, out worldPos);
-            transform.position = worldPos;
+            //Vector3 worldPos;
+            //RectTransformUtility.ScreenPointToWorldPointInRectangle(transform as RectTransform, eventData.position+screenOffset, eventData.pressEventCamera, out worldPos);
+            //transform.position = worldPos;
         }
 
         public void OnEndDrag(PointerEventData eventData)
         {
+            
+        }
 
+        public UguiPivot Pivot
+        {
+            get
+            {
+                return m_Pivot;
+            }
+            set
+            {
+                m_Pivot = value;
+            }
+        }
+
+        public RectTransform Target
+        {
+            get
+            {
+                return m_Target;
+            }
+            set
+            {
+                m_Target = value;
+            }
+        }
+
+        public RectTransform RectTransform
+        {
+            get
+            {
+                if(m_RectTransform == null)
+                {
+                    m_RectTransform = transform as RectTransform;
+                }
+                return m_RectTransform;
+            }
         }
     }
 }
