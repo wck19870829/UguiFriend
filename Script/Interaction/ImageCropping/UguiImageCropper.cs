@@ -16,7 +16,10 @@ namespace RedScarf.UguiFriend
         protected const int safeFrameMinWidthValue = 100;
         protected const int safeFrameMinHeightValue = 100;
 
-        [SerializeField] protected RawImage srcImage;               //待处理的图
+        public RawImage target;
+
+        [SerializeField] protected RectTransform srcImageContent;   //待处理图容器
+        [SerializeField] protected RawImage srcImage;
         [SerializeField] protected Image safeFrame;                 //安全框
         [SerializeField] protected RawImage maskImage;              //遮罩
         [SerializeField] protected Slider scaleSlider;              //缩放滑块
@@ -35,11 +38,9 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected Button scaleStepButton;          //调整缩放步骤按钮
         [SerializeField] protected Button rotationStepButton;       //调整旋转步骤按钮
         [SerializeField] protected Button cropStepButton;           //调整裁切步骤按钮
-        [SerializeField] protected Button mattingStepButton;        //抠像步骤按钮
         [SerializeField] protected GameObject scaleStep;
         [SerializeField] protected GameObject rotationStep;
         [SerializeField] protected GameObject cropStep;
-        [SerializeField] protected GameObject mattingStep;
 
         [Header("Crop Ratio")]
         [SerializeField] protected Button originalCropRatioButton;
@@ -48,6 +49,7 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected Button cropRatioButton3_2;
         [SerializeField] protected Button cropRatioButton16_9;
 
+        protected Texture2D screenShot;
         protected List<RawImage> bisectrixColumnList;
         protected List<RawImage> bisectrixRowList;
         protected List<EventTrigger> safeFrameDragList;
@@ -89,6 +91,7 @@ namespace RedScarf.UguiFriend
             {
                 var dragButtonImage = UguiTools.AddChild<RawImage>("DragButton", safeFrame.transform);
                 var dragButton = dragButtonImage.gameObject.AddComponent<UguiDragResize>();
+                dragButton.Graphic.color = Color.clear;
                 dragButton.Target = safeFrame.rectTransform;
                 dragButtonList.Add(dragButton);
             }
@@ -109,6 +112,9 @@ namespace RedScarf.UguiFriend
             dragButtonBottomLeft.Pivot = UguiPivot.BottomLeft;
             dragButtonBottomRight.Pivot = UguiPivot.BottomRight;
 
+            if(!srcImage)
+                srcImage = UguiTools.AddChild<RawImage>("SrcImage",srcImageContent);
+            srcImage.transform.SetParent(srcImageContent,true);
             var srcTrigger = srcImage.gameObject.AddComponent<EventTrigger>();
             var srcEntry = new EventTrigger.Entry();
             srcEntry.eventID = EventTriggerType.Drag;
@@ -141,7 +147,6 @@ namespace RedScarf.UguiFriend
             cancelButton.onClick.AddListener(OnCancelButtonClick);
             scaleStepButton.onClick.AddListener(OnScaleStepButtonClick);
             rotationStepButton.onClick.AddListener(OnRotationStepButtonClick);
-            mattingStepButton.onClick.AddListener(OnMattingStepButtonClick);
             cropStepButton.onClick.AddListener(OnCropStepButtonClick);
             scaleSlider.onValueChanged.AddListener(OnScaleChange);
             rotationSlider.onValueChanged.AddListener(OnRotationChange);
@@ -150,8 +155,7 @@ namespace RedScarf.UguiFriend
             {
                 scaleStep,
                 rotationStep,
-                cropStep,
-                mattingStep
+                cropStep
             };
             originalCropRatioButton.onClick.AddListener(OriginalCropRatioButtonClick);
             cropRatioButton1_1.onClick.AddListener(CropRatioButton1_1Click);
@@ -190,11 +194,6 @@ namespace RedScarf.UguiFriend
         protected virtual void OnCropStepButtonClick()
         {
             GotoStep(cropStep);
-        }
-
-        protected virtual void OnMattingStepButtonClick()
-        {
-            GotoStep(mattingStep);
         }
 
         /// <summary>
@@ -263,9 +262,11 @@ namespace RedScarf.UguiFriend
 
         protected virtual void OnConfirmButtonClick()
         {
+            var destImage = GetDestImage();
+            target.texture = destImage;
             if (OnConfirm != null)
             {
-                OnConfirm.Invoke(GetDestImage());
+                OnConfirm.Invoke(destImage);
             }
         }
 
@@ -473,7 +474,13 @@ namespace RedScarf.UguiFriend
         {
             if (srcImage && srcImage.texture)
             {
+                var cachePos = srcImage.transform.position;
+                srcImageContent.position = safeFrame.transform.position;
+                srcImageContent.sizeDelta = safeFrame.rectTransform.sizeDelta;
+                srcImage.transform.position=cachePos;
+                UguiScreenshot.Instance.Capture(ref screenShot, srcImageContent);
 
+                return screenShot;
             }
 
             return null;

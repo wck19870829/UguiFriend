@@ -20,6 +20,7 @@ namespace RedScarf.UguiFriend
         public int maxWidth=9999;
         public int maxHeight=9999;
 
+        protected Graphic m_Graphic;
         protected RectTransform m_RectTransform;
         protected Vector2 screenOffset;
 
@@ -84,6 +85,17 @@ namespace RedScarf.UguiFriend
                     m_RectTransform = transform as RectTransform;
                 }
                 return m_RectTransform;
+            }
+        }
+
+        public Graphic Graphic
+        {
+            get
+            {
+                if (m_Graphic == null)
+                    m_Graphic = GetComponent<Graphic>();
+
+                return m_Graphic;
             }
         }
     }

@@ -11,6 +11,8 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public sealed class UguiScreenshot : UguiSingleton<UguiScreenshot>,IUguiSingletonCreate<UguiScreenshot>
     {
+        static public Texture2D tempTex;
+
         Camera m_Camera;
         Canvas m_Canvas;
         CanvasScaler m_CanvasScaler;
@@ -84,6 +86,7 @@ namespace RedScarf.UguiFriend
             }
 
             //置入渲染画布
+            var cacheSiblingIndex = targetRectTrans.GetSiblingIndex();
             targetRectTrans.SetParent(transform);
             targetRectTrans.pivot = Vector2.one*0.5f;
             targetRectTrans.rotation = Quaternion.identity;
@@ -105,6 +108,7 @@ namespace RedScarf.UguiFriend
             targetRectTrans.position = cachePos;
             targetRectTrans.localScale = cacheScale;
             targetRectTrans.rotation = cacheRotation;
+            targetRectTrans.SetSiblingIndex(cacheSiblingIndex);
             foreach (var child in children)
             {
                 child.gameObject.layer = layerDict[child.gameObject];
@@ -116,6 +120,8 @@ namespace RedScarf.UguiFriend
             RenderTexture.active = rt;
             if (tex == null)
                 tex = new Texture2D(texWidth, texHeight, TextureFormat.ARGB32, false);
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.filterMode = FilterMode.Bilinear;
             if (tex.width != texWidth || tex.height != texHeight)
                 tex.Resize(texWidth, texHeight, TextureFormat.ARGB32, false);
             var sourceRect = new Rect(
