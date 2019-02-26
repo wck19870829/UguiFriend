@@ -178,6 +178,7 @@ namespace RedScarf.UguiFriend
                 case UguiPivot.Bottom:
 
                     break;
+
                 case UguiPivot.BottomLeft:
 
                     break;
@@ -212,6 +213,23 @@ namespace RedScarf.UguiFriend
             }
 
             return localPoint;
+        }
+
+        /// <summary>
+        /// 调整
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="top"></param>
+        /// <param name="bottom"></param>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        public static void AdjustRectTransform(RectTransform target, float top, float bottom, float left, float right)
+        {
+            if (!target) return;
+
+            var size = (target.parent as RectTransform).rect.size;
+            target.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, top, size.y - bottom - top);
+            target.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, left, size.x - right - left);
         }
 
         #endregion

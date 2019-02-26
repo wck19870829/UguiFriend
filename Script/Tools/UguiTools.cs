@@ -29,6 +29,23 @@ namespace RedScarf.UguiFriend
             objDataTempList = new List<UguiObjectData>();
         }
 
+        #region 图片
+
+        /// <summary>
+        /// 调整图片HSV
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="dest"></param>
+        /// <param name="hOffset"></param>
+        /// <param name="sOffset"></param>
+        /// <param name="vOffset"></param>
+        public static void AdjustTexture(Texture2D src,Texture2D dest,float hOffset,float sOffset,float vOffset)
+        {
+            
+        }
+
+        #endregion
+
         /// <summary>
         /// 获取置顶的ui元素
         /// </summary>
