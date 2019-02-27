@@ -42,9 +42,50 @@ namespace RedScarf.UguiFriend
             {
                 transform.localPosition = UguiMathf.ResizeRectTransform(m_Target, m_Pivot, transform.localPosition, minWidth, minHeight, maxWidth, maxHeight);
             }
-            //Vector3 worldPos;
-            //RectTransformUtility.ScreenPointToWorldPointInRectangle(transform as RectTransform, eventData.position+screenOffset, eventData.pressEventCamera, out worldPos);
-            //transform.position = worldPos;
+            Vector2 localPoint;
+            if(RectTransformUtility.ScreenPointToLocalPointInRectangle(m_Target,eventData.position, eventData.pressEventCamera,out localPoint))
+            {
+                var size = m_Target.rect.size;
+                switch (m_Pivot)
+                {
+                    case UguiPivot.Bottom:
+
+                        break;
+
+                    case UguiPivot.BottomLeft:
+
+                        break;
+
+                    case UguiPivot.BottomRight:
+
+                        break;
+
+                    case UguiPivot.Center:
+
+                        break;
+
+                    case UguiPivot.Left:
+
+                        break;
+
+                    case UguiPivot.Right:
+
+                        break;
+
+                    case UguiPivot.Top:
+
+                        break;
+
+                    case UguiPivot.TopLeft:
+
+                        break;
+
+                    case UguiPivot.TopRight:
+
+                        break;
+                }
+                m_Target.sizeDelta = size;
+            }
         }
 
         public void OnEndDrag(PointerEventData eventData)

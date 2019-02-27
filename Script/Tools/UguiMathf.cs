@@ -232,6 +232,29 @@ namespace RedScarf.UguiFriend
             target.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, left, size.x - right - left);
         }
 
+        /// <summary>
+        /// 到父级边的距离
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns>返回Vector4(top,bottom,left,right)</returns>
+        public static Vector4 GetRectTransformEdgeDistance(RectTransform target)
+        {
+            if (!target)
+                throw new Exception("Target is null.");
+
+            var rect = target.rect;
+            var parent = target.parent as RectTransform;
+            
+            var edgeDist = new Vector4(
+                            rect.yMin,
+                            rect.yMax,
+                            0,
+                            0
+                            );
+
+            return edgeDist;
+        }
+
         #endregion
 
         #region Bounds

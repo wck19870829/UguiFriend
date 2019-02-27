@@ -41,7 +41,23 @@ namespace RedScarf.UguiFriend
         /// <param name="vOffset"></param>
         public static void AdjustTexture(Texture2D src,Texture2D dest,float hOffset,float sOffset,float vOffset)
         {
-            
+            if (!src) return;
+
+
+        }
+
+        /// <summary>
+        /// 缩放图片
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="dest"></param>
+        /// <param name="maxWdith"></param>
+        /// <param name="maxHeight"></param>
+        public static void AdjustTexture(Texture2D src,int maxWdith,int maxHeight)
+        {
+            if (!src) return;
+
+
         }
 
         #endregion
