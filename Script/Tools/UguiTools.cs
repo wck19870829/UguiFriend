@@ -501,24 +501,35 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 获取轴心点
+        /// </summary>
+        /// <param name="pivot"></param>
+        /// <returns></returns>
+        public static Vector2 GetPivotValue(UguiPivot pivot)
+        {
+            switch (pivot)
+            {
+                case (UguiPivot.TopLeft):return new Vector2(0, 1);
+                case (UguiPivot.Top): return new Vector2(0.5f, 1);
+                case (UguiPivot.TopRight): return new Vector2(1, 1);
+                case (UguiPivot.Left): return new Vector2(0, 0.5f);
+                case (UguiPivot.Center): return new Vector2(0.5f, 0.5f);
+                case (UguiPivot.Right): return new Vector2(1, 0.5f);
+                case (UguiPivot.BottomLeft): return new Vector2(0, 0);
+                case (UguiPivot.Bottom): return new Vector2(0.5f, 0);
+                case (UguiPivot.BottomRight): return new Vector2(1, 0);
+                default:return Vector2.zero;
+            }
+        }
+
+        /// <summary>
         /// 设置轴心点
         /// </summary>
         /// <param name="target"></param>
-        /// <param name="preset"></param>
-        public static void SetPivot(RectTransform target, PivotPresets pivotPresets)
+        /// <param name="pivot"></param>
+        public static void SetPivot(RectTransform target, UguiPivot pivot)
         {
-            switch (pivotPresets)
-            {
-                case (PivotPresets.TopLeft): target.pivot = new Vector2(0, 1); break;
-                case (PivotPresets.TopCenter): target.pivot = new Vector2(0.5f, 1); break;
-                case (PivotPresets.TopRight): target.pivot = new Vector2(1, 1); break;
-                case (PivotPresets.MiddleLeft): target.pivot = new Vector2(0, 0.5f); break;
-                case (PivotPresets.MiddleCenter): target.pivot = new Vector2(0.5f, 0.5f); break;
-                case (PivotPresets.MiddleRight): target.pivot = new Vector2(1, 0.5f); break;
-                case (PivotPresets.BottomLeft): target.pivot = new Vector2(0, 0); break;
-                case (PivotPresets.BottomCenter): target.pivot = new Vector2(0.5f, 0); break;
-                case (PivotPresets.BottomRight): target.pivot = new Vector2(1, 0); break;
-            }
+            target.pivot= GetPivotValue(pivot);
         }
 
         /// <summary>
@@ -734,21 +745,5 @@ namespace RedScarf.UguiFriend
         HorStretchMiddle,
         HorStretchBottom,
         StretchAll
-    }
-
-    /// <summary>
-    /// 轴心点预设
-    /// </summary>
-    public enum PivotPresets
-    {
-        TopLeft,
-        TopCenter,
-        TopRight,
-        MiddleLeft,
-        MiddleCenter,
-        MiddleRight,
-        BottomLeft,
-        BottomCenter,
-        BottomRight
     }
 }

@@ -45,11 +45,16 @@ namespace RedScarf.UguiFriend
             Vector2 localPoint;
             if(RectTransformUtility.ScreenPointToLocalPointInRectangle(m_Target,eventData.position, eventData.pressEventCamera,out localPoint))
             {
-                var size = m_Target.rect.size;
+                var rect = m_Target.rect;
+                var cachePivot = m_Target.pivot;
                 switch (m_Pivot)
                 {
                     case UguiPivot.Bottom:
-
+                        rect.yMax = Mathf.Clamp(localPoint.y,rect.yMin+minHeight,rect.yMin+maxHeight);
+                        UguiTools.SetPivot(m_Target,m_Pivot);
+                        m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rect.width);
+                        m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,rect.height);
+                        m_Target.pivot = cachePivot;
                         break;
 
                     case UguiPivot.BottomLeft:
@@ -84,7 +89,8 @@ namespace RedScarf.UguiFriend
 
                         break;
                 }
-                m_Target.sizeDelta = size;
+
+                transform.localPosition=localPoint;
             }
         }
 

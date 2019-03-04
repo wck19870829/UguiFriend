@@ -564,6 +564,22 @@ namespace RedScarf.UguiFriend
             return rect;
         }
 
+        /// <summary>
+        /// 包含进去点
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        public static Rect RectEncapsulate(Rect rect,Vector2 point)
+        {
+            rect.xMin = Mathf.Min(point.x, rect.xMin);
+            rect.xMax = Mathf.Max(point.x,rect.xMax);
+            rect.yMin = Math.Min(point.y,rect.yMin);
+            rect.yMax = Math.Max(point.y,rect.yMax);
+
+            return rect;
+        }
+
         #endregion
 
         #region Plane
