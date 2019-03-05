@@ -13,6 +13,7 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiDragResize : UIBehaviour,IBeginDragHandler,IDragHandler,IEndDragHandler
     {
+        public Vector2 pivot;
         [SerializeField]protected UguiPivot m_Pivot;
         [SerializeField]protected RectTransform m_Target;
         public int minWidth=100;
@@ -43,21 +44,27 @@ namespace RedScarf.UguiFriend
                 transform.localPosition = UguiMathf.ResizeRectTransform(m_Target, m_Pivot, transform.localPosition, minWidth, minHeight, maxWidth, maxHeight);
             }
             Vector2 localPoint;
-            if(RectTransformUtility.ScreenPointToLocalPointInRectangle(m_Target,eventData.position, eventData.pressEventCamera,out localPoint))
+            if(RectTransformUtility.ScreenPointToLocalPointInRectangle(m_Target,eventData.position+ screenOffset, eventData.pressEventCamera,out localPoint))
             {
-                var size = m_Target.rect.size;
+                var rect = m_Target.rect;
+                var cachePivot = m_Target.pivot;
                 switch (m_Pivot)
                 {
                     case UguiPivot.Bottom:
-
+                        rect.yMin = Mathf.Clamp(localPoint.y, rect.yMax - maxHeight, rect.yMax-minHeight);
+                        UguiTools.SetPivot(m_Target,UguiPivot.Top);
                         break;
 
                     case UguiPivot.BottomLeft:
-
+                        rect.yMin = Mathf.Clamp(localPoint.y, rect.yMax - maxHeight, rect.yMax - minHeight);
+                        rect.xMin = Mathf.Clamp(localPoint.x, rect.xMax - maxWidth, rect.xMax - minWidth);
+                        UguiTools.SetPivot(m_Target, UguiPivot.TopRight);
                         break;
 
                     case UguiPivot.BottomRight:
-
+                        rect.yMin = Mathf.Clamp(localPoint.y, rect.yMax - maxHeight, rect.yMax - minHeight);
+                        rect.xMax = Mathf.Clamp(localPoint.x, rect.xMin + minWidth, rect.xMin + maxWidth);
+                        UguiTools.SetPivot(m_Target, UguiPivot.TopLeft);
                         break;
 
                     case UguiPivot.Center:
@@ -65,26 +72,38 @@ namespace RedScarf.UguiFriend
                         break;
 
                     case UguiPivot.Left:
-
+                        rect.xMin = Mathf.Clamp(localPoint.x, rect.xMax - maxWidth, rect.xMax - minWidth);
+                        UguiTools.SetPivot(m_Target, UguiPivot.Right);
                         break;
 
                     case UguiPivot.Right:
-
+                        rect.xMax = Mathf.Clamp(localPoint.x, rect.xMin + minWidth, rect.xMin + maxWidth);
+                        UguiTools.SetPivot(m_Target, UguiPivot.Left);
                         break;
 
                     case UguiPivot.Top:
-
+                        rect.yMax = Mathf.Clamp(localPoint.y, rect.yMin + minHeight, rect.yMin + maxHeight);
+                        UguiTools.SetPivot(m_Target, UguiPivot.Bottom);
                         break;
 
                     case UguiPivot.TopLeft:
-
+                        rect.yMax = Mathf.Clamp(localPoint.y, rect.yMin + minHeight, rect.yMin + maxHeight);
+                        rect.xMin = Mathf.Clamp(localPoint.x, rect.xMax - maxWidth, rect.xMax - minWidth);
+                        UguiTools.SetPivot(m_Target, UguiPivot.BottomRight);
                         break;
 
                     case UguiPivot.TopRight:
-
+                        rect.yMax = Mathf.Clamp(localPoint.y, rect.yMin + minHeight, rect.yMin + maxHeight);
+                        rect.xMax = Mathf.Clamp(localPoint.x, rect.xMin + minWidth, rect.xMin + maxWidth);
+                        UguiTools.SetPivot(m_Target, UguiPivot.BottomLeft);
                         break;
                 }
-                m_Target.sizeDelta = size;
+
+                m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rect.width);
+                m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rect.height);
+                UguiTools.SetPivot(m_Target, cachePivot);
+
+                transform.localPosition=localPoint;
             }
         }
 
