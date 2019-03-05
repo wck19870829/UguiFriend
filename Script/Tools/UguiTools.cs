@@ -60,6 +60,16 @@ namespace RedScarf.UguiFriend
 
         }
 
+        /// <summary>
+        /// Texture转Texture2D
+        /// </summary>
+        /// <param name="tex"></param>
+        /// <param name="t2d"></param>
+        public static void Texture2Texture2D(Texture tex,Texture2D t2d)
+        {
+
+        }
+
         #endregion
 
         /// <summary>
