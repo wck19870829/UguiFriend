@@ -13,7 +13,6 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiDragResize : UIBehaviour,IBeginDragHandler,IDragHandler,IEndDragHandler
     {
-        public Vector2 pivot;
         [SerializeField]protected UguiPivot m_Pivot;
         [SerializeField]protected RectTransform m_Target;
         public int minWidth=100;
@@ -39,10 +38,6 @@ namespace RedScarf.UguiFriend
 
         public virtual void OnDrag(PointerEventData eventData)
         {
-            if (m_Target != null)
-            {
-                transform.localPosition = UguiMathf.ResizeRectTransform(m_Target, m_Pivot, transform.localPosition, minWidth, minHeight, maxWidth, maxHeight);
-            }
             Vector2 localPoint;
             if(RectTransformUtility.ScreenPointToLocalPointInRectangle(m_Target,eventData.position+ screenOffset, eventData.pressEventCamera,out localPoint))
             {

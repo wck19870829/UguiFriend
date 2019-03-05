@@ -64,6 +64,7 @@ namespace RedScarf.UguiFriend
         protected UguiDragResize dragButtonTopRight;
         protected UguiDragResize dragButtonBottomLeft;
         protected UguiDragResize dragButtonBottomRight;
+        protected Vector2 srcImageOffset;
 
         public Action<Texture2D> OnConfirm;
         public Action OnCancel;
@@ -89,7 +90,7 @@ namespace RedScarf.UguiFriend
             var dragButtonList = new List<UguiDragResize>();
             for (var i = 0; i < 8; i++)
             {
-                var dragButtonImage = UguiTools.AddChild<RawImage>("DragButton", safeFrame.transform);
+                var dragButtonImage = UguiTools.AddChild<RawImage>("", safeFrame.transform);
                 var dragButton = dragButtonImage.gameObject.AddComponent<UguiDragResize>();
                 dragButton.Graphic.color = Color.clear;
                 dragButton.Target = safeFrame.rectTransform;
@@ -111,6 +112,10 @@ namespace RedScarf.UguiFriend
             dragButtonTopRight.Pivot = UguiPivot.TopRight;
             dragButtonBottomLeft.Pivot = UguiPivot.BottomLeft;
             dragButtonBottomRight.Pivot = UguiPivot.BottomRight;
+            foreach(var dragButton in dragButtonList)
+            {
+                dragButton.name = "Drag_"+dragButton.Pivot;
+            }
 
             if(!srcImage)
                 srcImage = UguiTools.AddChild<RawImage>("SrcImage",srcImageContent);
@@ -120,6 +125,10 @@ namespace RedScarf.UguiFriend
             srcEntry.eventID = EventTriggerType.Drag;
             srcEntry.callback.AddListener(OnSrcImageDrag);
             srcTrigger.triggers.Add(srcEntry);
+            var srcBeginDragEntry = new EventTrigger.Entry();
+            srcBeginDragEntry.eventID = EventTriggerType.BeginDrag;
+            srcBeginDragEntry.callback.AddListener(OnSrcImageBeginDrag);
+            srcTrigger.triggers.Add(srcBeginDragEntry);
 
             //创建安全框等分线
             for (var i = 0; i < bisectrixColumn; i++)
@@ -176,7 +185,7 @@ namespace RedScarf.UguiFriend
             LimitSafeFrame();
         }
 
-        protected virtual void Update()
+        protected virtual void LateUpdate()
         {
             RefreshDisplay();
         }
@@ -221,7 +230,10 @@ namespace RedScarf.UguiFriend
 
         protected virtual void OriginalCropRatioButtonClick()
         {
+            if (srcImage && srcImage.texture)
+            {
 
+            }
         }
 
         protected virtual void CropRatioButton1_1Click()
@@ -242,6 +254,15 @@ namespace RedScarf.UguiFriend
         protected virtual void CropRatioButton16_9Click()
         {
 
+        }
+
+        protected virtual void SetSafeFrame()
+        {
+            if (safeFrame)
+            {
+                UguiTools.SetAnchor(safeFrame.rectTransform, AnchorPresets.MiddleCenter);
+                safeFrame.rectTransform.localPosition = Vector3.zero;
+            }
         }
 
         protected virtual void OnScaleChange(float value)
@@ -366,13 +387,23 @@ namespace RedScarf.UguiFriend
             dragButtonBottom.RectTransform.sizeDelta = new Vector2(widthShrink, safeFrameDragWidth);
             dragButtonBottom.RectTransform.localPosition = new Vector3(0, -height * 0.5f);
             dragButtonTopLeft.RectTransform.sizeDelta = cornerSize;
-            dragButtonTopLeft.RectTransform.localPosition = new Vector3(-width * 0.5f, -height * 0.5f);
+            dragButtonTopLeft.RectTransform.localPosition = new Vector3(-width * 0.5f, height * 0.5f);
             dragButtonTopRight.RectTransform.sizeDelta= cornerSize;
-            dragButtonTopRight.RectTransform.localPosition = new Vector3(width * 0.5f, -height * 0.5f);
+            dragButtonTopRight.RectTransform.localPosition = new Vector3(width * 0.5f, height * 0.5f);
             dragButtonBottomLeft.RectTransform.sizeDelta= cornerSize;
-            dragButtonBottomLeft.RectTransform.localPosition = new Vector3(-width * 0.5f, height * 0.5f);
+            dragButtonBottomLeft.RectTransform.localPosition = new Vector3(-width * 0.5f, -height * 0.5f);
             dragButtonBottomRight.RectTransform.sizeDelta = cornerSize;
-            dragButtonBottomRight.RectTransform.localPosition = new Vector3(width * 0.5f, height * 0.5f);
+            dragButtonBottomRight.RectTransform.localPosition = new Vector3(width * 0.5f, -height * 0.5f);
+        }
+
+        protected virtual void OnSrcImageBeginDrag(BaseEventData eventData)
+        {
+            PointerEventData pe = eventData as PointerEventData;
+            if (pe != null)
+            {
+                var screenPoint=RectTransformUtility.WorldToScreenPoint(m_Canvas.rootCanvas.worldCamera, srcImage.rectTransform.position);
+                srcImageOffset = screenPoint- pe.position;
+            }
         }
 
         protected virtual void OnSrcImageDrag(BaseEventData eventData)
@@ -381,42 +412,12 @@ namespace RedScarf.UguiFriend
             if (pe != null)
             {
                 Vector3 worldPoint;
-                if (RectTransformUtility.ScreenPointToWorldPointInRectangle(safeFrame.rectTransform, pe.position, m_Canvas.rootCanvas.worldCamera, out worldPoint))
+                if (RectTransformUtility.ScreenPointToWorldPointInRectangle(srcImage.rectTransform, pe.position + srcImageOffset, m_Canvas.rootCanvas.worldCamera, out worldPoint))
                 {
-                    pe.pointerDrag.transform.position = worldPoint;
+                    srcImage.transform.position = worldPoint;
                 }
             }
         }
-
-        //protected virtual void OnSafeFrameDrag(BaseEventData eventData)
-        //{
-        //    PointerEventData pe = eventData as PointerEventData;
-        //    if (pe != null&&pe.pointerDrag)
-        //    {
-        //        var pointerDrag = pe.pointerDrag.GetComponent<RawImage>();
-        //        if (!pointerDrag) return;
-
-        //        Vector2 localPoint;
-        //        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(safeFrame.rectTransform, pe.position, m_Canvas.rootCanvas.worldCamera, out localPoint))
-        //        {
-        //            var delta=pe.delta;
-        //            if(pointerDrag==dragButtonBottom|| pointerDrag == dragButtonTop)
-        //            {
-        //                //纵向拖拽
-        //                delta.x = 0;
-        //            }
-        //            else if (pointerDrag == dragButtonLeft || pointerDrag == dragButtonRight)
-        //            {
-        //                //横向拖拽
-        //                delta.y = 0;
-        //            }
-        //            var size = safeFrame.rectTransform.rect.size;
-        //            size += delta;
-        //            safeFrame.rectTransform.sizeDelta = size;
-        //            LimitSafeFrame();
-        //        }
-        //    }
-        //}
 
         /// <summary>
         /// 设置待处理图片
