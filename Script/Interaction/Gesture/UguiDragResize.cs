@@ -13,6 +13,7 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiDragResize : UIBehaviour,IBeginDragHandler,IDragHandler,IEndDragHandler
     {
+        public Vector2 pivot;
         [SerializeField]protected UguiPivot m_Pivot;
         [SerializeField]protected RectTransform m_Target;
         public int minWidth=100;
@@ -50,19 +51,29 @@ namespace RedScarf.UguiFriend
                 switch (m_Pivot)
                 {
                     case UguiPivot.Bottom:
-                        rect.yMax = Mathf.Clamp(localPoint.y,rect.yMin+minHeight,rect.yMin+maxHeight);
-                        UguiTools.SetPivot(m_Target,m_Pivot);
+                        rect.yMin = Mathf.Clamp(localPoint.y, rect.yMax - maxHeight, rect.yMax-minHeight);
+                        UguiTools.SetPivot(m_Target,UguiPivot.Top);
                         m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rect.width);
                         m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,rect.height);
-                        m_Target.pivot = cachePivot;
+                        UguiTools.SetPivot(m_Target,cachePivot);
                         break;
 
                     case UguiPivot.BottomLeft:
-
+                        rect.yMin = Mathf.Clamp(localPoint.y, rect.yMax - maxHeight, rect.yMax - minHeight);
+                        rect.xMin = Mathf.Clamp(localPoint.x, rect.xMax - maxWidth, rect.xMax - minWidth);
+                        UguiTools.SetPivot(m_Target, UguiPivot.TopRight);
+                        m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rect.width);
+                        m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rect.height);
+                        UguiTools.SetPivot(m_Target, cachePivot);
                         break;
 
                     case UguiPivot.BottomRight:
-
+                        rect.yMin = Mathf.Clamp(localPoint.y, rect.yMax - maxHeight, rect.yMax - minHeight);
+                        rect.xMax = Mathf.Clamp(localPoint.x, rect.xMin + minWidth, rect.xMin + maxWidth);
+                        UguiTools.SetPivot(m_Target, UguiPivot.TopLeft);
+                        m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rect.width);
+                        m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rect.height);
+                        UguiTools.SetPivot(m_Target, cachePivot);
                         break;
 
                     case UguiPivot.Center:
@@ -70,23 +81,45 @@ namespace RedScarf.UguiFriend
                         break;
 
                     case UguiPivot.Left:
-
+                        rect.xMin = Mathf.Clamp(localPoint.x, rect.xMax - maxWidth, rect.xMax - minWidth);
+                        UguiTools.SetPivot(m_Target, UguiPivot.Right);
+                        m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rect.width);
+                        m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rect.height);
+                        UguiTools.SetPivot(m_Target, cachePivot);
                         break;
 
                     case UguiPivot.Right:
-
+                        rect.xMax = Mathf.Clamp(localPoint.x, rect.xMin + minWidth, rect.xMin + maxWidth);
+                        UguiTools.SetPivot(m_Target, UguiPivot.Left);
+                        m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rect.width);
+                        m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rect.height);
+                        UguiTools.SetPivot(m_Target, cachePivot);
                         break;
 
                     case UguiPivot.Top:
-
+                        rect.yMax = Mathf.Clamp(localPoint.y, rect.yMin + minHeight, rect.yMin + maxHeight);
+                        UguiTools.SetPivot(m_Target, UguiPivot.Bottom);
+                        m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rect.width);
+                        m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rect.height);
+                        UguiTools.SetPivot(m_Target, cachePivot);
                         break;
 
                     case UguiPivot.TopLeft:
-
+                        rect.yMax = Mathf.Clamp(localPoint.y, rect.yMin + minHeight, rect.yMin + maxHeight);
+                        rect.xMin = Mathf.Clamp(localPoint.x, rect.xMax - maxWidth, rect.xMax - minWidth);
+                        UguiTools.SetPivot(m_Target, UguiPivot.BottomRight);
+                        m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rect.width);
+                        m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rect.height);
+                        UguiTools.SetPivot(m_Target, cachePivot);
                         break;
 
                     case UguiPivot.TopRight:
-
+                        rect.yMax = Mathf.Clamp(localPoint.y, rect.yMin + minHeight, rect.yMin + maxHeight);
+                        rect.xMax = Mathf.Clamp(localPoint.x, rect.xMin + minWidth, rect.xMin + maxWidth);
+                        UguiTools.SetPivot(m_Target, UguiPivot.BottomLeft);
+                        m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rect.width);
+                        m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rect.height);
+                        UguiTools.SetPivot(m_Target, cachePivot);
                         break;
                 }
 

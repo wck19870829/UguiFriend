@@ -523,13 +523,32 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 设置轴心点
+        /// 设置轴心点(不改变位置)
         /// </summary>
         /// <param name="target"></param>
         /// <param name="pivot"></param>
         public static void SetPivot(RectTransform target, UguiPivot pivot)
         {
-            target.pivot= GetPivotValue(pivot);
+            var pivotValue= GetPivotValue(pivot);
+            SetPivot(target,pivotValue);
+        }
+
+        /// <summary>
+        /// 设置轴心点(不改变位置)
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="pivot"></param>
+        public static void SetPivot(RectTransform target, Vector2 pivot)
+        {
+            if (!target) return;
+
+            Vector3 deltaPosition = target.pivot - pivot;
+            deltaPosition.Scale(target.rect.size);
+            deltaPosition.Scale(target.localScale);
+            deltaPosition = target.localRotation * deltaPosition;
+
+            target.pivot = pivot;
+            target.localPosition -= deltaPosition;
         }
 
         /// <summary>
