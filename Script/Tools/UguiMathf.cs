@@ -158,59 +158,16 @@ namespace RedScarf.UguiFriend
         #region RectTransform
 
         /// <summary>
-        /// 重置尺寸
+        /// 获取相对坐标
         /// </summary>
-        /// <param name="target"></param>
-        /// <param name="pivot"></param>
-        /// <param name="localPoint"></param>
-        /// <param name="minWidth"></param>
-        /// <param name="minHeight"></param>
-        /// <param name="maxWidth"></param>
-        /// <param name="maxHeight"></param>
+        /// <param name="rect"></param>
+        /// <param name="worldPoint"></param>
         /// <returns></returns>
-        public static Vector2 ResizeRectTransform(RectTransform target,UguiPivot pivot,Vector2 localPoint, int minWidth, int minHeight, int maxWidth,int maxHeight)
+        public static Vector2 GetLocalPointInRectangle(Transform rect,Vector3 worldPoint)
         {
-            if (!target)
-                throw new Exception("Target is null.");
-
-            switch (pivot)
-            {
-                case UguiPivot.Bottom:
-
-                    break;
-
-                case UguiPivot.BottomLeft:
-
-                    break;
-
-                case UguiPivot.BottomRight:
-
-                    break;
-
-                case UguiPivot.Center:
-
-                    break;
-
-                case UguiPivot.Left:
-
-                    break;
-
-                case UguiPivot.Right:
-
-                    break;
-
-                case UguiPivot.Top:
-
-                    break;
-
-                case UguiPivot.TopLeft:
-
-                    break;
-
-                case UguiPivot.TopRight:
-
-                    break;
-            }
+            var plane = GetPlane(rect);
+            worldPoint = GetProjectOnPlane(plane, worldPoint);
+            var localPoint=rect.InverseTransformPoint(worldPoint);
 
             return localPoint;
         }
@@ -233,24 +190,23 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 到父级边的距离
+        /// 到边的距离
         /// </summary>
-        /// <param name="target"></param>
+        /// <param name="rect"></param>
+        /// <param name="worldPoint"></param>
         /// <returns>返回Vector4(top,bottom,left,right)</returns>
-        public static Vector4 GetRectTransformEdgeDistance(RectTransform target)
+        public static Vector4 GetRectTransformEdgeDistance(RectTransform rect,Vector3 worldPoint)
         {
-            if (!target)
-                throw new Exception("Target is null.");
+            if (!rect)
+                throw new Exception("Rect is null.");
 
-            var rect = target.rect;
-            var parent = target.parent as RectTransform;
-            
+            var r = rect.rect;
+            var localPoint = GetLocalPointInRectangle(rect, worldPoint);
             var edgeDist = new Vector4(
-                            rect.yMin,
-                            rect.yMax,
-                            0,
-                            0
-                            );
+                            r.yMax-localPoint.y,
+                            r.yMin-localPoint.y,
+                            r.xMin-localPoint.x,
+                            r.xMax-localPoint.x);
 
             return edgeDist;
         }
