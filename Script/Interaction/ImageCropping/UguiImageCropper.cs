@@ -12,7 +12,7 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiImageCropper : UIBehaviour
     {
-        protected const int safeFrameDragWidth = 40;
+        protected const int safeFrameDragWidth = 40;                        //拖拽框宽度
         protected const int safeFrameMinWidthValue = 100;
         protected const int safeFrameMinHeightValue = 100;
 
@@ -55,15 +55,6 @@ namespace RedScarf.UguiFriend
         protected List<EventTrigger> safeFrameDragList;
         protected Canvas m_Canvas;
         protected List<GameObject> stepList;
-
-        protected UguiDragResize dragButtonTop;
-        protected UguiDragResize dragButtonBottom;
-        protected UguiDragResize dragButtonLeft;
-        protected UguiDragResize dragButtonRight;
-        protected UguiDragResize dragButtonTopLeft;
-        protected UguiDragResize dragButtonTopRight;
-        protected UguiDragResize dragButtonBottomLeft;
-        protected UguiDragResize dragButtonBottomRight;
         protected Vector2 srcImageOffset;
 
         public Action<Texture2D> OnConfirm;
@@ -87,6 +78,8 @@ namespace RedScarf.UguiFriend
 
             safeFrame.type = Image.Type.Sliced;
             safeFrame.raycastTarget = false;
+
+            //拖拽区域
             var dragButtonList = new List<UguiDragResize>();
             for (var i = 0; i < 8; i++)
             {
@@ -94,16 +87,17 @@ namespace RedScarf.UguiFriend
                 var dragButton = dragButtonImage.gameObject.AddComponent<UguiDragResize>();
                 dragButton.Graphic.color = Color.clear;
                 dragButton.Target = safeFrame.rectTransform;
+                dragButton.RectTransform.sizeDelta = new Vector2(safeFrameDragWidth, safeFrameDragWidth);
                 dragButtonList.Add(dragButton);
             }
-            dragButtonTop= dragButtonList[0];
-            dragButtonBottom = dragButtonList[1];
-            dragButtonLeft = dragButtonList[2];
-            dragButtonRight = dragButtonList[3];
-            dragButtonTopLeft = dragButtonList[4];
-            dragButtonTopRight = dragButtonList[5];
-            dragButtonBottomLeft = dragButtonList[6];
-            dragButtonBottomRight = dragButtonList[7];
+            var dragButtonTop= dragButtonList[0];
+            var dragButtonBottom = dragButtonList[1];
+            var dragButtonLeft = dragButtonList[2];
+            var dragButtonRight = dragButtonList[3];
+            var dragButtonTopLeft = dragButtonList[4];
+            var dragButtonTopRight = dragButtonList[5];
+            var dragButtonBottomLeft = dragButtonList[6];
+            var dragButtonBottomRight = dragButtonList[7];
             dragButtonTop.Pivot = UguiPivot.Top;
             dragButtonBottom.Pivot = UguiPivot.Bottom;
             dragButtonLeft.Pivot = UguiPivot.Left;
@@ -112,7 +106,15 @@ namespace RedScarf.UguiFriend
             dragButtonTopRight.Pivot = UguiPivot.TopRight;
             dragButtonBottomLeft.Pivot = UguiPivot.BottomLeft;
             dragButtonBottomRight.Pivot = UguiPivot.BottomRight;
-            foreach(var dragButton in dragButtonList)
+            UguiTools.SetAnchor(dragButtonTop.RectTransform, AnchorPresets.HorStretchTop);
+            UguiTools.SetAnchor(dragButtonBottom.RectTransform, AnchorPresets.HorStretchBottom);
+            UguiTools.SetAnchor(dragButtonLeft.RectTransform, AnchorPresets.VertStretchLeft);
+            UguiTools.SetAnchor(dragButtonRight.RectTransform, AnchorPresets.VertStretchRight);
+            UguiTools.SetAnchor(dragButtonTopLeft.RectTransform, AnchorPresets.TopLeft);
+            UguiTools.SetAnchor(dragButtonTopRight.RectTransform, AnchorPresets.TopRight);
+            UguiTools.SetAnchor(dragButtonBottomLeft.RectTransform, AnchorPresets.BottomLeft);
+            UguiTools.SetAnchor(dragButtonBottomRight.RectTransform, AnchorPresets.BottomRight);
+            foreach (var dragButton in dragButtonList)
             {
                 dragButton.name = "Drag_"+dragButton.Pivot;
             }
@@ -136,6 +138,8 @@ namespace RedScarf.UguiFriend
                 var line = UguiTools.AddChild<RawImage>("Bisectrix", safeFrame.transform);
                 line.color = bisectrixColor;
                 line.raycastTarget = false;
+                line.rectTransform.sizeDelta = Vector2.one;
+                UguiTools.SetAnchor(line.rectTransform, AnchorPresets.HorStretchBottom);
                 bisectrixColumnList.Add(line);
             }
             for (var i = 0; i < bisectrixRow; i++)
@@ -143,6 +147,8 @@ namespace RedScarf.UguiFriend
                 var line = UguiTools.AddChild<RawImage>("Bisectrix", safeFrame.transform);
                 line.color = bisectrixColor;
                 line.raycastTarget = false;
+                line.rectTransform.sizeDelta = Vector2.one;
+                UguiTools.SetAnchor(line.rectTransform, AnchorPresets.VertStretchLeft);
                 bisectrixRowList.Add(line);
             }
 
@@ -304,7 +310,6 @@ namespace RedScarf.UguiFriend
             LimitSafeFrame();
             RefreshMask();
             RefreshBisectrix();
-            RefreshDragButtons();
         }
 
         /// <summary>
@@ -354,46 +359,20 @@ namespace RedScarf.UguiFriend
         {
             if (safeFrame)
             {
+                var rect = safeFrame.rectTransform.rect;
+                var offsetX = rect.width / (bisectrixColumn + 1);
+                var offsetY = rect.height / (bisectrixRow + 1);
                 for (var i = 0; i < bisectrixColumn; i++)
                 {
                     var line = bisectrixColumnList[i];
-                    line.rectTransform.sizeDelta = new Vector2(safeFrame.rectTransform.rect.width, 1);
+                    line.rectTransform.anchoredPosition = new Vector3(0, (i + 1) * offsetY);
                 }
                 for (var i = 0; i < bisectrixRow; i++)
                 {
                     var line = bisectrixRowList[i];
-                    line.rectTransform.sizeDelta = new Vector2(1, safeFrame.rectTransform.rect.height);
+                    line.rectTransform.anchoredPosition = new Vector3((i+1) * offsetX, 0);
                 }
             }
-        }
-
-        /// <summary>
-        /// 更新安全框拖拽按钮
-        /// </summary>
-        protected virtual void RefreshDragButtons()
-        {
-            var width = safeFrame.rectTransform.rect.size.x;
-            var height= safeFrame.rectTransform.rect.size.y;
-            var widthShrink = width - safeFrameDragWidth;
-            var heightShrink = height - safeFrameDragWidth;
-            var cornerSize = new Vector2(safeFrameDragWidth, safeFrameDragWidth);
-
-            dragButtonLeft.RectTransform.sizeDelta = new Vector2(safeFrameDragWidth, heightShrink);
-            dragButtonLeft.RectTransform.localPosition = new Vector3(-width * 0.5f, 0);
-            dragButtonRight.RectTransform.sizeDelta = new Vector2(safeFrameDragWidth, heightShrink);
-            dragButtonRight.RectTransform.localPosition = new Vector3(width * 0.5f, 0);
-            dragButtonTop.RectTransform.sizeDelta = new Vector2(widthShrink, safeFrameDragWidth);
-            dragButtonTop.RectTransform.localPosition = new Vector3(0,height * 0.5f);
-            dragButtonBottom.RectTransform.sizeDelta = new Vector2(widthShrink, safeFrameDragWidth);
-            dragButtonBottom.RectTransform.localPosition = new Vector3(0, -height * 0.5f);
-            dragButtonTopLeft.RectTransform.sizeDelta = cornerSize;
-            dragButtonTopLeft.RectTransform.localPosition = new Vector3(-width * 0.5f, height * 0.5f);
-            dragButtonTopRight.RectTransform.sizeDelta= cornerSize;
-            dragButtonTopRight.RectTransform.localPosition = new Vector3(width * 0.5f, height * 0.5f);
-            dragButtonBottomLeft.RectTransform.sizeDelta= cornerSize;
-            dragButtonBottomLeft.RectTransform.localPosition = new Vector3(-width * 0.5f, -height * 0.5f);
-            dragButtonBottomRight.RectTransform.sizeDelta = cornerSize;
-            dragButtonBottomRight.RectTransform.localPosition = new Vector3(width * 0.5f, -height * 0.5f);
         }
 
         protected virtual void OnSrcImageBeginDrag(BaseEventData eventData)
