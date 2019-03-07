@@ -9,7 +9,7 @@ namespace RedScarf.UguiFriend
 {
     [RequireComponent(typeof(Graphic))]
     /// <summary>
-    /// 拖拽改变尺寸
+    /// 拖拽改变尺寸(单点)
     /// </summary>
     public class UguiDragResize : UIBehaviour,
         IBeginDragHandler,
@@ -26,6 +26,8 @@ namespace RedScarf.UguiFriend
         protected Graphic m_Graphic;
         protected RectTransform m_RectTransform;
         protected Vector2 screenOffset;
+
+        public Action<UguiDragResize> OnResize;
 
         protected override void Awake()
         {
@@ -106,6 +108,11 @@ namespace RedScarf.UguiFriend
                 m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rect.width);
                 m_Target.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rect.height);
                 UguiTools.SetPivot(m_Target, cachePivot);
+
+                if (OnResize != null)
+                {
+                    OnResize.Invoke(this);
+                }
             }
         }
 

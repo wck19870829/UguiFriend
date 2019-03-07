@@ -89,6 +89,7 @@ namespace RedScarf.UguiFriend
                 dragButton.Graphic.color = Color.clear;
                 dragButton.Target = safeFrame.rectTransform;
                 dragButton.RectTransform.sizeDelta = new Vector2(safeFrameDragWidth, safeFrameDragWidth);
+                dragButton.OnResize += OnResizeHandle;
                 dragButtonList.Add(dragButton);
             }
             var dragButtonTop= dragButtonList[0];
@@ -127,12 +128,6 @@ namespace RedScarf.UguiFriend
 
             //限制安全框
             UguiTools.SetAnchor(safeFrame.rectTransform, AnchorPresets.StretchAll);
-            UguiMathf.AdjustRectTransform(
-                        safeFrame.rectTransform,
-                        safeFrameDragWidth,
-                        safeFrameDragWidth,
-                        safeFrameDragWidth, 
-                        safeFrameDragWidth);
 
             if(!srcImage)
                 srcImage = UguiTools.AddChild<RawImage>("SrcImage",srcImageContent);
@@ -277,6 +272,11 @@ namespace RedScarf.UguiFriend
 
         }
 
+        protected virtual void OnResizeHandle(UguiDragResize dragButton)
+        {
+            LimitSafeFrame();
+        }
+
         protected virtual void SetSafeFrame()
         {
             if (safeFrame)
@@ -365,6 +365,7 @@ namespace RedScarf.UguiFriend
         {
             if (safeFrame)
             {
+                var cornerOffset = 2;
                 var rect = safeFrame.rectTransform.rect;
                 var offsetX = rect.width / (bisectrixColumn + 1);
                 var offsetY = rect.height / (bisectrixRow + 1);
@@ -372,11 +373,15 @@ namespace RedScarf.UguiFriend
                 {
                     var line = bisectrixColumnList[i];
                     line.rectTransform.anchoredPosition = new Vector3(0, (i + 1) * offsetY);
+                    line.rectTransform.offsetMin = new Vector2(cornerOffset, line.rectTransform.offsetMin.y);
+                    line.rectTransform.offsetMax = new Vector2(-cornerOffset, line.rectTransform.offsetMax.y);
                 }
                 for (var i = 0; i < bisectrixRow; i++)
                 {
                     var line = bisectrixRowList[i];
                     line.rectTransform.anchoredPosition = new Vector3((i+1) * offsetX, 0);
+                    line.rectTransform.offsetMin = new Vector2(line.rectTransform.offsetMin.x, cornerOffset);
+                    line.rectTransform.offsetMax = new Vector2(line.rectTransform.offsetMax.x,-cornerOffset);
                 }
             }
         }

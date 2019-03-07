@@ -208,7 +208,7 @@ namespace RedScarf.UguiFriend
             var parent = target.parent as RectTransform;
             var size = parent.rect.size;
             target.offsetMin = new Vector2(left, bottom);
-            target.offsetMax = new Vector2(right,top);
+            target.offsetMax = new Vector2(-right,-top);
         }
 
         /// <summary>
@@ -419,7 +419,7 @@ namespace RedScarf.UguiFriend
         {
             var p1=RectTransformUtility.WorldToScreenPoint(camera, bounds.min);
             var p2= RectTransformUtility.WorldToScreenPoint(camera, bounds.max);
-            var points = new List<Vector2>
+            var points = new Vector2[]
             {
                 p1,
                 p2
@@ -449,12 +449,38 @@ namespace RedScarf.UguiFriend
         /// </summary>
         /// <param name="points"></param>
         /// <returns></returns>
-        public static Rect GetRect(IEnumerable<Vector2> points)
+        public static Rect GetRect(Vector2[] points)
         {
             if (points == null)
                 throw new Exception("Points is null.");
+            if (points.Length == 0)
+                throw new Exception("Points length is zero.");
 
-            var rect = new Rect();
+            var rect = new Rect(points[0], Vector3.zero);
+            foreach (var point in points)
+            {
+                rect.xMax = Mathf.Max(rect.xMax, point.x);
+                rect.xMin = Mathf.Min(rect.xMin, point.x);
+                rect.yMax = Mathf.Max(rect.yMax, point.y);
+                rect.yMin = Math.Min(rect.yMin, point.y);
+            }
+
+            return rect;
+        }
+
+        /// <summary>
+        /// 获取包含所有点的矩形
+        /// </summary>
+        /// <param name="points"></param>
+        /// <returns></returns>
+        public static Rect GetRect(List<Vector2> points)
+        {
+            if (points == null)
+                throw new Exception("Points is null.");
+            if (points.Count == 0)
+                throw new Exception("Points length is zero.");
+
+            var rect = new Rect(points[0], Vector3.zero);
             foreach (var point in points)
             {
                 rect.xMax = Mathf.Max(rect.xMax, point.x);

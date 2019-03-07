@@ -315,6 +315,12 @@ namespace RedScarf.UguiFriend
             return contentRect;
         }
 
+        /// <summary>
+        /// 获取相对矩形
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
         public static Rect GetLocalRect(RectTransform parent,RectTransform target)
         {
             if (parent == null)
