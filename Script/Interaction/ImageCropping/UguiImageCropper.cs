@@ -13,11 +13,12 @@ namespace RedScarf.UguiFriend
     public class UguiImageCropper : UIBehaviour
     {
         protected const int safeFrameDragWidth = 40;                        //拖拽框宽度
-        protected const int safeFrameMinWidthValue = 100;
-        protected const int safeFrameMinHeightValue = 100;
+        protected const int defaultSafeFrameMinWidth = 100;                 //默认最小宽高
+        protected const int defaultSafeFrameMinHeight = 100;
 
         public RawImage target;
 
+        [SerializeField] protected RectTransform imageEditorArea;   //图片编辑区域
         [SerializeField] protected RectTransform srcImageContent;   //待处理图容器
         [SerializeField] protected RawImage srcImage;
         [SerializeField] protected Image safeFrame;                 //安全框
@@ -43,7 +44,7 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected GameObject cropStep;
 
         [Header("Crop Ratio")]
-        [SerializeField] protected Button originalCropRatioButton;
+        [SerializeField] protected Button originalCropRatioButton;      //比例重置按钮
         [SerializeField] protected Button cropRatioButton1_1;
         [SerializeField] protected Button cropRatioButton4_3;
         [SerializeField] protected Button cropRatioButton3_2;
@@ -62,8 +63,8 @@ namespace RedScarf.UguiFriend
 
         protected UguiImageCropper()
         {
-            safeFrameMinWidth = safeFrameMinWidthValue;
-            safeFrameMinHeight = safeFrameMinHeightValue;
+            safeFrameMinWidth = defaultSafeFrameMinWidth;
+            safeFrameMinHeight = defaultSafeFrameMinHeight;
             showBisectrix = true;
             maskColor = new Color(0, 0, 0, 0.7f);
             bisectrixColor = new Color(1, 1, 1, 0.3f);
@@ -79,7 +80,7 @@ namespace RedScarf.UguiFriend
             safeFrame.type = Image.Type.Sliced;
             safeFrame.raycastTarget = false;
 
-            //拖拽区域
+            //创建拖拽区域
             var dragButtonList = new List<UguiDragResize>();
             for (var i = 0; i < 8; i++)
             {
@@ -118,6 +119,20 @@ namespace RedScarf.UguiFriend
             {
                 dragButton.name = "Drag_"+dragButton.Pivot;
             }
+
+            srcImageContent.SetParent(imageEditorArea);
+            maskImage.rectTransform.SetParent(imageEditorArea);
+            safeFrame.rectTransform.SetParent(imageEditorArea);
+            UguiTools.SetAnchor(maskImage.rectTransform, AnchorPresets.StretchAll);
+
+            //限制安全框
+            UguiTools.SetAnchor(safeFrame.rectTransform, AnchorPresets.StretchAll);
+            UguiMathf.AdjustRectTransform(
+                        safeFrame.rectTransform,
+                        safeFrameDragWidth,
+                        safeFrameDragWidth,
+                        safeFrameDragWidth, 
+                        safeFrameDragWidth);
 
             if(!srcImage)
                 srcImage = UguiTools.AddChild<RawImage>("SrcImage",srcImageContent);
@@ -188,7 +203,7 @@ namespace RedScarf.UguiFriend
 
         protected override void OnValidate()
         {
-            LimitSafeFrame();
+
         }
 
         protected virtual void LateUpdate()
@@ -307,9 +322,9 @@ namespace RedScarf.UguiFriend
 
         protected virtual void RefreshDisplay()
         {
-            LimitSafeFrame();
             RefreshMask();
             RefreshBisectrix();
+            LimitSafeFrame();
         }
 
         /// <summary>
@@ -317,38 +332,29 @@ namespace RedScarf.UguiFriend
         /// </summary>
         protected virtual void RefreshMask()
         {
-            if (safeFrame)
+            if (safeFrame&& maskImage&&imageEditorArea)
             {
-                if (maskImage)
-                {
-                    var rectTransform = transform as RectTransform;
-                    var safeFrameRect = (Rect)UguiTools.GetLocalRectIncludeChildren(safeFrame.rectTransform, rectTransform, true);
-                    var maskRect = (Rect)UguiTools.GetLocalRectIncludeChildren(maskImage.rectTransform, rectTransform, true);
-                    var xMin = (safeFrameRect.xMin - maskRect.xMin) / Mathf.Abs(maskRect.width);
-                    var xMax = (safeFrameRect.xMax - maskRect.xMin) / Mathf.Abs(maskRect.width);
-                    var yMin = (safeFrameRect.yMin - maskRect.yMin) / Mathf.Abs(maskRect.height);
-                    var yMax = (safeFrameRect.yMax - maskRect.yMin) / Mathf.Abs(maskRect.height);
-                    var safeFrameValue = new Vector4(xMin, xMax, yMin, yMax);
-                    maskImage.material.SetVector("_SafeFrame", safeFrameValue);
-                }
+                var safeFrameRect = (Rect)UguiTools.GetLocalRect(imageEditorArea, safeFrame.rectTransform);
+                var maskRect = (Rect)UguiTools.GetLocalRect(imageEditorArea, maskImage.rectTransform);
+                var xMin = (safeFrameRect.xMin - maskRect.xMin) / Mathf.Abs(maskRect.width);
+                var xMax = (safeFrameRect.xMax - maskRect.xMin) / Mathf.Abs(maskRect.width);
+                var yMin = (safeFrameRect.yMin - maskRect.yMin) / Mathf.Abs(maskRect.height);
+                var yMax = (safeFrameRect.yMax - maskRect.yMin) / Mathf.Abs(maskRect.height);
+                var safeFrameValue = new Vector4(xMin, xMax, yMin, yMax);
+                maskImage.material.SetVector("_SafeFrame", safeFrameValue);
             }
         }
 
-        /// <summary>
-        /// 显示安全框
-        /// </summary>
         protected virtual void LimitSafeFrame()
         {
             if (safeFrame)
             {
-                safeFrame.rectTransform.anchorMin = new Vector2(0.5f,0.5f);
-                safeFrame.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-                var frameSize = safeFrame.rectTransform.rect.size;
-                safeFrameMinWidth = Mathf.Max(safeFrameMinWidth, safeFrameMinWidthValue);
-                safeFrameMinHeight = Mathf.Max(safeFrameMinHeight, safeFrameMinHeightValue);
-                frameSize.x = Mathf.Max(frameSize.x, safeFrameMinWidth);
-                frameSize.y = Mathf.Max(frameSize.y, safeFrameMinHeight);
-                safeFrame.rectTransform.sizeDelta = frameSize;
+                UguiMathf.LimitRecrTransform(
+                    safeFrame.rectTransform, 
+                    safeFrameDragWidth,
+                    safeFrameDragWidth,
+                    safeFrameDragWidth, 
+                    safeFrameDragWidth);
             }
         }
 

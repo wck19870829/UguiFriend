@@ -173,6 +173,27 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 限制在父级框内
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="top"></param>
+        /// <param name="bottom"></param>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        public static void LimitRecrTransform(RectTransform target, float top, float bottom, float left, float right)
+        {
+            if (!target) return;
+
+            var edgeDist = GetRectTransformEdgeDistance(target);
+            top = Mathf.Max(edgeDist.x, top);
+            bottom = Mathf.Max(edgeDist.y,bottom);
+            left = Mathf.Max(edgeDist.z,left);
+            right = Mathf.Max(edgeDist.w,right);
+
+            AdjustRectTransform(target, top, bottom, left, right);
+        }
+
+        /// <summary>
         /// 调整
         /// </summary>
         /// <param name="target"></param>
@@ -184,9 +205,10 @@ namespace RedScarf.UguiFriend
         {
             if (!target) return;
 
-            var size = (target.parent as RectTransform).rect.size;
-            target.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, top, size.y - bottom - top);
-            target.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, left, size.x - right - left);
+            var parent = target.parent as RectTransform;
+            var size = parent.rect.size;
+            target.offsetMin = new Vector2(left, bottom);
+            target.offsetMax = new Vector2(right,top);
         }
 
         /// <summary>
@@ -207,6 +229,47 @@ namespace RedScarf.UguiFriend
                             r.yMin-localPoint.y,
                             r.xMin-localPoint.x,
                             r.xMax-localPoint.x);
+
+            return edgeDist;
+        }
+
+        /// <summary>
+        /// 到父级容器的边距离
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <returns></returns>
+        public static Vector4 GetRectTransformEdgeDistance(RectTransform rect)
+        {
+            return GetRectTransformEdgeDistance(rect,rect.parent as RectTransform);
+        }
+
+        /// <summary>
+        /// 相对容器坐标系下到相对容器的边距离
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="relative"></param>
+        /// <returns>返回Vector4(top,bottom,left,right)</returns>
+        public static Vector4 GetRectTransformEdgeDistance(RectTransform rect, RectTransform relative)
+        {
+            if (!rect)
+                throw new Exception("Rect is null.");
+            if (!relative)
+                throw new Exception("Relative is null.");
+
+            var relativeRect = relative.rect;
+            var corners = new Vector3[4];
+            var cornersV2 = new Vector2[4];
+            rect.GetWorldCorners(corners);
+            for (var i = 0; i < 4; i++)
+            {
+                cornersV2[i] = GetLocalPointInRectangle(relative, corners[i]);
+            }
+            var r = GetRect(cornersV2);
+            var edgeDist = new Vector4(
+                            Mathf.Abs(relativeRect.yMax - r.yMax) * (r.yMax > relativeRect.yMax ? -1 : 1),
+                            Mathf.Abs(relativeRect.yMin - r.yMin) * (r.yMin > relativeRect.yMin ? 1 : -1),
+                            Mathf.Abs(relativeRect.xMin - r.xMin) * (r.xMin > relativeRect.xMin ? 1 : -1),
+                            Mathf.Abs(relativeRect.xMax - r.xMax) * (r.xMax > relativeRect.xMax ? -1 : 1));
 
             return edgeDist;
         }

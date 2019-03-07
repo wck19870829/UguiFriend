@@ -315,6 +315,24 @@ namespace RedScarf.UguiFriend
             return contentRect;
         }
 
+        public static Rect GetLocalRect(RectTransform parent,RectTransform target)
+        {
+            if (parent == null)
+                throw new Exception("Parent is null.");
+            if (target == null)
+                throw new Exception("Target is null.");
+
+            var corners = new Vector3[4];
+            target.GetWorldCorners(corners);
+            for (var i=0;i<4;i++)
+            {
+                corners[i] = parent.transform.InverseTransformPoint(corners[i]);
+            }
+            var rect = GetRectContainsPoints(corners);
+
+            return rect;
+        }
+
         /// <summary>
         /// 获取相对于其他容器的局部坐标系边界(包含所有子物体)
         /// </summary>
