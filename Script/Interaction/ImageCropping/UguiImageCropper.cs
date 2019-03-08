@@ -50,6 +50,10 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected Button cropRatioButton3_2;
         [SerializeField] protected Button cropRatioButton16_9;
 
+        [Header("Rotate")]
+        [SerializeField] protected Button rotate90Button;
+        [SerializeField] protected Button cancelRotateButton;
+
         protected Texture2D screenShot;
         protected List<RawImage> bisectrixColumnList;
         protected List<RawImage> bisectrixRowList;
@@ -190,6 +194,9 @@ namespace RedScarf.UguiFriend
             cropRatioButton4_3.onClick.AddListener(CropRatioButton4_3Click);
             cropRatioButton3_2.onClick.AddListener(CropRatioButton3_2Click);
             cropRatioButton16_9.onClick.AddListener(CropRatioButton16_9Click);
+
+            rotate90Button.onClick.AddListener(OnRotate90Click);
+            cancelRotateButton.onClick.AddListener(OnCancelRotateClick);
         }
 
         protected override void OnEnable()
@@ -314,6 +321,22 @@ namespace RedScarf.UguiFriend
                             safeFrameDragWidth,
                             safeFrameDragWidth,
                             safeFrameDragWidth);
+            }
+        }
+
+        protected virtual void OnRotate90Click()
+        {
+            if (srcImage)
+            {
+                srcImage.transform.localEulerAngles += new Vector3(0, 0, -90);
+            }
+        }
+
+        protected virtual void OnCancelRotateClick()
+        {
+            if (srcImage)
+            {
+                srcImage.transform.localEulerAngles = Vector3.zero;
             }
         }
 
