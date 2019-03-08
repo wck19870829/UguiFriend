@@ -14,8 +14,13 @@ namespace RedScarf.UguiFriend
     public class UguiDragResize : UIBehaviour,
         IBeginDragHandler,
         IDragHandler,
-        IEndDragHandler
+        IEndDragHandler,
+        IPointerEnterHandler,
+        IPointerExitHandler
     {
+        protected static bool s_Dragging;
+
+        [SerializeField] protected Texture2D m_Cursor;
         [SerializeField]protected UguiPivot m_Pivot;
         [SerializeField]protected RectTransform m_Target;
         public int minWidth=100;
@@ -42,6 +47,7 @@ namespace RedScarf.UguiFriend
 
             var screenPoint = RectTransformUtility.WorldToScreenPoint(eventData.pressEventCamera, transform.position);
             screenOffset = screenPoint-eventData.position;
+            s_Dragging = true;
         }
 
         public virtual void OnDrag(PointerEventData eventData)
@@ -51,6 +57,7 @@ namespace RedScarf.UguiFriend
             Vector2 localPoint;
             if(RectTransformUtility.ScreenPointToLocalPointInRectangle(m_Target,eventData.position+ screenOffset, eventData.pressEventCamera,out localPoint))
             {
+                s_Dragging = true;
                 var rect = m_Target.rect;
                 var cachePivot = m_Target.pivot;
                 var edgeDist = UguiMathf.GetRectTransformEdgeDistance(m_Target, transform.position);
@@ -116,9 +123,25 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        public void OnEndDrag(PointerEventData eventData)
+        public virtual void OnEndDrag(PointerEventData eventData)
         {
-            
+            s_Dragging = false;
+        }
+
+        public virtual void OnPointerEnter(PointerEventData eventData)
+        {
+            if (!s_Dragging&&m_Cursor)
+            {
+                Cursor.SetCursor(m_Cursor, new Vector2(m_Cursor.width*0.5f, m_Cursor.height*0.5f), CursorMode.Auto);
+            }
+        }
+
+        public virtual void OnPointerExit(PointerEventData eventData)
+        {
+            if (!s_Dragging && m_Cursor)
+            {
+                Cursor.SetCursor(null, new Vector2(m_Cursor.width * 0.5f, m_Cursor.height * 0.5f), CursorMode.Auto);
+            }
         }
 
         public UguiPivot Pivot
@@ -165,6 +188,18 @@ namespace RedScarf.UguiFriend
                     m_Graphic = GetComponent<Graphic>();
 
                 return m_Graphic;
+            }
+        }
+
+        public Texture2D CursorIcon
+        {
+            get
+            {
+                return m_Cursor;
+            }
+            set
+            {
+                m_Cursor = value;
             }
         }
     }

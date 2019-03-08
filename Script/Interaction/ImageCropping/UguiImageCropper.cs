@@ -116,6 +116,19 @@ namespace RedScarf.UguiFriend
             UguiTools.SetAnchor(dragButtonTopRight.RectTransform, AnchorPresets.TopRight);
             UguiTools.SetAnchor(dragButtonBottomLeft.RectTransform, AnchorPresets.BottomLeft);
             UguiTools.SetAnchor(dragButtonBottomRight.RectTransform, AnchorPresets.BottomRight);
+            var moveIcon = Resources.Load<Texture2D>("UguiFriend/Texture/Move");
+            var neResizeIcon= Resources.Load<Texture2D>("UguiFriend/Texture/NeResize");
+            var seResizeIcon= Resources.Load<Texture2D>("UguiFriend/Texture/SeResize");
+            var sResizeIcon= Resources.Load<Texture2D>("UguiFriend/Texture/SResize");
+            var wResizeIcon= Resources.Load<Texture2D>("UguiFriend/Texture/WResize");
+            dragButtonTop.CursorIcon = sResizeIcon;
+            dragButtonBottom.CursorIcon = sResizeIcon;
+            dragButtonLeft.CursorIcon = wResizeIcon;
+            dragButtonRight.CursorIcon = wResizeIcon;
+            dragButtonTopLeft.CursorIcon = seResizeIcon;
+            dragButtonBottomRight.CursorIcon = seResizeIcon;
+            dragButtonTopRight.CursorIcon = neResizeIcon;
+            dragButtonBottomLeft.CursorIcon = neResizeIcon;
             foreach (var dragButton in dragButtonList)
             {
                 dragButton.name = "Drag_"+dragButton.Pivot;
@@ -343,6 +356,14 @@ namespace RedScarf.UguiFriend
                 var safeFrameValue = new Vector4(xMin, xMax, yMin, yMax);
                 maskImage.material.SetVector("_SafeFrame", safeFrameValue);
             }
+        }
+
+        /// <summary>
+        /// 限制图片
+        /// </summary>
+        protected virtual void LimitSrcImage()
+        {
+
         }
 
         protected virtual void LimitSafeFrame()
