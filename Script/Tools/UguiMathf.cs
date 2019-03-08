@@ -24,6 +24,48 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 是否为有效数字
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static bool IsValidNumber(Vector2 value)
+        {
+            var isNaN = float.IsNaN(value.x) ||
+                        float.IsNaN(value.y);
+
+            return !isNaN;
+        }
+
+        /// <summary>
+        /// 是否为有效数字
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static bool IsValidNumber(Vector3 value)
+        {
+            var isNaN = float.IsNaN(value.x) ||
+                        float.IsNaN(value.y) ||
+                        float.IsNaN(value.z);
+
+            return !isNaN;
+        }
+
+        /// <summary>
+        /// 是否为有效数字
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static bool IsValidNumber(Vector4 value)
+        {
+            var isNaN = float.IsNaN(value.x) ||
+                        float.IsNaN(value.y) ||
+                        float.IsNaN(value.z) ||
+                        float.IsNaN(value.w);
+
+            return !isNaN;
+        }
+
+        /// <summary>
         /// 返回最小的日期
         /// </summary>
         /// <param name="values"></param>
@@ -158,6 +200,421 @@ namespace RedScarf.UguiFriend
         #region RectTransform
 
         /// <summary>
+        /// 是否在屏幕视图坐标中
+        /// </summary>
+        /// <param name="worldPoint"></param>
+        /// <param name="canvas"></param>
+        /// <param name="viewRect"></param>
+        /// <returns></returns>
+        public static bool InScreenViewRect(Vector3 worldPoint, Canvas canvas, Rect viewRect)
+        {
+            if (canvas == null)
+                throw new Exception("Canvas is null.");
+
+            Camera cam = null;
+            if (canvas.rootCanvas.worldCamera != null)
+            {
+                if (canvas.rootCanvas.renderMode == RenderMode.ScreenSpaceCamera ||
+                    canvas.rootCanvas.renderMode == RenderMode.WorldSpace)
+                {
+                    cam = canvas.rootCanvas.worldCamera;
+                }
+            }
+
+            var screenPoint = RectTransformUtility.WorldToScreenPoint(cam, worldPoint);
+            var viewportPoint = UguiMathf.ScreenPoint2ViewportPoint(screenPoint);
+
+            return viewRect.Contains(viewportPoint);
+        }
+
+        /// <summary>
+        /// 获取全局坐标系ui元素尺寸
+        /// </summary>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public static Rect? GetGlobalGraphicRectIncludeChildren(RectTransform content)
+        {
+            if (content == null)
+                throw new Exception("Content is null.");
+
+            var children = content.GetComponentsInChildren<Graphic>();
+            if (children.Length == 0) return null;
+
+            Rect? globalRect = null;
+            var cornersArr = new Vector3[4];
+            foreach (var graphic in children)
+            {
+                graphic.rectTransform.GetWorldCorners(cornersArr);
+                var childRect = GetRectContainsPoints(cornersArr);
+
+                var mask = graphic.GetComponentInParent<Mask>();
+                if (mask != null)
+                {
+                    mask.rectTransform.GetWorldCorners(cornersArr);
+                    var maskRect = GetRectContainsPoints(cornersArr);
+                    var overlap = UguiMathf.RectOverlap(childRect, maskRect);
+                    if (overlap != null)
+                    {
+                        childRect = (Rect)overlap;
+                    }
+                    else continue;
+                }
+
+                if (globalRect == null) globalRect = childRect;
+                globalRect = UguiMathf.RectCombine(childRect, (Rect)globalRect);
+            }
+
+            return globalRect;
+        }
+
+        /// <summary>
+        /// 获取物体的世界坐标系边界(递归包含所有子物体)
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="includeContent">是否包含容器自身</param>
+        /// <returns></returns>
+        public static Rect? GetGlobalRectIncludeChildren(RectTransform content, bool includeContent)
+        {
+            if (content == null)
+                throw new Exception("Content is null.");
+
+            var children = content.GetComponentsInChildren<RectTransform>();
+            if (children.Length == 1 && !includeContent) return null;
+
+            Rect? contentRect = null;
+            var cornersArr = new Vector3[4];
+            foreach (var child in children)
+            {
+                if (!includeContent)
+                {
+                    if (child == content)
+                    {
+                        continue;
+                    }
+                }
+
+                if (contentRect == null)
+                {
+                    child.GetWorldCorners(cornersArr);
+                    contentRect = GetRectContainsPoints(cornersArr);
+                }
+                child.GetWorldCorners(cornersArr);
+                var childRect = GetRectContainsPoints(cornersArr);
+                contentRect = UguiMathf.RectCombine((Rect)contentRect, childRect);
+            }
+
+            return contentRect;
+        }
+
+        /// <summary>
+        /// 获取相对于其他容器的局部坐标系边界(包含所有子物体)
+        /// </summary>
+        /// <param name="content">容器</param>
+        /// <param name="relative">相对于</param>
+        /// <param name="includeContent">true:包含content。false:不包含content</param>
+        /// <returns></returns>
+        public static Rect? GetLocalRectIncludeChildren(RectTransform content, RectTransform relative, bool includeContent)
+        {
+            if (relative == null)
+                throw new Exception("Relative is null.");
+
+            var contentRect = GetGlobalRectIncludeChildren(content, includeContent);
+            if (contentRect == null) return null;
+
+            var rect = (Rect)contentRect;
+            var corners = new Vector3[]
+            {
+                new Vector3(rect.xMin,rect.yMin),
+                new Vector3(rect.xMax,rect.yMin),
+                new Vector3(rect.xMax,rect.yMax),
+                new Vector3(rect.xMin,rect.yMax)
+            };
+            for (var i = 0; i < corners.Length; i++)
+            {
+                corners[i] = relative.worldToLocalMatrix.MultiplyPoint(corners[i]);
+            }
+            rect = GetRectContainsPoints(corners);
+
+            return rect;
+        }
+
+        /// <summary>
+        /// 获取包含所有点的矩形
+        /// </summary>
+        /// <param name="points"></param>
+        /// <returns></returns>
+        public static Rect GetRectContainsPoints(Vector3[] points)
+        {
+            if (points == null)
+                throw new Exception("Points is null.");
+            if (points.Length == 0)
+                throw new Exception("Points length is zero.");
+
+            var rect = new Rect(points[0], Vector3.zero);
+            foreach (var point in points)
+            {
+                rect.xMax = Mathf.Max(rect.xMax, point.x);
+                rect.xMin = Mathf.Min(rect.xMin, point.x);
+                rect.yMax = Mathf.Max(rect.yMax, point.y);
+                rect.yMin = Math.Min(rect.yMin, point.y);
+            }
+
+            return rect;
+        }
+
+        /// <summary>
+        /// 点从局部坐标转换为世界坐标
+        /// </summary>
+        /// <param name="localPoints"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public static Vector3[] LocalPoints2GlobalPoints(Vector3[] localPoints, Transform content)
+        {
+            if (content == null)
+                throw new Exception("Content is null.");
+            if (localPoints == null)
+                throw new Exception("Local points is null.");
+
+            var globalPoints = new Vector3[localPoints.Length];
+            for (var i = 0; i < localPoints.Length; i++)
+            {
+                globalPoints[i] = content.TransformPoint(localPoints[i]);
+            }
+
+            return globalPoints;
+        }
+
+        /// <summary>
+        /// 点从世界坐标转换为局部坐标
+        /// </summary>
+        /// <param name="globalPoints"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public static Vector3[] GlobalPoints2LocalPoints(Vector3[] globalPoints, Transform content)
+        {
+            if (content == null)
+                throw new Exception("Content is null.");
+            if (globalPoints == null)
+                throw new Exception("Global points is null.");
+
+            var localPoints = new Vector3[globalPoints.Length];
+            for (var i = 0; i < localPoints.Length; i++)
+            {
+                localPoints[i] = content.InverseTransformPoint(globalPoints[i]);
+            }
+
+            return localPoints;
+        }
+
+        /// <summary>
+        /// 设置锚点
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="allign"></param>
+        /// <param name="offsetX"></param>
+        /// <param name="offsetY"></param>
+        public static void SetAnchor(RectTransform target, AnchorPresets anchorPresets, int offsetX = 0, int offsetY = 0)
+        {
+            target.anchoredPosition = new Vector3(offsetX, offsetY, 0);
+
+            switch (anchorPresets)
+            {
+                case AnchorPresets.TopLeft:
+                    target.anchorMin = new Vector2(0, 1);
+                    target.anchorMax = new Vector2(0, 1);
+                    break;
+
+                case AnchorPresets.TopCenter:
+                    target.anchorMin = new Vector2(0.5f, 1);
+                    target.anchorMax = new Vector2(0.5f, 1);
+                    break;
+
+                case AnchorPresets.TopRight:
+                    target.anchorMin = new Vector2(1, 1);
+                    target.anchorMax = new Vector2(1, 1);
+                    break;
+
+                case AnchorPresets.MiddleLeft:
+                    target.anchorMin = new Vector2(0, 0.5f);
+                    target.anchorMax = new Vector2(0, 0.5f);
+                    break;
+
+                case AnchorPresets.MiddleCenter:
+                    target.anchorMin = new Vector2(0.5f, 0.5f);
+                    target.anchorMax = new Vector2(0.5f, 0.5f);
+                    break;
+
+                case AnchorPresets.MiddleRight:
+                    target.anchorMin = new Vector2(1, 0.5f);
+                    target.anchorMax = new Vector2(1, 0.5f);
+                    break;
+
+                case AnchorPresets.BottomLeft:
+                    target.anchorMin = new Vector2(0, 0);
+                    target.anchorMax = new Vector2(0, 0);
+                    break;
+
+                case AnchorPresets.BottonCenter:
+                    target.anchorMin = new Vector2(0.5f, 0);
+                    target.anchorMax = new Vector2(0.5f, 0);
+                    break;
+
+                case AnchorPresets.BottomRight:
+                    target.anchorMin = new Vector2(1, 0);
+                    target.anchorMax = new Vector2(1, 0);
+                    break;
+
+                case AnchorPresets.HorStretchTop:
+                    target.anchorMin = new Vector2(0, 1);
+                    target.anchorMax = new Vector2(1, 1);
+                    break;
+
+                case AnchorPresets.HorStretchMiddle:
+                    target.anchorMin = new Vector2(0, 0.5f);
+                    target.anchorMax = new Vector2(1, 0.5f);
+                    break;
+
+                case AnchorPresets.HorStretchBottom:
+                    target.anchorMin = new Vector2(0, 0);
+                    target.anchorMax = new Vector2(1, 0);
+                    break;
+
+                case AnchorPresets.VertStretchLeft:
+                    target.anchorMin = new Vector2(0, 0);
+                    target.anchorMax = new Vector2(0, 1);
+                    break;
+
+                case AnchorPresets.VertStretchCenter:
+                    target.anchorMin = new Vector2(0.5f, 0);
+                    target.anchorMax = new Vector2(0.5f, 1);
+                    break;
+
+                case AnchorPresets.VertStretchRight:
+                    target.anchorMin = new Vector2(1, 0);
+                    target.anchorMax = new Vector2(1, 1);
+                    break;
+
+                case AnchorPresets.StretchAll:
+                    target.anchorMin = new Vector2(0, 0);
+                    target.anchorMax = new Vector2(1, 1);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 获取轴心点
+        /// </summary>
+        /// <param name="pivot"></param>
+        /// <returns></returns>
+        public static Vector2 GetPivotValue(UguiPivot pivot)
+        {
+            switch (pivot)
+            {
+                case (UguiPivot.TopLeft): return new Vector2(0, 1);
+                case (UguiPivot.Top): return new Vector2(0.5f, 1);
+                case (UguiPivot.TopRight): return new Vector2(1, 1);
+                case (UguiPivot.Left): return new Vector2(0, 0.5f);
+                case (UguiPivot.Center): return new Vector2(0.5f, 0.5f);
+                case (UguiPivot.Right): return new Vector2(1, 0.5f);
+                case (UguiPivot.BottomLeft): return new Vector2(0, 0);
+                case (UguiPivot.Bottom): return new Vector2(0.5f, 0);
+                case (UguiPivot.BottomRight): return new Vector2(1, 0);
+                default: return Vector2.zero;
+            }
+        }
+
+        /// <summary>
+        /// 设置轴心点(不改变位置)
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="pivot"></param>
+        public static void SetPivot(RectTransform target, UguiPivot pivot)
+        {
+            var pivotValue = GetPivotValue(pivot);
+            SetPivot(target, pivotValue);
+        }
+
+        /// <summary>
+        /// 设置轴心点(不改变位置)
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="pivot"></param>
+        public static void SetPivot(RectTransform target, Vector2 pivot)
+        {
+            if (!target) return;
+
+            Vector3 deltaPosition = target.pivot - pivot;
+            deltaPosition.Scale(target.rect.size);
+            deltaPosition.Scale(target.localScale);
+            deltaPosition = target.localRotation * deltaPosition;
+
+            target.pivot = pivot;
+            target.localPosition -= deltaPosition;
+        }
+
+        /// <summary>
+        /// 获取相对矩形
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        public static Rect GetLocalRect(RectTransform parent, RectTransform target)
+        {
+            if (parent == null)
+                throw new Exception("Parent is null.");
+            if (target == null)
+                throw new Exception("Target is null.");
+
+            var corners = new Vector3[4];
+            target.GetWorldCorners(corners);
+            for (var i = 0; i < 4; i++)
+            {
+                corners[i] = parent.transform.InverseTransformPoint(corners[i]);
+            }
+            var rect = GetRectContainsPoints(corners);
+
+            return rect;
+        }
+
+        /// <summary>
+        /// 缩放RectTransform
+        /// </summary>
+        /// <param name="scaleMode"></param>
+        /// <param name="rect"></param>
+        /// <param name="top"></param>
+        /// <param name="bottom"></param>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        public static void ScaleRectTransform(RectTransform rect, ScaleMode scaleMode, float top,float bottom,float left,float right)
+        {
+            var parent = rect.parent as RectTransform;
+            var parentRect = parent.rect;
+            var limitRect = parentRect;
+            limitRect.yMax -= top;
+            limitRect.yMin += bottom;
+            limitRect.xMax -= right;
+            limitRect.xMin += left;
+            var localRect = GetLocalRect(parent, rect);
+            var scaleRect = RectScale(localRect, limitRect, scaleMode);
+            top = Mathf.Abs(parentRect.yMax - scaleRect.yMax)*(scaleRect.yMax>parentRect.yMax?-1:1);
+            bottom = Mathf.Abs(parentRect.yMin - scaleRect.yMin) * (scaleRect.yMin>parentRect.yMin?1:-1);
+            left = Mathf.Abs(parentRect.xMin - scaleRect.xMin)*(scaleRect.xMin>parentRect.xMin?1:-1);
+            right = Mathf.Abs(parentRect.xMax - scaleRect.xMax) * (scaleRect.xMax > parentRect.xMax ? -1 : 1);
+
+            AdjustRectTransform(rect, top, bottom, left, right);
+        }
+
+        /// <summary>
+        /// 缩放RectTransform
+        /// </summary>
+        /// <param name="scaleMode"></param>
+        /// <param name="rect"></param>
+        public static void ScaleRectTransform(RectTransform rect, ScaleMode scaleMode)
+        {
+            ScaleRectTransform(rect, scaleMode, 0,0,0,0);
+        }
+
+        /// <summary>
         /// 获取相对坐标
         /// </summary>
         /// <param name="rect"></param>
@@ -180,7 +637,7 @@ namespace RedScarf.UguiFriend
         /// <param name="bottom"></param>
         /// <param name="left"></param>
         /// <param name="right"></param>
-        public static void LimitRecrTransform(RectTransform target, float top, float bottom, float left, float right)
+        public static void LimitRectTransform(RectTransform target, float top, float bottom, float left, float right)
         {
             if (!target) return;
 
@@ -191,6 +648,29 @@ namespace RedScarf.UguiFriend
             right = Mathf.Max(edgeDist.w,right);
 
             AdjustRectTransform(target, top, bottom, left, right);
+        }
+
+        /// <summary>
+        /// 限制在父级框内
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="scaleMode"></param>
+        /// <param name="aspectRatio">宽高比</param>
+        /// <param name="top"></param>
+        /// <param name="bottom"></param>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        public static void LimitRectTransform(RectTransform target,ScaleMode scaleMode,float aspectRatio, float top, float bottom, float left, float right)
+        {
+            if (aspectRatio == 0f)
+                throw new Exception("Aspect ratio is zero.");
+
+            var rect = target.rect;
+            var width = rect.width;
+            var height = width/aspectRatio;
+            target.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+            target.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+            ScaleRectTransform(target, scaleMode, top, bottom, left, right);
         }
 
         /// <summary>
@@ -206,7 +686,6 @@ namespace RedScarf.UguiFriend
             if (!target) return;
 
             var parent = target.parent as RectTransform;
-            var size = parent.rect.size;
             target.offsetMin = new Vector2(left, bottom);
             target.offsetMax = new Vector2(-right,-top);
         }
@@ -438,8 +917,7 @@ namespace RedScarf.UguiFriend
         {
             var viewportPoint = new Vector2(
                                 screenPoint.x/Screen.width,
-                                screenPoint.y/Screen.height
-                                );
+                                screenPoint.y/Screen.height);
 
             return viewportPoint;
         }
@@ -506,8 +984,7 @@ namespace RedScarf.UguiFriend
                     Mathf.Max(rect.xMin,rect2.xMin),
                     Mathf.Max(rect.yMin,rect2.yMin),
                     Mathf.Min(rect.xMax,rect2.xMax),
-                    Mathf.Min(rect.yMax,rect2.yMax)
-                    );
+                    Mathf.Min(rect.yMax,rect2.yMax));
 
                 return overlap;
             }
@@ -527,8 +1004,7 @@ namespace RedScarf.UguiFriend
                 Mathf.Min(rect.xMin, rect2.xMin),
                 Mathf.Min(rect.yMin, rect2.yMin),
                 Mathf.Max(rect.xMax, rect2.xMax),
-                Mathf.Max(rect.yMax, rect2.yMax)
-                );
+                Mathf.Max(rect.yMax, rect2.yMax));
 
             return combine;
         }
@@ -562,8 +1038,7 @@ namespace RedScarf.UguiFriend
                     Mathf.Min(rect.xMin,rect.xMax),
                     Mathf.Min(rect.yMin, rect.yMax),
                     Mathf.Max(rect.xMin, rect.xMax),
-                    Mathf.Max(rect.yMin, rect.yMax)
-                    );
+                    Mathf.Max(rect.yMin, rect.yMax));
 
             return rect;
         }
@@ -1460,5 +1935,29 @@ namespace RedScarf.UguiFriend
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// 锚点预设，对应编辑面板中的预设
+    /// </summary>
+    public enum AnchorPresets
+    {
+        TopLeft,
+        TopCenter,
+        TopRight,
+        MiddleLeft,
+        MiddleCenter,
+        MiddleRight,
+        BottomLeft,
+        BottonCenter,
+        BottomRight,
+        BottomStretch,
+        VertStretchLeft,
+        VertStretchRight,
+        VertStretchCenter,
+        HorStretchTop,
+        HorStretchMiddle,
+        HorStretchBottom,
+        StretchAll
     }
 }

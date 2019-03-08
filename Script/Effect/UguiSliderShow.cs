@@ -90,7 +90,7 @@ namespace RedScarf.UguiFriend
 
             m_Children.Clear();
             m_ChildrenScoreDict.Clear();
-            var rect=UguiTools.GetLocalRectIncludeChildren(m_Content,m_Content,false);
+            var rect= UguiMathf.GetLocalRectIncludeChildren(m_Content,m_Content,false);
             if (rect == null) return;
 
             var origin = ((Rect)rect).min;

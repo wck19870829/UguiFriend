@@ -92,7 +92,7 @@ namespace RedScarf.UguiFriend
             if (RectTransformUtility.ScreenPointToLocalPointInRectangle(m_HandleSlideArea, eventData.position, eventData.pressEventCamera, out localPoint))
             {
                 if (selectSlider == null) return;
-                if (!UguiTools.IsValidNumber(localPoint)) return;
+                if (!UguiMathf.IsValidNumber(localPoint)) return;
 
                 localPoint -= m_HandleSlideArea.rect.position;
                 var percent=localPoint[(int)m_Direction] / m_HandleSlideArea.rect.size[(int)m_Direction];

@@ -79,7 +79,7 @@ namespace RedScarf.UguiFriend
 
                 if (m_Canvas)
                 {
-                    return UguiTools.InScreenViewRect(worldPostion, m_Canvas, m_ViewPortDisplayRect);
+                    return UguiMathf.InScreenViewRect(worldPostion, m_Canvas, m_ViewPortDisplayRect);
                 }
             }
             else if (m_ClipKind == ClipKinds.RectLimit)
