@@ -62,10 +62,10 @@ namespace RedScarf.UguiFriend
             {
                 scrollRect.content.GetWorldCorners(contentCorners);
                 m_Mask.rectTransform.GetWorldCorners(maskCorners);
-                var localContent=UguiTools.GlobalPoints2LocalPoints(contentCorners,transform);
-                var localMask= UguiTools.GlobalPoints2LocalPoints(maskCorners, transform);
-                var contentRect = UguiTools.GetRectContainsPoints(localContent);
-                var maskRect = UguiTools.GetRectContainsPoints(localMask);
+                var localContent=UguiMathf.GlobalPoints2LocalPoints(contentCorners,transform);
+                var localMask= UguiMathf.GlobalPoints2LocalPoints(maskCorners, transform);
+                var contentRect = UguiMathf.GetRectContainsPoints(localContent);
+                var maskRect = UguiMathf.GetRectContainsPoints(localMask);
                 if (!contentRect.Overlaps(maskRect))
                 {
                     var restPosition = new Vector2(contentRect.xMin,contentRect.yMax);

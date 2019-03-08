@@ -108,14 +108,14 @@ namespace RedScarf.UguiFriend
             dragButtonTopRight.Pivot = UguiPivot.TopRight;
             dragButtonBottomLeft.Pivot = UguiPivot.BottomLeft;
             dragButtonBottomRight.Pivot = UguiPivot.BottomRight;
-            UguiTools.SetAnchor(dragButtonTop.RectTransform, AnchorPresets.HorStretchTop);
-            UguiTools.SetAnchor(dragButtonBottom.RectTransform, AnchorPresets.HorStretchBottom);
-            UguiTools.SetAnchor(dragButtonLeft.RectTransform, AnchorPresets.VertStretchLeft);
-            UguiTools.SetAnchor(dragButtonRight.RectTransform, AnchorPresets.VertStretchRight);
-            UguiTools.SetAnchor(dragButtonTopLeft.RectTransform, AnchorPresets.TopLeft);
-            UguiTools.SetAnchor(dragButtonTopRight.RectTransform, AnchorPresets.TopRight);
-            UguiTools.SetAnchor(dragButtonBottomLeft.RectTransform, AnchorPresets.BottomLeft);
-            UguiTools.SetAnchor(dragButtonBottomRight.RectTransform, AnchorPresets.BottomRight);
+            UguiMathf.SetAnchor(dragButtonTop.RectTransform, AnchorPresets.HorStretchTop);
+            UguiMathf.SetAnchor(dragButtonBottom.RectTransform, AnchorPresets.HorStretchBottom);
+            UguiMathf.SetAnchor(dragButtonLeft.RectTransform, AnchorPresets.VertStretchLeft);
+            UguiMathf.SetAnchor(dragButtonRight.RectTransform, AnchorPresets.VertStretchRight);
+            UguiMathf.SetAnchor(dragButtonTopLeft.RectTransform, AnchorPresets.TopLeft);
+            UguiMathf.SetAnchor(dragButtonTopRight.RectTransform, AnchorPresets.TopRight);
+            UguiMathf.SetAnchor(dragButtonBottomLeft.RectTransform, AnchorPresets.BottomLeft);
+            UguiMathf.SetAnchor(dragButtonBottomRight.RectTransform, AnchorPresets.BottomRight);
             foreach (var dragButton in dragButtonList)
             {
                 dragButton.name = "Drag_"+dragButton.Pivot;
@@ -124,23 +124,26 @@ namespace RedScarf.UguiFriend
             srcImageContent.SetParent(imageEditorArea);
             maskImage.rectTransform.SetParent(imageEditorArea);
             safeFrame.rectTransform.SetParent(imageEditorArea);
-            UguiTools.SetAnchor(maskImage.rectTransform, AnchorPresets.StretchAll);
+            UguiMathf.SetAnchor(maskImage.rectTransform, AnchorPresets.StretchAll);
+            UguiMathf.SetAnchor(safeFrame.rectTransform, AnchorPresets.StretchAll);
 
-            //限制安全框
-            UguiTools.SetAnchor(safeFrame.rectTransform, AnchorPresets.StretchAll);
-
+            //图片添加拖拽监听
             if(!srcImage)
                 srcImage = UguiTools.AddChild<RawImage>("SrcImage",srcImageContent);
             srcImage.transform.SetParent(srcImageContent,true);
             var srcTrigger = srcImage.gameObject.AddComponent<EventTrigger>();
-            var srcEntry = new EventTrigger.Entry();
-            srcEntry.eventID = EventTriggerType.Drag;
-            srcEntry.callback.AddListener(OnSrcImageDrag);
-            srcTrigger.triggers.Add(srcEntry);
             var srcBeginDragEntry = new EventTrigger.Entry();
             srcBeginDragEntry.eventID = EventTriggerType.BeginDrag;
             srcBeginDragEntry.callback.AddListener(OnSrcImageBeginDrag);
             srcTrigger.triggers.Add(srcBeginDragEntry);
+            var srcDragEntry = new EventTrigger.Entry();
+            srcDragEntry.eventID = EventTriggerType.Drag;
+            srcDragEntry.callback.AddListener(OnSrcImageDrag);
+            srcTrigger.triggers.Add(srcDragEntry);
+            var srcEndDragEntry = new EventTrigger.Entry();
+            srcEndDragEntry.eventID = EventTriggerType.EndDrag;
+            srcEndDragEntry.callback.AddListener(OnSrcImageEndDrag);
+            srcTrigger.triggers.Add(srcEndDragEntry);
 
             //创建安全框等分线
             for (var i = 0; i < bisectrixColumn; i++)
@@ -149,7 +152,7 @@ namespace RedScarf.UguiFriend
                 line.color = bisectrixColor;
                 line.raycastTarget = false;
                 line.rectTransform.sizeDelta = Vector2.one;
-                UguiTools.SetAnchor(line.rectTransform, AnchorPresets.HorStretchBottom);
+                UguiMathf.SetAnchor(line.rectTransform, AnchorPresets.HorStretchBottom);
                 bisectrixColumnList.Add(line);
             }
             for (var i = 0; i < bisectrixRow; i++)
@@ -158,7 +161,7 @@ namespace RedScarf.UguiFriend
                 line.color = bisectrixColor;
                 line.raycastTarget = false;
                 line.rectTransform.sizeDelta = Vector2.one;
-                UguiTools.SetAnchor(line.rectTransform, AnchorPresets.VertStretchLeft);
+                UguiMathf.SetAnchor(line.rectTransform, AnchorPresets.VertStretchLeft);
                 bisectrixRowList.Add(line);
             }
 
@@ -234,42 +237,84 @@ namespace RedScarf.UguiFriend
             step.SetActive(true);
         }
 
-        /// <summary>
-        /// 设置安全框尺寸
-        /// </summary>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        public virtual void SetSafeFrameSize(int width,int height)
-        {
-
-        }
-
         protected virtual void OriginalCropRatioButtonClick()
         {
             if (srcImage && srcImage.texture)
             {
-
+                var aspectRatio = (float)srcImage.texture.width / (float)srcImage.texture.height;
+                UguiMathf.LimitRectTransform(
+                            safeFrame.rectTransform,
+                            ScaleMode.ScaleToFit,
+                            aspectRatio,
+                            safeFrameDragWidth,
+                            safeFrameDragWidth,
+                            safeFrameDragWidth,
+                            safeFrameDragWidth);
             }
         }
 
         protected virtual void CropRatioButton1_1Click()
         {
-
+            if (srcImage && srcImage.texture)
+            {
+                var aspectRatio = 1f / 1f;
+                UguiMathf.LimitRectTransform(
+                            safeFrame.rectTransform,
+                            ScaleMode.ScaleToFit,
+                            aspectRatio,
+                            safeFrameDragWidth,
+                            safeFrameDragWidth,
+                            safeFrameDragWidth,
+                            safeFrameDragWidth);
+            }
         }
 
         protected virtual void CropRatioButton4_3Click()
         {
-
+            if (srcImage && srcImage.texture)
+            {
+                var aspectRatio = 4f / 3f;
+                UguiMathf.LimitRectTransform(
+                            safeFrame.rectTransform,
+                            ScaleMode.ScaleToFit,
+                            aspectRatio,
+                            safeFrameDragWidth,
+                            safeFrameDragWidth,
+                            safeFrameDragWidth,
+                            safeFrameDragWidth);
+            }
         }
 
         protected virtual void CropRatioButton3_2Click()
         {
-
+            if (srcImage && srcImage.texture)
+            {
+                var aspectRatio = 3f / 2f;
+                UguiMathf.LimitRectTransform(
+                            safeFrame.rectTransform,
+                            ScaleMode.ScaleToFit,
+                            aspectRatio,
+                            safeFrameDragWidth,
+                            safeFrameDragWidth,
+                            safeFrameDragWidth,
+                            safeFrameDragWidth);
+            }
         }
 
         protected virtual void CropRatioButton16_9Click()
         {
-
+            if (srcImage && srcImage.texture)
+            {
+                var aspectRatio = 16f / 9f;
+                UguiMathf.LimitRectTransform(
+                            safeFrame.rectTransform,
+                            ScaleMode.ScaleToFit,
+                            aspectRatio,
+                            safeFrameDragWidth,
+                            safeFrameDragWidth,
+                            safeFrameDragWidth,
+                            safeFrameDragWidth);
+            }
         }
 
         protected virtual void OnResizeHandle(UguiDragResize dragButton)
@@ -281,7 +326,7 @@ namespace RedScarf.UguiFriend
         {
             if (safeFrame)
             {
-                UguiTools.SetAnchor(safeFrame.rectTransform, AnchorPresets.MiddleCenter);
+                UguiMathf.SetAnchor(safeFrame.rectTransform, AnchorPresets.MiddleCenter);
                 safeFrame.rectTransform.localPosition = Vector3.zero;
             }
         }
@@ -334,8 +379,8 @@ namespace RedScarf.UguiFriend
         {
             if (safeFrame&& maskImage&&imageEditorArea)
             {
-                var safeFrameRect = (Rect)UguiTools.GetLocalRect(imageEditorArea, safeFrame.rectTransform);
-                var maskRect = (Rect)UguiTools.GetLocalRect(imageEditorArea, maskImage.rectTransform);
+                var safeFrameRect = (Rect)UguiMathf.GetLocalRect(imageEditorArea, safeFrame.rectTransform);
+                var maskRect = (Rect)UguiMathf.GetLocalRect(imageEditorArea, maskImage.rectTransform);
                 var xMin = (safeFrameRect.xMin - maskRect.xMin) / Mathf.Abs(maskRect.width);
                 var xMax = (safeFrameRect.xMax - maskRect.xMin) / Mathf.Abs(maskRect.width);
                 var yMin = (safeFrameRect.yMin - maskRect.yMin) / Mathf.Abs(maskRect.height);
@@ -349,7 +394,7 @@ namespace RedScarf.UguiFriend
         {
             if (safeFrame)
             {
-                UguiMathf.LimitRecrTransform(
+                UguiMathf.LimitRectTransform(
                     safeFrame.rectTransform, 
                     safeFrameDragWidth,
                     safeFrameDragWidth,
@@ -383,6 +428,16 @@ namespace RedScarf.UguiFriend
                     line.rectTransform.offsetMin = new Vector2(line.rectTransform.offsetMin.x, cornerOffset);
                     line.rectTransform.offsetMax = new Vector2(line.rectTransform.offsetMax.x,-cornerOffset);
                 }
+            }
+        }
+
+        protected virtual void OnSrcImageEndDrag(BaseEventData eventData)
+        {
+            PointerEventData pe = eventData as PointerEventData;
+            if (pe != null)
+            {
+                var screenPoint = RectTransformUtility.WorldToScreenPoint(m_Canvas.rootCanvas.worldCamera, srcImage.rectTransform.position);
+                srcImageOffset = screenPoint - pe.position;
             }
         }
 
