@@ -112,15 +112,6 @@ namespace RedScarf.UguiFriend
             dragButtonTopRight.Pivot = UguiPivot.TopRight;
             dragButtonBottomLeft.Pivot = UguiPivot.BottomLeft;
             dragButtonBottomRight.Pivot = UguiPivot.BottomRight;
-<<<<<<< HEAD
-            UguiTools.SetAnchor(dragButtonTop.RectTransform, AnchorPresets.HorStretchTop);
-            UguiTools.SetAnchor(dragButtonBottom.RectTransform, AnchorPresets.HorStretchBottom);
-            UguiTools.SetAnchor(dragButtonLeft.RectTransform, AnchorPresets.VertStretchLeft);
-            UguiTools.SetAnchor(dragButtonRight.RectTransform, AnchorPresets.VertStretchRight);
-            UguiTools.SetAnchor(dragButtonTopLeft.RectTransform, AnchorPresets.TopLeft);
-            UguiTools.SetAnchor(dragButtonTopRight.RectTransform, AnchorPresets.TopRight);
-            UguiTools.SetAnchor(dragButtonBottomLeft.RectTransform, AnchorPresets.BottomLeft);
-            UguiTools.SetAnchor(dragButtonBottomRight.RectTransform, AnchorPresets.BottomRight);
             var moveIcon = Resources.Load<Texture2D>("UguiFriend/Texture/Move");
             var neResizeIcon= Resources.Load<Texture2D>("UguiFriend/Texture/NeResize");
             var seResizeIcon= Resources.Load<Texture2D>("UguiFriend/Texture/SeResize");
@@ -134,7 +125,6 @@ namespace RedScarf.UguiFriend
             dragButtonBottomRight.CursorIcon = seResizeIcon;
             dragButtonTopRight.CursorIcon = neResizeIcon;
             dragButtonBottomLeft.CursorIcon = neResizeIcon;
-=======
             UguiMathf.SetAnchor(dragButtonTop.RectTransform, AnchorPresets.HorStretchTop);
             UguiMathf.SetAnchor(dragButtonBottom.RectTransform, AnchorPresets.HorStretchBottom);
             UguiMathf.SetAnchor(dragButtonLeft.RectTransform, AnchorPresets.VertStretchLeft);
@@ -143,7 +133,6 @@ namespace RedScarf.UguiFriend
             UguiMathf.SetAnchor(dragButtonTopRight.RectTransform, AnchorPresets.TopRight);
             UguiMathf.SetAnchor(dragButtonBottomLeft.RectTransform, AnchorPresets.BottomLeft);
             UguiMathf.SetAnchor(dragButtonBottomRight.RectTransform, AnchorPresets.BottomRight);
->>>>>>> 32a61c305999783b59c2e010597d343f6c9b340c
             foreach (var dragButton in dragButtonList)
             {
                 dragButton.name = "Drag_"+dragButton.Pivot;
@@ -442,7 +431,19 @@ namespace RedScarf.UguiFriend
         /// </summary>
         protected virtual void LimitSrcImage()
         {
-
+            var srcRect=srcImage.rectTransform;
+            var cacheRect = srcRect.rect;
+            var newRect = cacheRect;
+            var corners = new Vector3[4];
+            safeFrame.rectTransform.GetWorldCorners(corners);
+            for(var i=0;i<4;i++)
+            {
+                var localPoint = srcRect.InverseTransformPoint(corners[i]);
+                newRect = UguiMathf.RectEncapsulate(cacheRect, localPoint);
+            }
+            newRect = UguiMathf.RectScale(cacheRect, newRect, ScaleMode.ScaleAndCrop);
+            srcRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, newRect.width);
+            srcRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, newRect.height);
         }
 
         protected virtual void LimitSafeFrame()
@@ -491,8 +492,10 @@ namespace RedScarf.UguiFriend
             PointerEventData pe = eventData as PointerEventData;
             if (pe != null)
             {
-                var screenPoint = RectTransformUtility.WorldToScreenPoint(m_Canvas.rootCanvas.worldCamera, srcImage.rectTransform.position);
-                srcImageOffset = screenPoint - pe.position;
+                //var screenPoint = RectTransformUtility.WorldToScreenPoint(m_Canvas.rootCanvas.worldCamera, srcImage.rectTransform.position);
+                //srcImageOffset = screenPoint - pe.position;
+
+                LimitSrcImage();
             }
         }
 
