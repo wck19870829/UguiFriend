@@ -64,8 +64,8 @@ namespace RedScarf.UguiFriend
                 m_Mask.rectTransform.GetWorldCorners(maskCorners);
                 var localContent=UguiMathf.GlobalPoints2LocalPoints(contentCorners,transform);
                 var localMask= UguiMathf.GlobalPoints2LocalPoints(maskCorners, transform);
-                var contentRect = UguiMathf.GetRectContainsPoints(localContent);
-                var maskRect = UguiMathf.GetRectContainsPoints(localMask);
+                var contentRect = UguiMathf.GetRect(localContent);
+                var maskRect = UguiMathf.GetRect(localMask);
                 if (!contentRect.Overlaps(maskRect))
                 {
                     var restPosition = new Vector2(contentRect.xMin,contentRect.yMax);

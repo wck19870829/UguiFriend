@@ -33,6 +33,7 @@ namespace RedScarf.UguiFriend
         protected Vector2 screenOffset;
 
         public Action<UguiDragResize> OnResize;
+        public Action<UguiDragResize> OnEndResize;
 
         protected override void Awake()
         {
@@ -126,6 +127,11 @@ namespace RedScarf.UguiFriend
         public virtual void OnEndDrag(PointerEventData eventData)
         {
             s_Dragging = false;
+
+            if (OnEndResize!=null)
+            {
+                OnEndResize.Invoke(this);
+            }
         }
 
         public virtual void OnPointerEnter(PointerEventData eventData)

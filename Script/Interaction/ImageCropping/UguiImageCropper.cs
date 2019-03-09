@@ -12,7 +12,7 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiImageCropper : UIBehaviour
     {
-        protected const int safeFrameDragWidth = 40;                        //拖拽框宽度
+        protected const int safeFrameDragWidth = 50;                        //拖拽框宽度
         protected const int defaultSafeFrameMinWidth = 100;                 //默认最小宽高
         protected const int defaultSafeFrameMinHeight = 100;
 
@@ -94,6 +94,7 @@ namespace RedScarf.UguiFriend
                 dragButton.Target = safeFrame.rectTransform;
                 dragButton.RectTransform.sizeDelta = new Vector2(safeFrameDragWidth, safeFrameDragWidth);
                 dragButton.OnResize += OnResizeHandle;
+                dragButton.OnEndResize += OnEndResizeHandle;
                 dragButtonList.Add(dragButton);
             }
             var dragButtonTop= dragButtonList[0];
@@ -148,19 +149,9 @@ namespace RedScarf.UguiFriend
             if(!srcImage)
                 srcImage = UguiTools.AddChild<RawImage>("SrcImage",srcImageContent);
             srcImage.transform.SetParent(srcImageContent,true);
-            var srcTrigger = srcImage.gameObject.AddComponent<EventTrigger>();
-            var srcBeginDragEntry = new EventTrigger.Entry();
-            srcBeginDragEntry.eventID = EventTriggerType.BeginDrag;
-            srcBeginDragEntry.callback.AddListener(OnSrcImageBeginDrag);
-            srcTrigger.triggers.Add(srcBeginDragEntry);
-            var srcDragEntry = new EventTrigger.Entry();
-            srcDragEntry.eventID = EventTriggerType.Drag;
-            srcDragEntry.callback.AddListener(OnSrcImageDrag);
-            srcTrigger.triggers.Add(srcDragEntry);
-            var srcEndDragEntry = new EventTrigger.Entry();
-            srcEndDragEntry.eventID = EventTriggerType.EndDrag;
-            srcEndDragEntry.callback.AddListener(OnSrcImageEndDrag);
-            srcTrigger.triggers.Add(srcEndDragEntry);
+            UguiTools.AddTriger(srcImage.gameObject, EventTriggerType.BeginDrag, OnSrcImageBeginDrag);
+            UguiTools.AddTriger(srcImage.gameObject, EventTriggerType.Drag, OnSrcImageDrag);
+            UguiTools.AddTriger(srcImage.gameObject, EventTriggerType.EndDrag, OnSrcImageEndDrag);
 
             //创建安全框等分线
             for (var i = 0; i < bisectrixColumn; i++)
@@ -184,17 +175,21 @@ namespace RedScarf.UguiFriend
 
             m_Canvas = GetComponentInParent<Canvas>();
 
-            rotationSlider.minValue = 0;
-            rotationSlider.maxValue = 360;
-            scaleSlider.minValue = 0.01f;
-            scaleSlider.maxValue = 1f;
             confirmButton.onClick.AddListener(OnConfirmButtonClick);
             cancelButton.onClick.AddListener(OnCancelButtonClick);
             scaleStepButton.onClick.AddListener(OnScaleStepButtonClick);
             rotationStepButton.onClick.AddListener(OnRotationStepButtonClick);
             cropStepButton.onClick.AddListener(OnCropStepButtonClick);
+
+            scaleSlider.minValue = 0.01f;
+            scaleSlider.maxValue = 1f;
             scaleSlider.onValueChanged.AddListener(OnScaleChange);
+            UguiTools.AddTriger(scaleSlider.gameObject, EventTriggerType.EndDrag, OnScaleSliderEndDrag);
+
+            rotationSlider.minValue = 0;
+            rotationSlider.maxValue = 360;
             rotationSlider.onValueChanged.AddListener(OnRotationChange);
+            UguiTools.AddTriger(rotationSlider.gameObject, EventTriggerType.EndDrag, OnRotateSlideEndDrag);
 
             stepList = new List<GameObject>()
             {
@@ -227,6 +222,16 @@ namespace RedScarf.UguiFriend
         protected virtual void LateUpdate()
         {
             RefreshDisplay();
+        }
+
+        protected virtual void OnRotateSlideEndDrag(BaseEventData eventData)
+        {
+            LimitSrcImage();
+        }
+
+        protected virtual void OnScaleSliderEndDrag(BaseEventData eventData)
+        {
+            LimitSrcImage();
         }
 
         protected virtual void OnScaleStepButtonClick()
@@ -270,6 +275,7 @@ namespace RedScarf.UguiFriend
                             safeFrameDragWidth,
                             safeFrameDragWidth,
                             safeFrameDragWidth);
+                LimitSrcImage();
             }
         }
 
@@ -286,6 +292,7 @@ namespace RedScarf.UguiFriend
                             safeFrameDragWidth,
                             safeFrameDragWidth,
                             safeFrameDragWidth);
+                LimitSrcImage();
             }
         }
 
@@ -302,6 +309,7 @@ namespace RedScarf.UguiFriend
                             safeFrameDragWidth,
                             safeFrameDragWidth,
                             safeFrameDragWidth);
+                LimitSrcImage();
             }
         }
 
@@ -318,6 +326,7 @@ namespace RedScarf.UguiFriend
                             safeFrameDragWidth,
                             safeFrameDragWidth,
                             safeFrameDragWidth);
+                LimitSrcImage();
             }
         }
 
@@ -334,6 +343,7 @@ namespace RedScarf.UguiFriend
                             safeFrameDragWidth,
                             safeFrameDragWidth,
                             safeFrameDragWidth);
+                LimitSrcImage();
             }
         }
 
@@ -342,6 +352,7 @@ namespace RedScarf.UguiFriend
             if (srcImage)
             {
                 srcImage.transform.localEulerAngles += new Vector3(0, 0, -90);
+                LimitSrcImage();
             }
         }
 
@@ -350,12 +361,18 @@ namespace RedScarf.UguiFriend
             if (srcImage)
             {
                 srcImage.transform.localEulerAngles = Vector3.zero;
+                LimitSrcImage();
             }
         }
 
         protected virtual void OnResizeHandle(UguiDragResize dragButton)
         {
             LimitSafeFrame();
+        }
+
+        protected virtual void OnEndResizeHandle(UguiDragResize dragButton)
+        {
+            LimitSrcImage();
         }
 
         protected virtual void SetSafeFrame()
@@ -431,19 +448,12 @@ namespace RedScarf.UguiFriend
         /// </summary>
         protected virtual void LimitSrcImage()
         {
-            var srcRect=srcImage.rectTransform;
-            var cacheRect = srcRect.rect;
-            var newRect = cacheRect;
-            var corners = new Vector3[4];
-            safeFrame.rectTransform.GetWorldCorners(corners);
-            for(var i=0;i<4;i++)
-            {
-                var localPoint = srcRect.InverseTransformPoint(corners[i]);
-                newRect = UguiMathf.RectEncapsulate(cacheRect, localPoint);
-            }
-            newRect = UguiMathf.RectScale(cacheRect, newRect, ScaleMode.ScaleAndCrop);
-            srcRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, newRect.width);
-            srcRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, newRect.height);
+            var rect = srcImage.rectTransform.rect;
+            var safeRect = UguiMathf.GetLocalRect(srcImage.rectTransform, safeFrame.rectTransform);
+            var scaleRect = UguiMathf.RectScale(safeRect, rect, ScaleMode.ScaleToFit);
+            var scale = safeRect.width / scaleRect.width;
+            srcImage.rectTransform.localScale *= scale;
+            srcImage.rectTransform.position = srcImage.rectTransform.TransformPoint(scaleRect.center);
         }
 
         protected virtual void LimitSafeFrame()

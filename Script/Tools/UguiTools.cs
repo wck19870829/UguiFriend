@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -261,6 +262,32 @@ namespace RedScarf.UguiFriend
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// 添加事件触发器
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="type"></param>
+        /// <param name="callback"></param>
+        public static void AddTriger(GameObject target,EventTriggerType type,UnityAction<BaseEventData> callback)
+        {
+            var trigger = target.GetComponent<EventTrigger>();
+            if (!trigger) trigger = target.AddComponent<EventTrigger>();
+
+            foreach (var t in trigger.triggers)
+            {
+                if (t.eventID == type)
+                {
+                    t.callback.AddListener(callback);
+                    return;
+                }
+            }
+
+            var entry = new EventTrigger.Entry();
+            entry.eventID = type;
+            entry.callback.AddListener(callback);
+            trigger.triggers.Add(entry);
         }
 
         #region 其他

@@ -245,13 +245,13 @@ namespace RedScarf.UguiFriend
             foreach (var graphic in children)
             {
                 graphic.rectTransform.GetWorldCorners(cornersArr);
-                var childRect = GetRectContainsPoints(cornersArr);
+                var childRect = GetRect(cornersArr);
 
                 var mask = graphic.GetComponentInParent<Mask>();
                 if (mask != null)
                 {
                     mask.rectTransform.GetWorldCorners(cornersArr);
-                    var maskRect = GetRectContainsPoints(cornersArr);
+                    var maskRect = GetRect(cornersArr);
                     var overlap = UguiMathf.RectOverlap(childRect, maskRect);
                     if (overlap != null)
                     {
@@ -296,10 +296,10 @@ namespace RedScarf.UguiFriend
                 if (contentRect == null)
                 {
                     child.GetWorldCorners(cornersArr);
-                    contentRect = GetRectContainsPoints(cornersArr);
+                    contentRect = GetRect(cornersArr);
                 }
                 child.GetWorldCorners(cornersArr);
-                var childRect = GetRectContainsPoints(cornersArr);
+                var childRect = GetRect(cornersArr);
                 contentRect = UguiMathf.RectCombine((Rect)contentRect, childRect);
             }
 
@@ -333,31 +333,7 @@ namespace RedScarf.UguiFriend
             {
                 corners[i] = relative.worldToLocalMatrix.MultiplyPoint(corners[i]);
             }
-            rect = GetRectContainsPoints(corners);
-
-            return rect;
-        }
-
-        /// <summary>
-        /// 获取包含所有点的矩形
-        /// </summary>
-        /// <param name="points"></param>
-        /// <returns></returns>
-        public static Rect GetRectContainsPoints(Vector3[] points)
-        {
-            if (points == null)
-                throw new Exception("Points is null.");
-            if (points.Length == 0)
-                throw new Exception("Points length is zero.");
-
-            var rect = new Rect(points[0], Vector3.zero);
-            foreach (var point in points)
-            {
-                rect.xMax = Mathf.Max(rect.xMax, point.x);
-                rect.xMin = Mathf.Min(rect.xMin, point.x);
-                rect.yMax = Mathf.Max(rect.yMax, point.y);
-                rect.yMin = Math.Min(rect.yMin, point.y);
-            }
+            rect = GetRect(corners);
 
             return rect;
         }
@@ -571,7 +547,7 @@ namespace RedScarf.UguiFriend
             {
                 corners[i] = parent.transform.InverseTransformPoint(corners[i]);
             }
-            var rect = GetRectContainsPoints(corners);
+            var rect = GetRect(corners);
 
             return rect;
         }
@@ -927,6 +903,30 @@ namespace RedScarf.UguiFriend
         /// </summary>
         /// <param name="points"></param>
         /// <returns></returns>
+        public static Rect GetRect(Vector3[]points)
+        {
+            if (points == null)
+                throw new Exception("Points is null.");
+            if (points.Length == 0)
+                throw new Exception("Points length is zero.");
+
+            var rect = new Rect(points[0], Vector2.zero);
+            foreach (var point in points)
+            {
+                rect.xMax = Mathf.Max(rect.xMax, point.x);
+                rect.xMin = Mathf.Min(rect.xMin, point.x);
+                rect.yMax = Mathf.Max(rect.yMax, point.y);
+                rect.yMin = Math.Min(rect.yMin, point.y);
+            }
+
+            return rect;
+        }
+
+        /// <summary>
+        /// 获取包含所有点的矩形
+        /// </summary>
+        /// <param name="points"></param>
+        /// <returns></returns>
         public static Rect GetRect(Vector2[] points)
         {
             if (points == null)
@@ -934,7 +934,7 @@ namespace RedScarf.UguiFriend
             if (points.Length == 0)
                 throw new Exception("Points length is zero.");
 
-            var rect = new Rect(points[0], Vector3.zero);
+            var rect = new Rect(points[0], Vector2.zero);
             foreach (var point in points)
             {
                 rect.xMax = Mathf.Max(rect.xMax, point.x);
@@ -958,7 +958,7 @@ namespace RedScarf.UguiFriend
             if (points.Count == 0)
                 throw new Exception("Points length is zero.");
 
-            var rect = new Rect(points[0], Vector3.zero);
+            var rect = new Rect(points[0], Vector2.zero);
             foreach (var point in points)
             {
                 rect.xMax = Mathf.Max(rect.xMax, point.x);
