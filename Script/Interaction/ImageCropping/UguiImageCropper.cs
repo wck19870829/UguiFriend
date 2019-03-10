@@ -79,6 +79,8 @@ namespace RedScarf.UguiFriend
 
         protected override void Awake()
         {
+            var simulation=UguiMultPointSimulation.Instance;
+
             base.Awake();
 
             safeFrame.type = Image.Type.Sliced;
@@ -448,12 +450,7 @@ namespace RedScarf.UguiFriend
         /// </summary>
         protected virtual void LimitSrcImage()
         {
-            var rect = srcImage.rectTransform.rect;
-            var safeRect = UguiMathf.GetLocalRect(srcImage.rectTransform, safeFrame.rectTransform);
-            var scaleRect = UguiMathf.RectScale(safeRect, rect, ScaleMode.ScaleToFit);
-            var scale = safeRect.width / scaleRect.width;
-            srcImage.rectTransform.localScale *= scale;
-            srcImage.rectTransform.position = srcImage.rectTransform.TransformPoint(scaleRect.center);
+            UguiMathf.LimitRectTransformWithMoveAndScale(srcImage.rectTransform,safeFrame.rectTransform);
         }
 
         protected virtual void LimitSafeFrame()

@@ -606,6 +606,38 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
+        /// 以目标当前旋转为基准，约束目标在相对父级框内
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="relative"></param>
+        public static void LimitRectTransformWithMoveAndScale(RectTransform target,RectTransform relative)
+        {
+            var localPosition=Vector3.zero;
+            var localScale = Vector3.zero;
+            LimitRectTransformWithMoveAndScale(target, relative,ref localPosition,ref localScale);
+            target.localPosition = localPosition;
+            target.localScale = localScale;
+        }
+
+        /// <summary>
+        /// 以目标当前旋转为基准，约束目标在相对父级框内
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="relative"></param>
+        /// <param name="newLocalPostion"></param>
+        /// <param name="newLocalScale"></param>
+        public static void LimitRectTransformWithMoveAndScale(RectTransform target, RectTransform relative,ref Vector3 newLocalPostion,ref Vector3 newLocalScale)
+        {
+            var relativeRect = UguiMathf.GetLocalRect(target, relative);
+            var scaleRect = UguiMathf.RectScale(relativeRect, target.rect, ScaleMode.ScaleToFit);
+            var scale = relativeRect.width / scaleRect.width;
+            newLocalScale= target.localScale * scale;
+            var offset = target.TransformVector(relativeRect.center-scaleRect.center);
+            var worldPos = target.position + offset;
+            newLocalPostion= target.parent.InverseTransformPoint(worldPos);
+        }
+
+        /// <summary>
         /// 限制在父级框内
         /// </summary>
         /// <param name="target"></param>
