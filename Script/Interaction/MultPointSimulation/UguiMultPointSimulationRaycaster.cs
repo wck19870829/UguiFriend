@@ -115,6 +115,9 @@ namespace RedScarf.UguiFriend
                     pointerDict.Add(pointerId, newData);
 
                     //模拟PointerDown事件
+                    eventData.pointerId = pointerId;
+                    eventData.dragging = false;
+                    eventData.pointerDrag = null;
 
                     pointerId++;
                 }
