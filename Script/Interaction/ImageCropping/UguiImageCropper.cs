@@ -151,9 +151,9 @@ namespace RedScarf.UguiFriend
             if(!srcImage)
                 srcImage = UguiTools.AddChild<RawImage>("SrcImage",srcImageContent);
             srcImage.transform.SetParent(srcImageContent,true);
-            UguiTools.AddTriger(srcImage.gameObject, EventTriggerType.BeginDrag, OnSrcImageBeginDrag);
-            UguiTools.AddTriger(srcImage.gameObject, EventTriggerType.Drag, OnSrcImageDrag);
-            UguiTools.AddTriger(srcImage.gameObject, EventTriggerType.EndDrag, OnSrcImageEndDrag);
+            UguiTools.AddTriger(maskImage.gameObject, EventTriggerType.BeginDrag, OnMaskBeginDrag);
+            UguiTools.AddTriger(maskImage.gameObject, EventTriggerType.Drag, OnMaskDrag);
+            UguiTools.AddTriger(maskImage.gameObject, EventTriggerType.EndDrag, OnMaskEndDrag);
 
             //创建安全框等分线
             for (var i = 0; i < bisectrixColumn; i++)
@@ -494,7 +494,7 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        protected virtual void OnSrcImageEndDrag(BaseEventData eventData)
+        protected virtual void OnMaskEndDrag(BaseEventData eventData)
         {
             PointerEventData pe = eventData as PointerEventData;
             if (pe != null)
@@ -506,7 +506,7 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        protected virtual void OnSrcImageBeginDrag(BaseEventData eventData)
+        protected virtual void OnMaskBeginDrag(BaseEventData eventData)
         {
             PointerEventData pe = eventData as PointerEventData;
             if (pe != null)
@@ -516,7 +516,7 @@ namespace RedScarf.UguiFriend
             }
         }
 
-        protected virtual void OnSrcImageDrag(BaseEventData eventData)
+        protected virtual void OnMaskDrag(BaseEventData eventData)
         {
             PointerEventData pe = eventData as PointerEventData;
             if (pe != null)

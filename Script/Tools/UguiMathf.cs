@@ -495,8 +495,9 @@ namespace RedScarf.UguiFriend
                 case (UguiPivot.BottomLeft): return new Vector2(0, 0);
                 case (UguiPivot.Bottom): return new Vector2(0.5f, 0);
                 case (UguiPivot.BottomRight): return new Vector2(1, 0);
-                default: return Vector2.zero;
             }
+
+            return Vector2.zero;
         }
 
         /// <summary>
@@ -606,7 +607,7 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 以目标当前旋转为基准，约束目标在相对父级框内
+        /// 以目标当前旋转为基准，约束目标在相对父级框内(直接改变位置缩放)
         /// </summary>
         /// <param name="target"></param>
         /// <param name="relative"></param>
@@ -620,7 +621,7 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 以目标当前旋转为基准，约束目标在相对父级框内
+        /// 以目标当前旋转为基准，约束目标在相对父级框内(不直接改变位置缩放)
         /// </summary>
         /// <param name="target"></param>
         /// <param name="relative"></param>
@@ -629,12 +630,11 @@ namespace RedScarf.UguiFriend
         public static void LimitRectTransformWithMoveAndScale(RectTransform target, RectTransform relative,ref Vector3 newLocalPostion,ref Vector3 newLocalScale)
         {
             var relativeRect = UguiMathf.GetLocalRect(target, relative);
-            var scaleRect = UguiMathf.RectScale(relativeRect, target.rect, ScaleMode.ScaleToFit);
+            var scaleRect = LimitRect(relativeRect, target.rect);
             var scale = relativeRect.width / scaleRect.width;
             newLocalScale= target.localScale * scale;
-            var offset = target.TransformVector(relativeRect.center-scaleRect.center);
-            var worldPos = target.position + offset;
-            newLocalPostion= target.parent.InverseTransformPoint(worldPos);
+            var worldPos = target.position + target.TransformVector(relativeRect.center - scaleRect.center);
+            newLocalPostion = target.parent.InverseTransformPoint(worldPos);
         }
 
         /// <summary>
@@ -1049,6 +1049,9 @@ namespace RedScarf.UguiFriend
         /// <returns></returns>
         public static Rect LimitRect(Rect rect,Rect content)
         {
+            var scaleRect = RectScale(rect, content, ScaleMode.ScaleToFit);
+            rect.width = Mathf.Min(rect.width,scaleRect.width);
+            rect.height = Mathf.Min(rect.height,scaleRect.height);
             var width = Mathf.Min(Mathf.Abs(rect.width),Mathf.Abs(content.width));
             var height = Mathf.Min(Mathf.Abs(rect.height), Mathf.Abs(content.height));
             rect.xMin = Mathf.Clamp(rect.xMin,content.xMin, content.xMax-width);
