@@ -127,6 +127,10 @@ namespace RedScarf.UguiFriend
         public virtual void OnEndDrag(PointerEventData eventData)
         {
             s_Dragging = false;
+            if (eventData.pointerEnter!=gameObject)
+            {
+                Cursor.SetCursor(null, new Vector2(m_Cursor.width * 0.5f, m_Cursor.height * 0.5f), CursorMode.Auto);
+            }
 
             if (OnEndResize!=null)
             {

@@ -442,14 +442,18 @@ namespace RedScarf.UguiFriend
         {
             if (safeFrame&& maskImage&&imageEditorArea)
             {
-                var safeFrameRect = (Rect)UguiMathf.GetLocalRect(imageEditorArea, safeFrame.rectTransform);
-                var maskRect = (Rect)UguiMathf.GetLocalRect(imageEditorArea, maskImage.rectTransform);
-                var xMin = (safeFrameRect.xMin - maskRect.xMin) / Mathf.Abs(maskRect.width);
-                var xMax = (safeFrameRect.xMax - maskRect.xMin) / Mathf.Abs(maskRect.width);
-                var yMin = (safeFrameRect.yMin - maskRect.yMin) / Mathf.Abs(maskRect.height);
-                var yMax = (safeFrameRect.yMax - maskRect.yMin) / Mathf.Abs(maskRect.height);
-                var safeFrameValue = new Vector4(xMin, xMax, yMin, yMax);
+                var safeFrameDist = UguiMathf.GetRectTransformEdgeDistance(safeFrame.rectTransform, maskImage.rectTransform);
+                var maskRect = maskImage.rectTransform.rect;
+                var safeFrameValue = new Vector4(
+                                    safeFrameDist.y / maskRect.height,
+                                    1-safeFrameDist.x / maskRect.height,
+                                    safeFrameDist.z / maskRect.width,
+                                    1 - safeFrameDist.w / maskRect.width);
                 maskImage.material.SetVector("_SafeFrame", safeFrameValue);
+
+                //强制刷新,待优化
+                maskImage.enabled = false;
+                maskImage.enabled = true;
             }
         }
 
