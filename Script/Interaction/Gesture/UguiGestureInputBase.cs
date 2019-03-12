@@ -8,7 +8,9 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 手势输入基类
     /// </summary>
-    public abstract class UguiGestureInputBase : UIBehaviour, IPointerDownHandler, IPointerUpHandler
+    public abstract class UguiGestureInputBase : UIBehaviour, 
+        IPointerDownHandler,
+        IPointerUpHandler
     {
         protected List<PointerEventData> pointerDataList;       //输入的点
         protected List<ScreenPointInfo> screenPointInfoList;    //屏幕坐标点记录

@@ -3,6 +3,7 @@ using System.Collections;
 using System;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace RedScarf.UguiFriend
 {
@@ -498,6 +499,15 @@ namespace RedScarf.UguiFriend
             }
 
             return Vector2.zero;
+        }
+
+        /// <summary>
+        /// 设置轴心点(不改变位置)
+        /// </summary>
+        /// <param name="target"></param>
+        public static void SetPivot(RectTransform target,params PointerEventData[] datas)
+        {
+
         }
 
         /// <summary>

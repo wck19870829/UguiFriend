@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace RedScarf.UguiFriend
 {
+    [DisallowMultipleComponent]
     [RequireComponent(typeof(Graphic))]
     /// <summary>
     /// 拖拽改变尺寸(单点)

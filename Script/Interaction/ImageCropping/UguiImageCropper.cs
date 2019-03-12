@@ -104,9 +104,9 @@ namespace RedScarf.UguiFriend
             srcImagePostionTweener = UguiTools.GetOrAddComponent<UguiTweenPosition>(srcImage.gameObject);
             srcImagePostionTweener.Space = Space.Self;
             srcImageScaleTweener = UguiTools.GetOrAddComponent<UguiTweenScale>(srcImage.gameObject);
-            UguiTools.AddTriger(maskImage.gameObject, EventTriggerType.BeginDrag, OnMaskBeginDrag);
-            UguiTools.AddTriger(maskImage.gameObject, EventTriggerType.Drag, OnMaskDrag);
-            UguiTools.AddTriger(maskImage.gameObject, EventTriggerType.EndDrag, OnMaskEndDrag);
+            var maskDrag = UguiTools.GetOrAddComponent<UguiDragObject>(maskImage.gameObject);
+            maskDrag.OnEndDragEvent += LimitSrcImage;
+            maskDrag.target = srcImage.transform;
 
             //创建安全框等分线
             for (var i = 0; i < bisectrixColumn; i++)
@@ -506,38 +506,6 @@ namespace RedScarf.UguiFriend
                     line.rectTransform.anchoredPosition = new Vector3((i+1) * offsetX, 0);
                     line.rectTransform.offsetMin = new Vector2(line.rectTransform.offsetMin.x, cornerOffset);
                     line.rectTransform.offsetMax = new Vector2(line.rectTransform.offsetMax.x,-cornerOffset);
-                }
-            }
-        }
-
-        protected virtual void OnMaskEndDrag(BaseEventData eventData)
-        {
-            PointerEventData pe = eventData as PointerEventData;
-            if (pe != null)
-            {
-                LimitSrcImage();
-            }
-        }
-
-        protected virtual void OnMaskBeginDrag(BaseEventData eventData)
-        {
-            PointerEventData pe = eventData as PointerEventData;
-            if (pe != null)
-            {
-                var screenPoint=RectTransformUtility.WorldToScreenPoint(m_Canvas.rootCanvas.worldCamera, srcImage.rectTransform.position);
-                srcImageOffset = screenPoint- pe.position;
-            }
-        }
-
-        protected virtual void OnMaskDrag(BaseEventData eventData)
-        {
-            PointerEventData pe = eventData as PointerEventData;
-            if (pe != null)
-            {
-                Vector3 worldPoint;
-                if (RectTransformUtility.ScreenPointToWorldPointInRectangle(srcImage.rectTransform, pe.position + srcImageOffset, m_Canvas.rootCanvas.worldCamera, out worldPoint))
-                {
-                    srcImage.transform.position = worldPoint;
                 }
             }
         }

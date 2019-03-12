@@ -9,22 +9,31 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 缩放物体
     /// </summary>
-    public class UguiZoomObject : UguiGestureInputBase
+    public class UguiZoomObject : UguiMultPointInputBase,
+        IDragHandler
     {
-        protected override void DoChange()
+        //protected override void DoChange()
+        //{
+        //    //缩小为-,放大为+
+        //    var prevDist = 0f;
+        //    var currentDist = 0f;
+        //    foreach (var item in worldPointInfoList)
+        //    {
+        //        prevDist += Vector3.Distance(item.prev, worldCenter);
+        //        currentDist += Vector3.Distance(item.current,worldCenter);
+        //    }
+        //    prevDist /= worldPointInfoList.Count;
+        //    prevDist = Mathf.Clamp(prevDist,0.00001f,prevDist);
+        //    currentDist/= worldPointInfoList.Count;
+        //    transform.localScale *= currentDist / prevDist;
+        //}
+
+        public void OnDrag(PointerEventData eventData)
         {
-            //缩小为-,放大为+
-            var prevDist = 0f;
-            var currentDist = 0f;
-            foreach (var item in worldPointInfoList)
+            if (pointerDataDict.Count >= 2)
             {
-                prevDist += Vector3.Distance(item.prev, worldCenter);
-                currentDist += Vector3.Distance(item.current,worldCenter);
+
             }
-            prevDist /= worldPointInfoList.Count;
-            prevDist = Mathf.Clamp(prevDist,0.00001f,prevDist);
-            currentDist/= worldPointInfoList.Count;
-            transform.localScale *= currentDist / prevDist;
         }
     }
 }
