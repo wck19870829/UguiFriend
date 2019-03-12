@@ -21,7 +21,6 @@ namespace RedScarf.UguiFriend
 
             var comp = serializedObject.FindProperty("m_Component");
             var duration = serializedObject.FindProperty("m_Duration");
-            var playOnEnable = serializedObject.FindProperty("playOnEnable");
             var playStyle = serializedObject.FindProperty("m_PlayStyle");
 
             if (comp != null)
@@ -39,11 +38,6 @@ namespace RedScarf.UguiFriend
             }
 
             DrawAnimCurve();
-
-            if (playOnEnable != null)
-            {
-                EditorGUILayout.PropertyField(playOnEnable);
-            }
 
             if (playStyle != null)
             {

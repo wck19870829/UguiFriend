@@ -21,5 +21,17 @@ namespace RedScarf.UguiFriend
 
             return value;
         }
+
+        public Space Space
+        {
+            get
+            {
+                return m_Sapce;
+            }
+            set
+            {
+                m_Sapce = value;
+            }
+        }
     }
 }

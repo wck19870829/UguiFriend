@@ -12,7 +12,6 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public abstract class UguiTween: UIBehaviour
     {
-        [SerializeField] protected bool playOnEnable=true;
         [SerializeField] protected PlayStyle m_PlayStyle;
         [SerializeField] protected AnimationCurve m_AnimationCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
         [SerializeField] protected float m_Duration=0.2f;
@@ -21,14 +20,6 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected float m_Progress;
 
         public Action<UguiTween> OnStepFinished;
-
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-
-            if (playOnEnable)
-                Play(Direction.Forward, 0, m_Duration);
-        }
 
         protected virtual void Update()
         {
@@ -90,7 +81,7 @@ namespace RedScarf.UguiFriend
         /// </summary>
         /// <param name="direction">播放方向</param>
         /// <param name="progress">进度值范围:(0f-1f),其他值不改变当前值</param>
-        /// <param name="duration">持续时间,小于0不改变当前值</param>
+        /// <param name="duration">持续时间,小于0使用面板中的值</param>
         public virtual void Play(Direction direction,float progress=-1,float duration=-1)
         {
             if (progress >= 0 && progress <= 1)
@@ -133,6 +124,10 @@ namespace RedScarf.UguiFriend
             get
             {
                 return m_Duration;
+            }
+            set
+            {
+                m_Duration = value;
             }
         }
 
@@ -191,11 +186,6 @@ namespace RedScarf.UguiFriend
             Loop,
             PingPong
         }
-
-        public abstract class PropDrive
-        {
-            public AnimationCurve animationCurve;
-        }
     }
 
     /// <summary>
@@ -236,11 +226,22 @@ namespace RedScarf.UguiFriend
         /// <param name="to"></param>
         /// <param name="direction"></param>
         /// <param name="progress"></param>
-        public virtual void Play(TValue from,TValue to,Direction direction, float progress = -1,float duration=-1)
+        /// <param name="duration"></param>
+        public virtual void Play(TValue from, TValue to, Direction direction, float progress,float duration)
         {
             m_From = from;
             m_To = to;
-            Play(direction, progress,duration);
+            Play(direction, progress, duration);
+        }
+
+        /// <summary>
+        /// 播放
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        public virtual void Play(TValue from, TValue to)
+        {
+            Play(from, to, m_Direction, 0, m_Duration);
         }
 
         /// <summary>

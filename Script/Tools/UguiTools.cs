@@ -293,6 +293,23 @@ namespace RedScarf.UguiFriend
         #region 其他
 
         /// <summary>
+        /// 优先查找组件,查找不到添加新的组件
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="go"></param>
+        /// <returns></returns>
+        public static T GetOrAddComponent<T>(GameObject go)where T:Component
+        {
+            var component=go.GetComponent<T>();
+            if (!component)
+            {
+                component = go.AddComponent<T>();
+            }
+
+            return component;
+        }
+
+        /// <summary>
         /// 查找子类
         /// </summary>
         /// <param name="baseType">父类</param>
