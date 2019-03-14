@@ -79,7 +79,7 @@ namespace RedScarf.UguiFriend
 
         protected override void Awake()
         {
-            var simulation=UguiMultPointSimulation.Instance;
+            //var simulation=UguiMultPointSimulation.Instance;
 
             base.Awake();
 
@@ -105,6 +105,10 @@ namespace RedScarf.UguiFriend
             var maskDrag = UguiTools.GetOrAddComponent<UguiDragObject>(maskImage.gameObject);
             maskDrag.OnEndDragEvent += LimitSrcImage;
             maskDrag.target = srcImage.transform;
+            var maskRotate = UguiTools.GetOrAddComponent<UguiRotateObject>(maskImage.gameObject);
+            maskRotate.Target = srcImage.transform;
+            var maskZoom = UguiTools.GetOrAddComponent<UguiZoomObject>(maskImage.gameObject);
+            maskZoom.Target = srcImage.transform;
 
             //创建安全框等分线
             for (var i = 0; i < bisectrixColumn; i++)

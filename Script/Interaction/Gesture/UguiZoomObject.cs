@@ -23,12 +23,15 @@ namespace RedScarf.UguiFriend
                 var dir = pointer.position -screenPos;
                 var normal = dir.normalized;
                 var project = Vector3.Project(pointer.delta, normal);
-                scaleDelta += Mathf.Sign(Vector2.Dot(project, dir))
-                            * project.magnitude/Vector2.Distance(pointer.position,screenPos);
+                var deltaDist = project.magnitude;
+                var prevFramePos = pointer.position - pointer.delta;
+                var prevFrameDist = Vector2.Distance(prevFramePos, screenPos);
+                var dist= prevFrameDist + Mathf.Sign(Vector2.Dot(project, dir)) * deltaDist;
+                scaleDelta += dist/ prevFrameDist;
             }
 
             scaleDelta /= pointerList.Count;
-            m_Target.localScale *= (1+scaleDelta);
+            m_Target.localScale *= scaleDelta;
         }
     }
 }

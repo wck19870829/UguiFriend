@@ -8,7 +8,9 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 长按
     /// </summary>
-    public class UguiLongPress : UIBehaviour, IPointerDownHandler, IPointerUpHandler
+    public class UguiLongPress : UIBehaviour, 
+        IPointerDownHandler, 
+        IPointerUpHandler
     {
         [SerializeField] protected AnimationCurve m_RateCurve;
         protected float startTime = 0.2f;

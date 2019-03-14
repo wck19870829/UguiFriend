@@ -8,7 +8,8 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 双击物体
     /// </summary>
-    public class UguiDoubleTapObject : UIBehaviour, IPointerClickHandler
+    public class UguiDoubleTapObject : UIBehaviour, 
+        IPointerClickHandler
     {
         public Action<PointerEventData> OnDoubleTapEvent;
 

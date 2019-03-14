@@ -198,6 +198,24 @@ namespace RedScarf.UguiFriend
             return outDir;
         }
 
+        #region Vector
+
+        /// <summary>
+        /// 获取带符号的角度
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <returns></returns>
+        public static float VectorSignedAngle(Vector2 from,Vector2 to)
+        {
+            var angle = Vector2.Angle(from, to);
+            float sign = Mathf.Sign(from.x * to.y - from.y * to.x);
+
+            return angle*sign;
+        }
+
+        #endregion
+
         #region RectTransform
 
         /// <summary>

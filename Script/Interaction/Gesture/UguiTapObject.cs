@@ -8,7 +8,8 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 点击物体
     /// </summary>
-    public class UguiTapObject : UIBehaviour, IPointerClickHandler
+    public class UguiTapObject : UIBehaviour, 
+        IPointerClickHandler
     {
         public Action<PointerEventData> OnTapEvent;
 
