@@ -13,18 +13,22 @@ namespace RedScarf.UguiFriend
     {
         protected override void DoChange()
         {
-            ////缩小为-,放大为+
-            //var prevDist = 0f;
-            //var currentDist = 0f;
-            //foreach (var item in worldPointInfoList)
-            //{
-            //    prevDist += Vector3.Distance(item.prev, worldCenter);
-            //    currentDist += Vector3.Distance(item.current, worldCenter);
-            //}
-            //prevDist /= worldPointInfoList.Count;
-            //prevDist = Mathf.Clamp(prevDist, 0.00001f, prevDist);
-            //currentDist /= worldPointInfoList.Count;
-            //transform.localScale *= currentDist / prevDist;
+            if (pointerList.Count <= 1) return;
+
+            var cam = pointerList[0].enterEventCamera;
+            var screenPos = RectTransformUtility.WorldToScreenPoint(cam, m_Target.position);
+            var scaleDelta = 0f;
+            foreach (var pointer in pointerList)
+            {
+                var dir = pointer.position -screenPos;
+                var normal = dir.normalized;
+                var project = Vector3.Project(pointer.delta, normal);
+                scaleDelta += Mathf.Sign(Vector2.Dot(project, dir))
+                            * project.magnitude/Vector2.Distance(pointer.position,screenPos);
+            }
+
+            scaleDelta /= pointerList.Count;
+            m_Target.localScale *= (1+scaleDelta);
         }
     }
 }

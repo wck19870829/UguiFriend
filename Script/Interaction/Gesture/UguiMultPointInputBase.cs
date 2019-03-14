@@ -14,16 +14,13 @@ namespace RedScarf.UguiFriend
         IPointerUpHandler,
         IDragHandler
     {
-        public Vector2 pivot;
-
+        protected Canvas m_canvas;
         protected Transform m_Target;
-        protected Dictionary<int, PointerEventData> pointerDataDict;
         protected List<PointerEventData> pointerList;
         protected bool isDirty;
 
         protected UguiMultPointInputBase()
         {
-            pointerDataDict = new Dictionary<int, PointerEventData>();
             pointerList = new List<PointerEventData>();
         }
 
@@ -33,6 +30,7 @@ namespace RedScarf.UguiFriend
 
             if (m_Target == null)
                 m_Target = transform;
+            m_canvas = GetComponentInParent<Canvas>();
         }
 
         protected virtual void Update()
@@ -40,11 +38,13 @@ namespace RedScarf.UguiFriend
             //UguiMathf.SetPivot(m_Target as RectTransform, pivot);
             if (isDirty)
             {
+                if (pointerList.Count>0)
+                {
+                    //UguiMathf.SetPivot(m_Target as RectTransform, pointerList);
+                    DoChange();
 
-                UguiMathf.SetPivot(m_Target as RectTransform, pointerList);
-                DoChange();
-
-                isDirty = false;
+                    isDirty = false;
+                }
             }
         }
 
@@ -57,15 +57,12 @@ namespace RedScarf.UguiFriend
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (!pointerDataDict.ContainsKey(eventData.pointerId))
-                pointerDataDict.Add(eventData.pointerId,eventData);
             if (pointerList.IndexOf(eventData) < 0)
                 pointerList.Add(eventData);
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
-            pointerDataDict.Remove(eventData.pointerId);
             pointerList.Remove(eventData);
         }
 
