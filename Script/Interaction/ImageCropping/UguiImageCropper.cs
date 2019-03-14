@@ -16,8 +16,6 @@ namespace RedScarf.UguiFriend
         protected const int defaultSafeFrameMinWidth = 100;                 //默认最小宽高
         protected const int defaultSafeFrameMinHeight = 100;
 
-        public RawImage target;
-
         [SerializeField] protected RectTransform imageEditorArea;   //图片编辑区域
         [SerializeField] protected RectTransform srcImageContent;   //待处理图容器
         [SerializeField] protected RawImage srcImage;
@@ -413,7 +411,6 @@ namespace RedScarf.UguiFriend
         protected virtual void OnConfirmButtonClick()
         {
             var destImage = GetDestImage();
-            target.texture = destImage;
             if (OnConfirm != null)
             {
                 OnConfirm.Invoke(destImage);

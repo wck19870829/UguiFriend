@@ -502,16 +502,47 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 设置轴心点(不改变位置)
+        /// 获取屏幕点对应的轴点
         /// </summary>
         /// <param name="target"></param>
-        public static void SetPivot(RectTransform target,params PointerEventData[] datas)
+        /// <param name="screenPos"></param>
+        /// <param name="canvas"></param>
+        /// <returns></returns>
+        public static Vector2 GetPivot(RectTransform target,Vector2 screenPos,Camera camera)
         {
+            var pivot = target.pivot;
+            var localPos = Vector2.zero;
+            if(RectTransformUtility.ScreenPointToLocalPointInRectangle(target,screenPos,camera,out localPos))
+            {
+                var rect = target.rect;
+                pivot = new Vector2((localPos.x-rect.x)/rect.width,(localPos.y-rect.y)/rect.height);
+            }
 
+            return pivot;
         }
 
         /// <summary>
-        /// 设置轴心点(不改变位置)
+        /// 设置轴心点(不改变状态)
+        /// </summary>
+        /// <param name="target"></param>
+        public static void SetPivot(RectTransform target,List<PointerEventData> dataList)
+        {
+            if (dataList == null || dataList.Count == 0) return;
+
+            //获取屏幕中心点
+            var points = new Vector2[dataList.Count];
+            for (var i=0;i<dataList.Count;i++)
+            {
+                points[i] = dataList[i].position;
+            }
+            var rect = GetRect(points);
+            var pivot = GetPivot(target,rect.center,dataList[0].enterEventCamera);
+
+            SetPivot(target, pivot);
+        }
+
+        /// <summary>
+        /// 设置轴心点(不改变状态)
         /// </summary>
         /// <param name="target"></param>
         /// <param name="pivot"></param>
@@ -522,7 +553,7 @@ namespace RedScarf.UguiFriend
         }
 
         /// <summary>
-        /// 设置轴心点(不改变位置)
+        /// 设置轴心点(不改变状态)
         /// </summary>
         /// <param name="target"></param>
         /// <param name="pivot"></param>
@@ -530,13 +561,12 @@ namespace RedScarf.UguiFriend
         {
             if (!target) return;
 
-            Vector3 deltaPosition = target.pivot - pivot;
-            deltaPosition.Scale(target.rect.size);
-            deltaPosition.Scale(target.localScale);
-            deltaPosition = target.localRotation * deltaPosition;
+            var offset=pivot - target.pivot;
+            offset.Scale(target.rect.size);
+            var wordlPos= target.position + target.TransformVector(offset);
 
             target.pivot = pivot;
-            target.localPosition -= deltaPosition;
+            target.position = wordlPos;
         }
 
         /// <summary>

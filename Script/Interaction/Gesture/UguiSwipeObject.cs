@@ -1,15 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class UguiSwipeObject : MonoBehaviour {
+namespace RedScarf.UguiFriend
+{
+    [DisallowMultipleComponent]
+    /// <summary>
+    /// 轻扫物体
+    /// </summary>
+    public class UguiSwipeObject : UguiMultPointInputBase
+    {
+        protected override void DoChange()
+        {
 
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+        }
+    }
 }

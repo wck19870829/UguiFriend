@@ -13,10 +13,17 @@ namespace RedScarf.UguiFriend
         IUguiSingletonCreate<UguiMultPointSimulation>
     {
         UguiMultPointSimulationRaycaster raycaster;
+        UguiMultPointSimulationInputModule inputModule;
 
         public void OnSingletonCreate(UguiMultPointSimulation instance)
         {
             raycaster = gameObject.AddComponent<UguiMultPointSimulationRaycaster>();
+            if (EventSystem.current)
+            {
+                Destroy(EventSystem.current.gameObject);
+            }
+            inputModule = gameObject.AddComponent<UguiMultPointSimulationInputModule>();
+            name = "[EventSystem_MultPointSimulation]";
         }
     }
 }
