@@ -29,9 +29,14 @@ namespace RedScarf.UguiFriend
                 var dist= prevFrameDist + Mathf.Sign(Vector2.Dot(project, dir)) * deltaDist;
                 scaleDelta += dist/ prevFrameDist;
             }
-
             scaleDelta /= pointerList.Count;
-            m_Target.localScale *= scaleDelta;
+
+            var ray = RectTransformUtility.ScreenPointToRay(cam, screenPos);
+            var plane = new Plane(ray.direction.normalized, m_Target.position);
+            float enter;
+            plane.Raycast(ray, out enter);
+            var worldPos = ray.GetPoint(enter);
+
         }
     }
 }

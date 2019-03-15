@@ -15,8 +15,6 @@ namespace RedScarf.UguiFriend
         {
             if (pointerList.Count <= 1) return;
 
-            var cam = pointerList[0].enterEventCamera;
-            var screenPos = RectTransformUtility.WorldToScreenPoint(cam, m_Target.position);
             var rotationDelta = 0f;
             foreach (var pointer in pointerList)
             {
@@ -25,9 +23,14 @@ namespace RedScarf.UguiFriend
                 var dir = pointer.position - screenPos;
                 rotationDelta += UguiMathf.VectorSignedAngle(prevFrameDir, dir);
             }
-
             rotationDelta /= pointerList.Count;
-            m_Target.localRotation *= Quaternion.Euler(0, 0, rotationDelta);
+
+            var ray = RectTransformUtility.ScreenPointToRay(pointerList[0].enterEventCamera, screenPos);
+            var plane = new Plane(ray.direction.normalized, m_Target.position);
+            float enter;
+            plane.Raycast(ray, out enter);
+            var worldPos = ray.GetPoint(enter);
+            m_Target.RotateAround(worldPos, ray.direction.normalized, rotationDelta);
         }
     }
 }

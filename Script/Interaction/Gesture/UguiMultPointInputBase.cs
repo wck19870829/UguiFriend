@@ -20,6 +20,7 @@ namespace RedScarf.UguiFriend
         protected Transform m_Target;
         protected List<PointerEventData> pointerList;
         protected bool isDirty;
+        protected Vector2 screenPos;
 
         public Action OnBeginDragEvent;
         public Action OnEndDragEvent;
@@ -44,6 +45,11 @@ namespace RedScarf.UguiFriend
             {
                 if (pointerList.Count>0)
                 {
+                    screenPos = pointerList[0].position;
+                    for (var i=1;i<pointerList.Count;i++)
+                    {
+                        screenPos = Vector2.Lerp(screenPos, pointerList[i].position, 0.5f);
+                    }
                     DoChange();
 
                     isDirty = false;

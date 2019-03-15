@@ -9,7 +9,7 @@ namespace RedScarf.UguiFriend
 {
     [RequireComponent(typeof(Text))]
     /// <summary>
-    /// 打字机
+    /// 打字机效果
     /// </summary>
     public class UguiTypewriterEffect : MonoBehaviour
     {
