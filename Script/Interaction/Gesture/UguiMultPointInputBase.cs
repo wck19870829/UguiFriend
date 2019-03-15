@@ -12,12 +12,17 @@ namespace RedScarf.UguiFriend
     public abstract class UguiMultPointInputBase : UIBehaviour,
         IPointerDownHandler,
         IPointerUpHandler,
-        IDragHandler
+        IBeginDragHandler,
+        IDragHandler,
+        IEndDragHandler
     {
         protected Canvas m_canvas;
         protected Transform m_Target;
         protected List<PointerEventData> pointerList;
         protected bool isDirty;
+
+        public Action OnBeginDragEvent;
+        public Action OnEndDragEvent;
 
         protected UguiMultPointInputBase()
         {
@@ -35,22 +40,15 @@ namespace RedScarf.UguiFriend
 
         protected virtual void Update()
         {
-            //UguiMathf.SetPivot(m_Target as RectTransform, pivot);
             if (isDirty)
             {
                 if (pointerList.Count>0)
                 {
-                    //UguiMathf.SetPivot(m_Target as RectTransform, pointerList);
                     DoChange();
 
                     isDirty = false;
                 }
             }
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            isDirty = true;
         }
 
         protected abstract void DoChange();
@@ -66,6 +64,30 @@ namespace RedScarf.UguiFriend
             pointerList.Remove(eventData);
         }
 
+        public virtual void OnDrag(PointerEventData eventData)
+        {
+            isDirty = true;
+        }
+
+        public virtual void OnBeginDrag(PointerEventData eventData)
+        {
+            if (OnBeginDragEvent != null)
+            {
+                OnBeginDragEvent.Invoke();
+            }
+        }
+
+        public virtual void OnEndDrag(PointerEventData eventData)
+        {
+            if (OnEndDragEvent != null)
+            {
+                OnEndDragEvent.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// 控制目标
+        /// </summary>
         public Transform Target
         {
             get

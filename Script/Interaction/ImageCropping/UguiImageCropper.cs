@@ -12,9 +12,11 @@ namespace RedScarf.UguiFriend
     /// </summary>
     public class UguiImageCropper : UIBehaviour
     {
-        protected const int safeFrameDragWidth = 50;                        //拖拽框宽度
+        protected const int safeFrameDragWidth = 100;                       //拖拽框宽度
+        protected const int border = (int)(safeFrameDragWidth * 0.5f);      //到边框的距离
         protected const int defaultSafeFrameMinWidth = 100;                 //默认最小宽高
         protected const int defaultSafeFrameMinHeight = 100;
+        protected const int defaultBisectrixWidth = 2;
 
         [SerializeField] protected RectTransform imageEditorArea;   //图片编辑区域
         [SerializeField] protected RectTransform srcImageContent;   //待处理图容器
@@ -104,7 +106,7 @@ namespace RedScarf.UguiFriend
             srcImageScaleTweener = UguiTools.GetOrAddComponent<UguiTweenScale>(srcImage.gameObject);
             var maskDrag = UguiTools.GetOrAddComponent<UguiDragObject>(maskImage.gameObject);
             maskDrag.OnEndDragEvent += LimitSrcImage;
-            maskDrag.target = srcImage.transform;
+            maskDrag.Target = srcImage.transform;
             var maskRotate = UguiTools.GetOrAddComponent<UguiRotateObject>(maskImage.gameObject);
             maskRotate.Target = srcImage.transform;
             var maskZoom = UguiTools.GetOrAddComponent<UguiZoomObject>(maskImage.gameObject);
@@ -116,7 +118,7 @@ namespace RedScarf.UguiFriend
                 var line = UguiTools.AddChild<RawImage>("Bisectrix", safeFrame.transform);
                 line.color = bisectrixColor;
                 line.raycastTarget = false;
-                line.rectTransform.sizeDelta = Vector2.one;
+                line.rectTransform.sizeDelta = Vector2.one* defaultBisectrixWidth;
                 UguiMathf.SetAnchor(line.rectTransform, AnchorPresets.HorStretchBottom);
                 bisectrixColumnList.Add(line);
             }
@@ -125,7 +127,7 @@ namespace RedScarf.UguiFriend
                 var line = UguiTools.AddChild<RawImage>("Bisectrix", safeFrame.transform);
                 line.color = bisectrixColor;
                 line.raycastTarget = false;
-                line.rectTransform.sizeDelta = Vector2.one;
+                line.rectTransform.sizeDelta = Vector2.one * defaultBisectrixWidth;
                 UguiMathf.SetAnchor(line.rectTransform, AnchorPresets.VertStretchLeft);
                 bisectrixRowList.Add(line);
             }
@@ -283,10 +285,10 @@ namespace RedScarf.UguiFriend
                             safeFrame.rectTransform,
                             ScaleMode.ScaleToFit,
                             aspectRatio,
-                            safeFrameDragWidth,
-                            safeFrameDragWidth,
-                            safeFrameDragWidth,
-                            safeFrameDragWidth);
+                            border,
+                            border,
+                            border,
+                            border);
                 LimitSrcImage();
             }
         }
@@ -300,10 +302,10 @@ namespace RedScarf.UguiFriend
                             safeFrame.rectTransform,
                             ScaleMode.ScaleToFit,
                             aspectRatio,
-                            safeFrameDragWidth,
-                            safeFrameDragWidth,
-                            safeFrameDragWidth,
-                            safeFrameDragWidth);
+                            border,
+                            border,
+                            border,
+                            border);
                 LimitSrcImage();
             }
         }
@@ -317,10 +319,10 @@ namespace RedScarf.UguiFriend
                             safeFrame.rectTransform,
                             ScaleMode.ScaleToFit,
                             aspectRatio,
-                            safeFrameDragWidth,
-                            safeFrameDragWidth,
-                            safeFrameDragWidth,
-                            safeFrameDragWidth);
+                            border,
+                            border,
+                            border,
+                            border);
                 LimitSrcImage();
             }
         }
@@ -334,10 +336,10 @@ namespace RedScarf.UguiFriend
                             safeFrame.rectTransform,
                             ScaleMode.ScaleToFit,
                             aspectRatio,
-                            safeFrameDragWidth,
-                            safeFrameDragWidth,
-                            safeFrameDragWidth,
-                            safeFrameDragWidth);
+                            border,
+                            border,
+                            border,
+                            border);
                 LimitSrcImage();
             }
         }
@@ -351,10 +353,10 @@ namespace RedScarf.UguiFriend
                             safeFrame.rectTransform,
                             ScaleMode.ScaleToFit,
                             aspectRatio,
-                            safeFrameDragWidth,
-                            safeFrameDragWidth,
-                            safeFrameDragWidth,
-                            safeFrameDragWidth);
+                            border,
+                            border,
+                            border,
+                            border);
                 LimitSrcImage();
             }
         }
@@ -400,7 +402,7 @@ namespace RedScarf.UguiFriend
         {
             if (srcImage)
             {
-                srcImage.transform.localScale = new Vector3(value,value,1);
+                srcImage.transform.localScale = new Vector3(value,value, value);
             }
         }
 
@@ -434,6 +436,11 @@ namespace RedScarf.UguiFriend
             RefreshMask();
             RefreshBisectrix();
             LimitSafeFrame();
+            if (srcImage)
+            {
+                scaleSlider.value = srcImage.transform.localScale.x;
+                rotationSlider.value = srcImage.transform.localEulerAngles.z;
+            }
         }
 
         /// <summary>
@@ -475,11 +482,11 @@ namespace RedScarf.UguiFriend
             if (safeFrame)
             {
                 UguiMathf.LimitRectTransform(
-                    safeFrame.rectTransform, 
-                    safeFrameDragWidth,
-                    safeFrameDragWidth,
-                    safeFrameDragWidth, 
-                    safeFrameDragWidth);
+                    safeFrame.rectTransform,
+                    border,
+                    border,
+                    border,
+                    border);
             }
         }
 
