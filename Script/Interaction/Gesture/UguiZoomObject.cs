@@ -36,7 +36,7 @@ namespace RedScarf.UguiFriend
             float enter;
             plane.Raycast(ray, out enter);
             var worldPos = ray.GetPoint(enter);
-
+            UguiMathf.TransformScale(m_Target, worldPos, scaleDelta);
         }
     }
 }

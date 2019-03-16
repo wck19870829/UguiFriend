@@ -198,6 +198,30 @@ namespace RedScarf.UguiFriend
             return outDir;
         }
 
+        #region PointerData
+
+        /// <summary>
+        /// 获取屏幕坐标下中心点
+        /// </summary>
+        /// <param name="dataList"></param>
+        /// <returns></returns>
+        public static Vector2? GetScreenPos(List<PointerEventData> pointerList)
+        {
+            if (pointerList != null|| pointerList.Count>0)
+            {
+                var screenPos = pointerList[0].position;
+                for (var i = 1; i < pointerList.Count; i++)
+                {
+                    screenPos = Vector2.Lerp(screenPos, pointerList[i].position, 0.5f);
+                }
+                return screenPos;
+            }
+
+            return null;
+        }
+
+        #endregion
+
         #region Vector
 
         /// <summary>
@@ -212,6 +236,23 @@ namespace RedScarf.UguiFriend
             float sign = Mathf.Sign(from.x * to.y - from.y * to.x);
 
             return angle*sign;
+        }
+
+        #endregion
+
+        #region Transform
+
+        /// <summary>
+        /// 相对于世界中心点的缩放
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="worldCenter"></param>
+        /// <param name="scaleOffset"></param>
+        public static void TransformScale(Transform target,Vector3 worldCenter,float scaleOffset)
+        {
+            if (!target) return;
+
+            var localPoint=target.InverseTransformPoint(worldCenter);
         }
 
         #endregion

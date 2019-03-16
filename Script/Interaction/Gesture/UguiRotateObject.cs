@@ -15,22 +15,27 @@ namespace RedScarf.UguiFriend
         {
             if (pointerList.Count <= 1) return;
 
-            var rotationDelta = 0f;
-            foreach (var pointer in pointerList)
-            {
-                var prevFramePos= pointer.position - pointer.delta;
-                var prevFrameDir = prevFramePos - screenPos;
-                var dir = pointer.position - screenPos;
-                rotationDelta += UguiMathf.VectorSignedAngle(prevFrameDir, dir);
-            }
-            rotationDelta /= pointerList.Count;
+            //点集合按照移动距离从小到大排序,取移动距离最小的点和最大的点作为参考点计算偏移
+            pointerList.Sort((a,b)=> {
+                if (a.delta.sqrMagnitude == b.delta.sqrMagnitude) return 0;
+                return a.delta.sqrMagnitude > b.delta.sqrMagnitude ? 1 : -1;
+            });
+            var min = pointerList[0];
+            var max = pointerList[pointerList.Count - 1];
+            var minPrevPoint = min.position - min.delta;
+            var maxPrevPoint = max.position - max.delta;
+            var prevDir = maxPrevPoint - minPrevPoint;
+            var dir = max.position - min.position;
+            var sum = min.delta.sqrMagnitude + max.delta.sqrMagnitude;
+            if (sum == 0) return;
+            var center = minPrevPoint + prevDir * (min.delta.sqrMagnitude / sum);
 
-            var ray = RectTransformUtility.ScreenPointToRay(pointerList[0].enterEventCamera, screenPos);
+            var ray = RectTransformUtility.ScreenPointToRay(pointerList[0].enterEventCamera, center);
             var plane = new Plane(ray.direction.normalized, m_Target.position);
             float enter;
             plane.Raycast(ray, out enter);
             var worldPos = ray.GetPoint(enter);
-            m_Target.RotateAround(worldPos, ray.direction.normalized, rotationDelta);
+            m_Target.RotateAround(worldPos, ray.direction.normalized, UguiMathf.VectorSignedAngle(prevDir,dir));
         }
     }
 }
