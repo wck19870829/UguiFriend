@@ -117,6 +117,40 @@ namespace RedScarf.UguiFriend
         /// </summary>
         /// <param name="points"></param>
         /// <returns></returns>
+        public static Vector2 GetCenter(List<PointerEventData>points)
+        {
+            if (points == null)
+                throw new Exception("Points is null.");
+            if (points.Count == 0)
+                throw new Exception("Points'count is zero.");
+
+            if (points.Count == 1)
+                return points[0].position;
+
+            var xMin = points[0].position.x;
+            var xMax = xMin;
+            var yMin = points[0].position.y;
+            var yMax = yMin;
+            foreach (var point in points)
+            {
+                xMin = Mathf.Min(xMin, point.position.x);
+                xMax = Mathf.Max(xMax, point.position.x);
+                yMin = Mathf.Min(yMin, point.position.y);
+                yMax = Mathf.Max(yMax, point.position.y);
+            }
+
+            var center = new Vector2(
+                        Mathf.Lerp(xMin, xMax, 0.5f),
+                        Mathf.Lerp(yMin, yMax, 0.5f)
+                        );
+            return center;
+        }
+
+        /// <summary>
+        /// 获取中心点
+        /// </summary>
+        /// <param name="points"></param>
+        /// <returns></returns>
         public static Vector2 GetCenter(List<Vector2>points)
         {
             if (points == null)
@@ -252,7 +286,9 @@ namespace RedScarf.UguiFriend
         {
             if (!target) return;
 
-            var localPoint=target.InverseTransformPoint(worldCenter);
+            var localPoint=target.parent.InverseTransformPoint(worldCenter);
+            target.Translate(target.transform.localPosition - localPoint, Space.Self);
+            target.localScale *= scaleOffset;
         }
 
         #endregion
