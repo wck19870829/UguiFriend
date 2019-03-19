@@ -32,7 +32,7 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected Color bisectrixColor;            //安全框等分线颜色
         [SerializeField] protected int safeFrameMinWidth;                       //最小宽高
         [SerializeField] protected int safeFrameMinHeight;
-        [SerializeField] UguiPivot activeDragPivot;                 //激活的拖拽区域
+        [SerializeField] UguiPivotSet activeDragPivotSet;                 //激活的拖拽区域
 
         [Header("Step")]
         [SerializeField] protected Button scaleStepButton;          //调整缩放步骤按钮
@@ -84,14 +84,17 @@ namespace RedScarf.UguiFriend
             bisectrixRowList = new List<RawImage>();
             safeFrameDragList = new List<EventTrigger>();
             dragButtonList = new List<UguiDragResize>();
-            activeDragPivot = UguiPivot.Bottom
-                            | UguiPivot.BottomLeft
-                            | UguiPivot.BottomRight
-                            | UguiPivot.Left
-                            | UguiPivot.Right
-                            | UguiPivot.Top
-                            | UguiPivot.TopLeft
-                            | UguiPivot.TopRight;
+            activeDragPivotSet = new UguiPivotSet
+            {
+                UguiPivot.Bottom,
+                UguiPivot.BottomLeft,
+                UguiPivot.BottomRight,
+                UguiPivot.Left,
+                UguiPivot.Right,
+                UguiPivot.Top,
+                UguiPivot.TopLeft,
+                UguiPivot.TopRight
+            };
         }
 
         protected override void Awake()
@@ -272,7 +275,7 @@ namespace RedScarf.UguiFriend
             foreach (var dragButton in dragButtonList)
             {
                 dragButton.name = "Drag_" + dragButton.Pivot;
-                var dragButtonActive = (activeDragPivot&dragButton.Pivot)>0 ? true : false;
+                var dragButtonActive = activeDragPivotSet.Contains(dragButton.Pivot);
                 dragButton.gameObject.SetActive(dragButtonActive);
             }
         }
