@@ -281,14 +281,24 @@ namespace RedScarf.UguiFriend
         /// </summary>
         /// <param name="target"></param>
         /// <param name="worldCenter"></param>
-        /// <param name="scaleOffset"></param>
-        public static void TransformScale(Transform target,Vector3 worldCenter,float scaleOffset)
+        /// <param name="newScale"></param>
+        public static void TransformScaleAround(Transform target,Vector3 worldCenter,Vector3 newScale)
         {
             if (!target) return;
 
-            var localPoint=target.parent.InverseTransformPoint(worldCenter);
-            target.Translate(target.transform.localPosition - localPoint, Space.Self);
-            target.localScale *= scaleOffset;
+            var pivot = target.parent.InverseTransformPoint(worldCenter);
+            Vector3 A = target.transform.localPosition;
+            Vector3 B = pivot;
+            Vector3 C = A - B; // diff from object pivot to desired pivot/origin
+
+            float RS = newScale.x / target.transform.localScale.x; // relataive scale factor
+
+            // calc final position post-scale
+            Vector3 FP = B + C * RS;
+
+            // finally, actually perform the scale/translation
+            target.transform.localScale = newScale;
+            target.transform.localPosition = FP;
         }
 
         #endregion

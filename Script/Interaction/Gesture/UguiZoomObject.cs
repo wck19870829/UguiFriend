@@ -25,8 +25,9 @@ namespace RedScarf.UguiFriend
                 var deltaDist = project.magnitude;
                 var prevFramePos = pointer.position - pointer.delta;
                 var prevFrameDist = Vector2.Distance(prevFramePos, center);
-                var dist= prevFrameDist + Mathf.Sign(Vector2.Dot(project, dir)) * deltaDist;
-                scaleDelta += dist/ prevFrameDist;
+                var scaleSign = Mathf.Sign(Vector2.Dot(project, dir));
+                var dist= prevFrameDist + scaleSign * deltaDist;
+                scaleDelta += deltaDist*scaleSign/dist;
             }
             scaleDelta /= pointerList.Count;
 
@@ -35,7 +36,8 @@ namespace RedScarf.UguiFriend
             float enter;
             plane.Raycast(ray, out enter);
             var worldPos = ray.GetPoint(enter);
-            UguiMathf.TransformScale(m_Target, worldPos, scaleDelta);
+            var newScale = m_Target.localScale.x + scaleDelta;
+            UguiMathf.TransformScaleAround(m_Target, worldPos, new Vector3(newScale,newScale,newScale));
         }
     }
 }

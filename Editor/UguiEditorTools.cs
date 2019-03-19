@@ -19,6 +19,7 @@ namespace RedScarf.UguiFriend
         public const int defaultLabelWidth = 120;
         public static readonly string pluginsPath;
         public static readonly string resPath;
+        static readonly string texPath;
         public static readonly string configPath;
 
         static UguiEditorTools()
@@ -31,6 +32,7 @@ namespace RedScarf.UguiFriend
                 {
                     pluginsPath = "Assets"+newDir.Replace(Application.dataPath, "")+"/";
                     resPath = pluginsPath + "EditorResources/";
+                    texPath = resPath + "Texture/";
                     configPath = resPath + "Config/";
                     break;
                 }
@@ -72,15 +74,12 @@ namespace RedScarf.UguiFriend
             return config;
         }
 
-        /// <summary>
-        /// 获取游戏视图框
-        /// </summary>
-        /// <returns></returns>
-        public static void GetGameViewRect(out int width, out int height)
+        public static Texture2D LoadTex(string name)
         {
-            var screenSize = UnityStats.screenRes.Split('×');
-            width = int.Parse(screenSize[0]);
-            height = int.Parse(screenSize[1]);
+            var path = texPath + name+".png";
+            var tex=AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+
+            return tex;
         }
 
         static Vector2 startPoint;

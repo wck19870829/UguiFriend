@@ -23,8 +23,6 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected RawImage srcImage;
         [SerializeField] protected Image safeFrame;                 //安全框
         [SerializeField] protected RawImage maskImage;              //遮罩
-        [SerializeField] protected Slider scaleSlider;              //缩放滑块
-        [SerializeField] protected Slider rotationSlider;           //旋转滑块
         [SerializeField] protected Button confirmButton;            //确认按钮
         [SerializeField] protected Button cancelButton;             //取消按钮
         [SerializeField] protected Color maskColor;                 //遮罩颜色
@@ -34,6 +32,7 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected Color bisectrixColor;            //安全框等分线颜色
         [SerializeField] protected int safeFrameMinWidth;                       //最小宽高
         [SerializeField] protected int safeFrameMinHeight;
+        [SerializeField] UguiPivot activeDragPivot;                 //激活的拖拽区域
 
         [Header("Step")]
         [SerializeField] protected Button scaleStepButton;          //调整缩放步骤按钮
@@ -53,6 +52,12 @@ namespace RedScarf.UguiFriend
         [Header("Rotate")]
         [SerializeField] protected Button rotate90Button;
         [SerializeField] protected Button cancelRotateButton;
+        [SerializeField] protected Text rotationText;
+        [SerializeField] protected Slider rotationSlider;           //旋转滑块
+
+        [Header("Scale")]
+        [SerializeField] protected Text scaleText;
+        [SerializeField] protected Slider scaleSlider;              //缩放滑块
 
         protected Texture2D screenShot;
         protected List<RawImage> bisectrixColumnList;
@@ -63,6 +68,7 @@ namespace RedScarf.UguiFriend
         protected Vector2 srcImageOffset;
         protected UguiTweenPosition srcImagePostionTweener;
         protected UguiTweenScale srcImageScaleTweener;
+        protected List<UguiDragResize> dragButtonList;
 
         public Action<Texture2D> OnConfirm;             //确认按钮按下事件
         public Action OnCancel;                         //取消按钮按下事件
@@ -77,12 +83,19 @@ namespace RedScarf.UguiFriend
             bisectrixColumnList = new List<RawImage>();
             bisectrixRowList = new List<RawImage>();
             safeFrameDragList = new List<EventTrigger>();
+            dragButtonList = new List<UguiDragResize>();
+            activeDragPivot = UguiPivot.Bottom
+                            | UguiPivot.BottomLeft
+                            | UguiPivot.BottomRight
+                            | UguiPivot.Left
+                            | UguiPivot.Right
+                            | UguiPivot.Top
+                            | UguiPivot.TopLeft
+                            | UguiPivot.TopRight;
         }
 
         protected override void Awake()
         {
-            //var simulation=UguiMultPointSimulation.Instance;
-
             base.Awake();
 
             safeFrame.type = Image.Type.Sliced;
@@ -208,7 +221,6 @@ namespace RedScarf.UguiFriend
         /// </summary>
         protected virtual void CreateSafeFrameDragArea()
         {
-            var dragButtonList = new List<UguiDragResize>();
             for (var i = 0; i < 8; i++)
             {
                 var dragButtonImage = UguiTools.AddChild<RawImage>("", safeFrame.transform);
@@ -260,6 +272,8 @@ namespace RedScarf.UguiFriend
             foreach (var dragButton in dragButtonList)
             {
                 dragButton.name = "Drag_" + dragButton.Pivot;
+                var dragButtonActive = (activeDragPivot&dragButton.Pivot)>0 ? true : false;
+                dragButton.gameObject.SetActive(dragButtonActive);
             }
         }
 
@@ -436,11 +450,49 @@ namespace RedScarf.UguiFriend
             RefreshMask();
             RefreshBisectrix();
             LimitSafeFrame();
+            RefreshScaleStep();
+            RefreshRotateStep();
+            RefreshCropStep();
+        }
+
+        protected virtual void RefreshScaleStep()
+        {
             if (srcImage)
             {
                 scaleSlider.value = srcImage.transform.localScale.x;
-                rotationSlider.value = srcImage.transform.localEulerAngles.z;
+                scaleText.text = Mathf.RoundToInt(srcImage.transform.localScale.x*100)+"%";
             }
+        }
+
+        /// <summary>
+        /// 设置拖拽按钮状态
+        /// </summary>
+        /// <param name="dragPivot"></param>
+        /// <param name="active"></param>
+        public virtual void SetDragState(UguiPivot dragPivot,bool active)
+        {
+            var dragButton=dragButtonList.Find(
+                (x) => {
+                    return x.Pivot == dragPivot;
+                });
+            if (!dragButton) return;
+
+            dragButton.gameObject.SetActive(active);
+        }
+
+        protected virtual void RefreshRotateStep()
+        {
+            if (srcImage)
+            {
+                var angle = srcImage.transform.localEulerAngles.z%360;
+                rotationSlider.value = angle;
+                rotationText.text = UguiMathf.VectorSignedAngle(Vector2.up,UguiMathf.Rotation(Vector2.up,angle)).ToString("0.0") + "°";
+            }
+        }
+
+        protected virtual void RefreshCropStep()
+        {
+
         }
 
         /// <summary>
@@ -477,6 +529,9 @@ namespace RedScarf.UguiFriend
             srcImageScaleTweener.Play(srcImage.rectTransform.localScale, localScale);
         }
 
+        /// <summary>
+        /// 限制安全框
+        /// </summary>
         protected virtual void LimitSafeFrame()
         {
             if (safeFrame)
