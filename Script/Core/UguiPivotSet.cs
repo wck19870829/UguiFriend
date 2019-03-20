@@ -8,19 +8,8 @@ namespace RedScarf.UguiFriend
     /// <summary>
     /// 轴心点集合
     /// </summary>
-    public class UguiPivotSet:List<UguiPivot>
+    public class UguiPivotSet:SerializableHashSet<UguiPivot>
     {
-        public void TryAdd(UguiPivot pivot)
-        {
-            if (IndexOf(pivot) >= 0)
-                return;
 
-            Add(pivot);
-        }
-
-        public bool TryRemove(UguiPivot pivot)
-        {
-            return Remove(pivot);
-        }
     }
 }

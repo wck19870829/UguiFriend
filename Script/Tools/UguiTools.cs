@@ -290,6 +290,26 @@ namespace RedScarf.UguiFriend
             trigger.triggers.Add(entry);
         }
 
+        /// <summary>
+        /// 获取有效相机
+        /// </summary>
+        /// <param name="canvas"></param>
+        /// <returns></returns>
+        public static Camera GetValidCamera(Canvas canvas)
+        {
+            if (!canvas)
+                throw new Exception("Canvas is null.");
+
+            switch (canvas.rootCanvas.renderMode)
+            {
+                case RenderMode.WorldSpace:
+                case RenderMode.ScreenSpaceCamera:
+                    return canvas.rootCanvas.worldCamera;
+            }
+
+            return null;
+        }
+
         #region 其他
 
         /// <summary>

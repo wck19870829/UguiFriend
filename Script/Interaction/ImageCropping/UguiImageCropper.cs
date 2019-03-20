@@ -30,9 +30,9 @@ namespace RedScarf.UguiFriend
         [SerializeField] protected int bisectrixColumn = 2;         //安全框等分线行列数量
         [SerializeField] protected int bisectrixRow = 2;
         [SerializeField] protected Color bisectrixColor;            //安全框等分线颜色
-        [SerializeField] protected int safeFrameMinWidth;                       //最小宽高
+        [SerializeField] protected int safeFrameMinWidth;           //最小宽高
         [SerializeField] protected int safeFrameMinHeight;
-        [SerializeField] UguiPivotSet activeDragPivotSet;                 //激活的拖拽区域
+        [SerializeField] UguiPivotSet activeDragPivotSet;           //激活的拖拽区域
 
         [Header("Step")]
         [SerializeField] protected Button scaleStepButton;          //调整缩放步骤按钮
@@ -419,7 +419,16 @@ namespace RedScarf.UguiFriend
         {
             if (srcImage)
             {
-                srcImage.transform.localScale = new Vector3(value,value, value);
+                //var cam = UguiTools.GetValidCamera(m_Canvas);
+                //var screenPos = RectTransformUtility.WorldToScreenPoint(cam,safeFrame.transform.position);
+                //var ray = RectTransformUtility.ScreenPointToRay(cam, center);
+                //var plane = new Plane(ray.direction.normalized, srcImage.transform.position);
+                //float enter;
+                //plane.Raycast(ray, out enter);
+                //var worldPos = ray.GetPoint(enter);
+                //var newScale = m_Target.localScale.x + scaleDelta;
+                //UguiMathf.TransformScaleAround(m_Target, worldPos, new Vector3(newScale, newScale, newScale));
+                ////srcImage.transform.localScale = new Vector3(value,value, value);
             }
         }
 
@@ -427,7 +436,7 @@ namespace RedScarf.UguiFriend
         {
             if (srcImage)
             {
-                srcImage.transform.localEulerAngles = new Vector3(0,0,value);
+                //srcImage.transform.localEulerAngles = new Vector3(0,0,value);
             }
         }
 

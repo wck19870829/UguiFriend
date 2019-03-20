@@ -320,8 +320,8 @@ namespace RedScarf.UguiFriend
             Camera cam = null;
             if (canvas.rootCanvas.worldCamera != null)
             {
-                if (canvas.rootCanvas.renderMode == RenderMode.ScreenSpaceCamera ||
-                    canvas.rootCanvas.renderMode == RenderMode.WorldSpace)
+                if (canvas.rootCanvas.renderMode == RenderMode.ScreenSpaceCamera
+                    ||canvas.rootCanvas.renderMode == RenderMode.WorldSpace)
                 {
                     cam = canvas.rootCanvas.worldCamera;
                 }
